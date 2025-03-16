@@ -33,7 +33,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
           backgroundColor: Colors.transparent, // Transparent background
           elevation: 0, // Remove default elevation
           leading: IconButton(
-            icon: const Icon(Icons.menu, color: Colors.yellow), // Menu icon (three bars)
+            icon: const Icon(Icons.menu, color: Color(0xFFFDCC87)), // Menu icon (three bars)
             onPressed: onMenuPressed,
           ),
           title: Image.asset(

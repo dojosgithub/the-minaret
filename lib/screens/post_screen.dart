@@ -124,7 +124,6 @@ class _PostPageState extends State<PostScreen> {
         return AlertDialog(
           backgroundColor: const Color(0xFF3D1B45),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text('Select Type', style: TextStyle(color: Colors.white)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
