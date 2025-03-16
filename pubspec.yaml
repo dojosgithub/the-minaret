@@ -54,6 +54,10 @@ flutter:
   assets:
     - assets/profile_picture.png
     - assets/logo.png
+    - assets/quran.png
+    - assets/tafsir.png
+    - assets/sunnah.png
+    - assets/hadith.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

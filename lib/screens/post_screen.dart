@@ -14,7 +14,9 @@ class _PostPageState extends State<PostScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
-      body: Padding(
+      resizeToAvoidBottomInset: true,
+      body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -26,7 +28,7 @@ class _PostPageState extends State<PostScreen> {
                   padding: const EdgeInsets.all(3),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFFFFE4A7),
+                    color: Color(0xFFFDCC87),
                   ),
                   child: const CircleAvatar(
                     backgroundImage: AssetImage('assets/profile_picture.png'),
@@ -37,40 +39,7 @@ class _PostPageState extends State<PostScreen> {
             ),
             const SizedBox(height: 10),
             GestureDetector(
-              onTap: () {
-                showModalBottomSheet(
-                  context: context,
-                  backgroundColor: const Color(0xFF3D1B45),
-                  builder: (BuildContext context) {
-                    return Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ListTile(
-                          title: const Text('Reporters', style: TextStyle(color: Colors.white)),
-                          onTap: () {
-                            setState(() => selectedType = 'Reporters');
-                            Navigator.pop(context);
-                          },
-                        ),
-                        ListTile(
-                          title: const Text('Islamic Knowledge', style: TextStyle(color: Colors.white)),
-                          onTap: () {
-                            setState(() => selectedType = 'Islamic Knowledge');
-                            Navigator.pop(context);
-                          },
-                        ),
-                        ListTile(
-                          title: const Text('Discussion', style: TextStyle(color: Colors.white)),
-                          onTap: () {
-                            setState(() => selectedType = 'Discussion');
-                            Navigator.pop(context);
-                          },
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
+              onTap: () => _showTypeDialog(context),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                 decoration: BoxDecoration(
@@ -80,7 +49,7 @@ class _PostPageState extends State<PostScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Type', style: TextStyle(color: Colors.yellow)),
+                    Text(selectedType ?? 'Type', style: const TextStyle(color: Color(0xFFFDCC87))),
                     const Icon(Icons.add, color: Colors.white),
                   ],
                 ),
@@ -102,17 +71,17 @@ class _PostPageState extends State<PostScreen> {
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Title of Post',
-                      hintStyle: TextStyle(color: Colors.yellow),
-                    )
+                      hintStyle: TextStyle(color: Color(0xFFFDCC87)),
                     ),
-                  const Divider(color: Colors.yellow),
+                  ),
+                  const Divider(color: Color(0xFFFDCC87)),
                   TextField(
                     maxLines: 5,
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Body Text',
-                      hintStyle: TextStyle(color: Colors.yellow),
+                      hintStyle: TextStyle(color: Color(0xFFFDCC87)),
                     ),
                   ),
                 ],
@@ -146,5 +115,84 @@ class _PostPageState extends State<PostScreen> {
         ),
       ),
     );
+  }
+
+  void _showTypeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text('Select Type', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('Reporters', style: TextStyle(color: Colors.white)),
+                onTap: () => _selectType('Reporters'),
+              ),
+              ListTile(
+                title: const Text('Islamic Knowledge', style: TextStyle(color: Colors.white)),
+                onTap: () => _showIslamicOptions(context),
+              ),
+              ListTile(
+                title: const Text('Discussion', style: TextStyle(color: Colors.white)),
+                onTap: () => _selectType('Discussion'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showIslamicOptions(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+          title: const Text('Islamic Knowledge', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildIslamicOption('assets/quran.png', 'Teaching Quran', 'Teaching Quran'),
+                  _buildIslamicOption('assets/hadith.png', 'Hadith', 'Hadith'),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _buildIslamicOption('assets/tafsir.png', 'Tafsir', 'Tafsir'),
+                  _buildIslamicOption('assets/sunnah.png', 'Sunnah', 'Sunnah'),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildIslamicOption(String iconPath, String label, String type) {
+    return GestureDetector(
+      onTap: () => _selectType(type),
+      child: Column(
+        children: [
+          Image.asset(iconPath, width: 50, height: 50),
+          Text(label, style: const TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
+  void _selectType(String type) {
+    setState(() => selectedType = type);
+    Navigator.pop(context);
   }
 }

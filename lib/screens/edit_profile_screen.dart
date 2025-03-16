@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'change_password_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -18,7 +19,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         title: const Text('Edit Profile', style: TextStyle(color: Colors.white)),
         centerTitle: true,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           children: [
@@ -48,21 +49,27 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             const SizedBox(height: 15),
             _buildDatePicker(),
             const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                // Save profile changes
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.yellow,
-                foregroundColor: Colors.black,
-                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 40),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Save profile changes
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFDCC87),
+                  foregroundColor: Colors.black,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text('Save', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
-              child: const Text('Save'),
             ),
             const SizedBox(height: 10),
             TextButton(
               onPressed: () {
-                // Change password functionality
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ChangePasswordScreen()),
+                );
               },
               child: const Text(
                 'Change Password',
@@ -117,7 +124,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           dropdownColor: const Color(0xFF3A1D47),
-          iconEnabledColor: Colors.yellow,
+          iconEnabledColor: const Color(0xFFFDCC87),
           style: const TextStyle(color: Colors.white),
           hint: Text(hint, style: const TextStyle(color: Colors.grey)),
           items: items.map((String value) {

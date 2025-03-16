@@ -5,7 +5,6 @@ import 'screens/post_screen.dart';
 import 'screens/user_screen.dart';
 import 'screens/search_screen.dart';
 import 'widgets/bottom_nav_bar.dart';
-import 'screens/edit_profile_screen.dart';
 import 'widgets/top_bar.dart';
 
 void main() {

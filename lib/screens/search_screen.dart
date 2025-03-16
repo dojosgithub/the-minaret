@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home_screen.dart'; // Ensure this is the correct import for your home screen.
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -15,8 +16,11 @@ class _SearchPageState extends State<SearchScreen> {
       appBar: AppBar(
         backgroundColor: const Color(0xFF4F245A),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.yellow),
-          onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+          onPressed: () => Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const HomeScreen()),
+          ),
         ),
         title: Padding(
           padding: const EdgeInsets.only(top: 8.0),
@@ -36,7 +40,7 @@ class _SearchPageState extends State<SearchScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.sort, color: Colors.yellow),
+            icon: const Icon(Icons.sort, color: Color(0xFFFDCC87)),
             onPressed: () => showModalBottomSheet(
               context: context,
               backgroundColor: const Color(0xFF3D1B45),
@@ -55,67 +59,16 @@ class _SearchPageState extends State<SearchScreen> {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          ExpansionTile(
-                            title: const Text('Sort by', style: TextStyle(color: Colors.yellow)),
-                            children: [
-                              ListTile(
-                                title: const Text('Date', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'Date'),
-                              ),
-                              ListTile(
-                                title: const Text('Most Relevant', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'Most Relevant'),
-                              ),
-                              ListTile(
-                                title: const Text('Recent', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'Recent'),
-                              ),
-                            ],
-                          ),
-                          ExpansionTile(
-                            title: const Text('Date Posted', style: TextStyle(color: Colors.yellow)),
-                            children: [
-                              ListTile(
-                                title: const Text('Last 24 Hours', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'Last 24 Hours'),
-                              ),
-                              ListTile(
-                                title: const Text('This Week', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'This Week'),
-                              ),
-                              ListTile(
-                                title: const Text('This Month', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'This Month'),
-                              ),
-                              ListTile(
-                                title: const Text('2024', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, '2024'),
-                              ),
-                            ],
-                          ),
-                          ExpansionTile(
-                            title: const Text('Posted By', style: TextStyle(color: Colors.yellow)),
-                            children: [
-                              ListTile(
-                                title: const Text('Me', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'Me'),
-                              ),
-                              ListTile(
-                                title: const Text('Followings', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'Followings'),
-                              ),
-                              ListTile(
-                                title: const Text('Anyone', style: TextStyle(color: Colors.yellow)),
-                                onTap: () => Navigator.pop(context, 'Anyone'),
-                              ),
-                            ],
-                          ),
+                          _buildExpansionTile('Sort by', ['Date', 'Most Relevant', 'Recent']),
+                          _buildExpansionTile('Date Posted', ['Last 24 Hours', 'This Week', 'This Month', '2024']),
+                          _buildExpansionTile('Posted By', ['Me', 'Followings', 'Anyone']),
                           const SizedBox(height: 20),
                           ElevatedButton(
                             onPressed: () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.yellow,
+                              backgroundColor: const Color(0xFFFDCC87),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              minimumSize: const Size(double.infinity, 50),
                             ),
                             child: const Text('Show Results', style: TextStyle(color: Colors.black)),
                           ),
@@ -129,6 +82,20 @@ class _SearchPageState extends State<SearchScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildExpansionTile(String title, List<String> options) {
+    return ExpansionTile(
+      title: Text(title, style: const TextStyle(color: Color(0xFFFDCC87))),
+      children: options
+          .map(
+            (option) => ListTile(
+              title: Text(option, style: const TextStyle(color: Color(0xFFFDCC87))),
+              onTap: () => Navigator.pop(context, option),
+            ),
+          )
+          .toList(),
     );
   }
 }
