@@ -17,10 +17,7 @@ class _SearchPageState extends State<SearchScreen> {
         backgroundColor: const Color(0xFF4F245A),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-          onPressed: () => Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-          ),
+          onPressed: () => Navigator.pop(context),
         ),
         title: Padding(
           padding: const EdgeInsets.only(top: 8.0),
@@ -41,39 +38,32 @@ class _SearchPageState extends State<SearchScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.sort, color: Color(0xFFFDCC87)),
-            onPressed: () => showModalBottomSheet(
+            onPressed: () => showDialog(
               context: context,
-              backgroundColor: const Color(0xFF3D1B45),
-              isScrollControlled: true,
               builder: (BuildContext context) {
-                return DraggableScrollableSheet(
-                  expand: false,
-                  builder: (context, scrollController) => SingleChildScrollView(
-                    controller: scrollController,
-                    child: Container(
-                      padding: const EdgeInsets.all(15),
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF3D1B45),
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildExpansionTile('Sort by', ['Date', 'Most Relevant', 'Recent']),
-                          _buildExpansionTile('Date Posted', ['Last 24 Hours', 'This Week', 'This Month', '2024']),
-                          _buildExpansionTile('Posted By', ['Me', 'Followings', 'Anyone']),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFDCC87),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            child: const Text('Show Results', style: TextStyle(color: Colors.black)),
+                return AlertDialog(
+                  backgroundColor: const Color(0xFF3D1B45),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildExpansionTile('Sort by', ['Date', 'Most Relevant', 'Recent']),
+                        _buildExpansionTile('Date Posted', ['Last 24 Hours', 'This Week', 'This Month', '2024']),
+                        _buildExpansionTile('Posted By', ['Me', 'Followings', 'Anyone']),
+                        const SizedBox(height: 20),
+                        ElevatedButton(
+                          onPressed: () => Navigator.pop(context),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFDCC87),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            minimumSize: const Size(double.infinity, 50),
                           ),
-                        ],
-                      ),
+                          child: const Text('Show Results', style: TextStyle(color: Colors.black)),
+                        ),
+                      ],
                     ),
                   ),
                 );
@@ -90,9 +80,14 @@ class _SearchPageState extends State<SearchScreen> {
       title: Text(title, style: const TextStyle(color: Color(0xFFFDCC87))),
       children: options
           .map(
-            (option) => ListTile(
-              title: Text(option, style: const TextStyle(color: Color(0xFFFDCC87))),
-              onTap: () => Navigator.pop(context, option),
+            (option) => Column(
+              children: [
+                ListTile(
+                  title: Text(option, style: const TextStyle(color: Color(0xFFFDCC87))),
+                  onTap: () => Navigator.pop(context, option),
+                ),
+                if (option != options.last) const Divider(color: Colors.grey, thickness: 0.5),
+              ],
             ),
           )
           .toList(),
