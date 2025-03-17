@@ -102,22 +102,22 @@ class BottomNavBar extends StatelessWidget {
     );
   }
 
-  IconData _getIcon(int index) {
-    switch (index) {
-      case 0:
-        return Icons.home;
-      case 1:
-        return Icons.notifications;
-      case 2:
-        return Icons.add_circle;
-      case 3:
-        return Icons.person;
-      case 4:
-        return Icons.search;
-      default:
-        return Icons.error;
-    }
+IconData _getIcon(int index) {
+  switch (index) {
+    case 0:
+      return Icons.home_outlined; // Hollow home icon
+    case 1:
+      return Icons.notifications_none; // Hollow notification icon
+    case 2:
+      return Icons.add; // Bold add icon
+    case 3:
+      return Icons.person_outline; // Hollow profile icon
+    case 4:
+      return Icons.search_outlined; // Hollow search icon
+    default:
+      return Icons.error_outline; // Hollow error icon
   }
+}
 
   String _getLabel(int index) {
     switch (index) {
