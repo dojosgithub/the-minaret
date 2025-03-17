@@ -17,9 +17,16 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)), // Curved edges
       child: Container(
-        height: 100, // Increased height for wider top bar
+        height: 120, // Increased height for a wider top bar
         decoration: const BoxDecoration(
-          color: Color(0xFF9D3267), // Same color as the nav bar
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF4F245A), // Background color of all pages (Top)
+              Color(0xFF9D3267), // Current Top Bar color (Bottom)
+            ],
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black26,
@@ -29,27 +36,37 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ],
         ),
-        child: AppBar(
-          backgroundColor: Colors.transparent, // Transparent background
-          elevation: 0, // Remove default elevation
-          leading: IconButton(
-            icon: const Icon(Icons.menu, color: Color(0xFFFDCC87)), // Menu icon (three bars)
-            onPressed: onMenuPressed,
-          ),
-          title: Image.asset(
-            'assets/logo.png', // Path to the logo image
-            height: 60, // Larger logo
-          ),
-          centerTitle: true,
-          actions: [
-            // Profile picture on the right
-            GestureDetector(
-              onTap: onProfilePressed,
+        child: Stack(
+          children: [
+            AppBar(
+              backgroundColor: Colors.transparent, // Transparent background
+              elevation: 0, // Remove default elevation
+              leading: IconButton(
+                icon: const Icon(Icons.menu, color: Color(0xFFFDCC87)), // Menu icon (three bars)
+                onPressed: onMenuPressed,
+              ),
+              actions: [
+                // Profile picture on the right
+                GestureDetector(
+                  onTap: onProfilePressed,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: CircleAvatar(
+                      backgroundImage: AssetImage(profileImage),
+                      radius: 18, // Slightly bigger profile image
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            // Logo positioned at the bottom center of the bar
+            Align(
+              alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: CircleAvatar(
-                  backgroundImage: AssetImage(profileImage),
-                  radius: 16,
+                padding: const EdgeInsets.only(bottom: 10), // Push logo closer to bottom
+                child: Image.asset(
+                  'assets/logo.png', // Path to the logo image
+                  height: 65, // Slightly larger logo
                 ),
               ),
             ),
@@ -60,5 +77,5 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(100); // Custom height for the top bar
+  Size get preferredSize => const Size.fromHeight(120); // Custom height for the top bar
 }

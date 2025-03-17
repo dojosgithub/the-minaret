@@ -58,7 +58,7 @@ class BottomNavBar extends StatelessWidget {
             width: 65,
             height: 65,
             decoration: BoxDecoration(
-              color: const Color(0xFF7A1E4D),
+              color: const Color(0xFF9D3267),
               shape: BoxShape.circle,
               boxShadow: [
                 BoxShadow(
@@ -78,13 +78,16 @@ class BottomNavBar extends StatelessWidget {
         // Selected Label at the Bottom
         Positioned(
           bottom: 5, // Push label to the far bottom
-          left: (itemWidth * currentIndex) + (itemWidth / 2) - 20,
-          child: Text(
-            _getLabel(currentIndex),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+          left: itemWidth * currentIndex,
+          width: itemWidth, // Ensure it takes the full width of one item
+          child: Center( // Centers the text properly under the selected icon
+            child: Text(
+              _getLabel(currentIndex),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ),
