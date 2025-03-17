@@ -12,16 +12,21 @@ class BottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double itemWidth = screenWidth / 5;
+    double indentHeight = 85; // Keep indent as is
+    double navBarHeight = 70; // Keep navbar height as is
+
     return Stack(
-      clipBehavior: Clip.none, // Allow icons to protrude
+      clipBehavior: Clip.none,
       children: [
-        ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ClipPath(
+          clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
           child: Container(
-            height: 80,
-            decoration: BoxDecoration(
-              color: const Color(0xFF9D3267),
-              boxShadow: const [
+            height: navBarHeight,
+            decoration: const BoxDecoration(
+              color: Color(0xFF9D3267),
+              boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
                   spreadRadius: 2,
@@ -34,65 +39,125 @@ class BottomNavBar extends StatelessWidget {
               currentIndex: currentIndex,
               onTap: onTap,
               backgroundColor: Colors.transparent,
-              selectedItemColor: Colors.transparent, // Hide default selected icon
+              selectedItemColor: Colors.white,
               unselectedItemColor: Colors.white70,
               elevation: 0,
               type: BottomNavigationBarType.fixed,
               showSelectedLabels: false,
               showUnselectedLabels: false,
               iconSize: 28,
-              selectedFontSize: 0,
-              unselectedFontSize: 0,
-              items: List.generate(5, (index) => _buildNavItem(index)),
+              items: List.generate(5, (index) => _buildNavItem(index, currentIndex)),
             ),
           ),
         ),
-        if (currentIndex >= 0)
-          Positioned(
-            bottom: 20, // Indent effect
-            left: (MediaQuery.of(context).size.width / 5) * currentIndex + (MediaQuery.of(context).size.width / 10) - 30,
-            child: Container(
-              width: 60,
-              height: 60,
-              decoration: BoxDecoration(
-                color: const Color(0xFF7A1E4D),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Icon(
-                _getIcon(currentIndex),
-                color: Colors.white,
-                size: 32,
-              ),
+        // Floating Selected Icon (Properly Spaced)
+        Positioned(
+          bottom: 45, // Keep icon lowered
+          left: (itemWidth * currentIndex) + (itemWidth / 2) - 30,
+          child: Container(
+            width: 65,
+            height: 65,
+            decoration: BoxDecoration(
+              color: const Color(0xFF7A1E4D),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black45,
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Icon(
+              _getIcon(currentIndex),
+              color: Colors.white,
+              size: 35,
             ),
           ),
+        ),
+        // Selected Label at the Bottom
+        Positioned(
+          bottom: 5, // Push label to the far bottom
+          left: (itemWidth * currentIndex) + (itemWidth / 2) - 20,
+          child: Text(
+            _getLabel(currentIndex),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  BottomNavigationBarItem _buildNavItem(int index) {
+  BottomNavigationBarItem _buildNavItem(int index, int selectedIndex) {
     return BottomNavigationBarItem(
-      icon: Icon(
-        _getIcon(index),
-      ),
-      label: '',
+      icon: index == selectedIndex ? const SizedBox.shrink() : Icon(_getIcon(index)),
+      label: '', // Hide all labels inside BottomNavigationBar
     );
   }
 
   IconData _getIcon(int index) {
     switch (index) {
-      case 0: return Icons.home;
-      case 1: return Icons.notifications;
-      case 2: return Icons.add_circle;
-      case 3: return Icons.person;
-      case 4: return Icons.search;
-      default: return Icons.error;
+      case 0:
+        return Icons.home;
+      case 1:
+        return Icons.notifications;
+      case 2:
+        return Icons.add_circle;
+      case 3:
+        return Icons.person;
+      case 4:
+        return Icons.search;
+      default:
+        return Icons.error;
     }
   }
+
+  String _getLabel(int index) {
+    switch (index) {
+      case 0:
+        return 'Home';
+      case 1:
+        return 'Notifications';
+      case 2:
+        return 'Post';
+      case 3:
+        return 'Profile';
+      case 4:
+        return 'Search';
+      default:
+        return '';
+    }
+  }
+}
+
+// Custom Clipper for Indent (No Changes)
+class BottomNavClipper extends CustomClipper<Path> {
+  final int selectedIndex;
+  final double itemWidth;
+  final double indentHeight;
+
+  BottomNavClipper(this.selectedIndex, this.itemWidth, this.indentHeight);
+
+  @override
+  Path getClip(Size size) {
+    Path path = Path();
+    double indentCenter = (selectedIndex * itemWidth) + (itemWidth / 2);
+    double indentWidth = 65; // Keep indent width as is
+
+    path.lineTo(indentCenter - indentWidth, 0);
+    path.quadraticBezierTo(indentCenter, indentHeight, indentCenter + indentWidth, 0);
+    path.lineTo(size.width, 0);
+    path.lineTo(size.width, size.height);
+    path.lineTo(0, size.height);
+    path.close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => true;
 }

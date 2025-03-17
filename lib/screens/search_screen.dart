@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Ensure this is the correct import for your home screen.
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -17,7 +16,7 @@ class _SearchPageState extends State<SearchScreen> {
         backgroundColor: const Color(0xFF4F245A),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => debugPrint("back pressed"),//back button issues
         ),
         title: Padding(
           padding: const EdgeInsets.only(top: 8.0),

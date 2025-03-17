@@ -24,6 +24,25 @@ class _UserProfileScreenState extends State<UserScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                      );
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: const Color(0xFFFDCC87), width: 2),
+                      ),
+                      child: const CircleAvatar(
+                        radius: 40,
+                        backgroundImage: AssetImage('assets/profile_picture.png'),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 15),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,42 +58,23 @@ class _UserProfileScreenState extends State<UserScreen> {
                         const SizedBox(height: 10),
                         Row(
                           children: [
-                            Text('150 ', style: TextStyle(color: const Color(0xFFFDCC87), fontSize: 18, fontWeight: FontWeight.bold)),
-                            const Text('Followers', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                            Text('150 ', style: TextStyle(color: const Color(0xFFFDCC87), fontSize: 16, fontWeight: FontWeight.bold)),
+                            const Text('Followers', style: TextStyle(color: Colors.grey, fontSize: 14)),
                             const SizedBox(width: 15),
-                            Text('200 ', style: TextStyle(color: const Color(0xFFFDCC87), fontSize: 18, fontWeight: FontWeight.bold)),
-                            const Text('Following', style: TextStyle(color: Colors.grey, fontSize: 16)),
+                            Text('200 ', style: TextStyle(color: const Color(0xFFFDCC87), fontSize: 16, fontWeight: FontWeight.bold)),
+                            const Text('Following', style: TextStyle(color: Colors.grey, fontSize: 14)),
                           ],
-                        ),
-                        const SizedBox(height: 10),
-                        const Text(
-                          'This is the user bio where the user describes themselves. I am testing the wrapping property beacuse it was long and it had issues and i guess it is okay?.',
-                          style: TextStyle(color: Colors.white, fontSize: 14),
-                          softWrap: true,
                         ),
                       ],
                     ),
                   ),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFFDCC87), width: 2),
-                      ),
-                      child: const CircleAvatar(
-                        radius: 50,
-                        backgroundImage: AssetImage('assets/profile_picture.png'),
-                      ),
-                    ),
-                  ),
                 ],
+              ),
+              const SizedBox(height: 10),
+              const Text(
+                'This is the user bio where the user describes themselves. I am testing the wrapping property because it was long and it had issues and I guess it is okay?.',
+                style: TextStyle(color: Colors.white, fontSize: 14),
+                softWrap: true,
               ),
               const SizedBox(height: 20),
               Row(

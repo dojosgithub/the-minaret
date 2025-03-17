@@ -31,10 +31,10 @@ class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
   @override
-  _MainScreenState createState() => _MainScreenState();
+  MainScreenState createState() => MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0; // Track the selected index
 
   // List of screens corresponding to each navigation bar item
@@ -55,11 +55,11 @@ class _MainScreenState extends State<MainScreen> {
       appBar: TopBar(
         onMenuPressed: () {
           // Add menu functionality here
-          print('Menu button pressed');
+          debugPrint('Menu button pressed');
         },  
         onProfilePressed: () {
           // Add profile functionality here
-          print('Profile picture pressed');
+          debugPrint('Profile picture pressed');
         },
         profileImage: 'assets/profile_picture.png', // Path to your profile picture
       ),
