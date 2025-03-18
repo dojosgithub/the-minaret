@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'notifications_menu_screen.dart';
 import 'language_screen.dart';
 import 'feedback_screen.dart';
+import 'community_guidelines_screen.dart';
 import '../widgets/top_bar.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -61,7 +62,12 @@ class MenuScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const LanguageScreen()),
                     );
                   }),
-                  _buildMenuItem(context, "Community Guidelines", Icons.groups_outlined, () {}),
+                  _buildMenuItem(context, "Community Guidelines", Icons.groups_outlined, () {
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const CommunityGuidelinesScreen()),
+                    );
+                  }),
                   _buildMenuItem(context, "Feedback", Icons.verified_user_outlined, () {
                       Navigator.push(
                       context,
