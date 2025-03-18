@@ -14,14 +14,16 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double itemWidth = screenWidth / 5;
-    double indentHeight = 85; // Keep indent as is
-    double navBarHeight = 70; // Keep navbar height as is
+    double indentHeight = 85; 
+    double navBarHeight = 70;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        ClipPath(
-          clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
+      ClipPath(
+        clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
+        child: ClipRRect(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)), // Curved top edges
           child: Container(
             height: navBarHeight,
             decoration: const BoxDecoration(
@@ -50,9 +52,11 @@ class BottomNavBar extends StatelessWidget {
             ),
           ),
         ),
-        // Floating Selected Icon (Properly Spaced)
+      ),
+
+     
         Positioned(
-          bottom: 45, // Keep icon lowered
+          bottom: 45, 
           left: (itemWidth * currentIndex) + (itemWidth / 2) - 30,
           child: Container(
             width: 65,
@@ -75,7 +79,7 @@ class BottomNavBar extends StatelessWidget {
             ),
           ),
         ),
-        // Selected Label at the Bottom
+        
         Positioned(
           bottom: 5, // Push label to the far bottom
           left: itemWidth * currentIndex,
@@ -85,7 +89,7 @@ class BottomNavBar extends StatelessWidget {
               _getLabel(currentIndex),
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 12,
+                fontSize: 10,
                 fontWeight: FontWeight.w600,
               ),
             ),

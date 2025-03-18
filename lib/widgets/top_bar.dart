@@ -17,11 +17,12 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)), // Curved edges
       child: Container(
-        height: 120, // Increased height for a wider top bar
+        height: 110, // Increased height for a wider top bar
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
+            stops: [0.2, 0.8], // Pushes the dark color further down
             colors: [
               Color(0xFF4F245A), // Background color of all pages (Top)
               Color(0xFF9D3267), // Current Top Bar color (Bottom)
@@ -38,6 +39,16 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         child: Stack(
           children: [
+            // Translucent Background Pattern Overlay
+            Positioned.fill(
+              child: Opacity(
+                opacity: 0.2, // Adjust transparency as needed
+                // child: Image.asset(
+                //   'assets/pattern.png', // Replace with your pattern image
+                //   fit: BoxFit.cover, // Covers entire top bar
+                // ),
+              ),
+            ),
             AppBar(
               backgroundColor: Colors.transparent, // Transparent background
               elevation: 0, // Remove default elevation
@@ -63,7 +74,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
-                padding: const EdgeInsets.only(bottom: 10), // Push logo closer to bottom
+                padding: const EdgeInsets.only(bottom: 10), // Slightly above the bottom
                 child: Image.asset(
                   'assets/logo.png', // Path to the logo image
                   height: 65, // Slightly larger logo
