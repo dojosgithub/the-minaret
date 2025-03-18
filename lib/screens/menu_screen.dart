@@ -3,6 +3,7 @@ import 'notifications_menu_screen.dart';
 import 'language_screen.dart';
 import 'feedback_screen.dart';
 import 'community_guidelines_screen.dart';
+import 'privacy_and_safety_screen.dart';
 import '../widgets/top_bar.dart';
 
 class MenuScreen extends StatelessWidget {
@@ -74,7 +75,12 @@ class MenuScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const FeedbackScreen()),
                     );
                   }),
-                  _buildMenuItem(context, "Privacy & Safety", Icons.lock_outline, () {}),
+                  _buildMenuItem(context, "Privacy & Safety", Icons.lock_outline, () {
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PrivacySafetyScreen()),
+                    );
+                  }),
                   _buildMenuItem(context, "About the Minaret", Icons.info_outline, () {}),
                 ],
               ),
