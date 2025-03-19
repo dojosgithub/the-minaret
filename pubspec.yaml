@@ -59,6 +59,8 @@ flutter:
     - assets/tafsir.png
     - assets/sunnah.png
     - assets/hadith.png
+    - assets/whatsapp.png
+    - assets/telegram.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

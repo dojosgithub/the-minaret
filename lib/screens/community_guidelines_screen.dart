@@ -57,7 +57,7 @@ class _CommunityGuidelinesScreenState extends State<CommunityGuidelinesScreen> {
                   "Community Guidelines",
                   style: TextStyle(
                     color: Color(0xFFFDCC87),
-                    fontSize: 24,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
