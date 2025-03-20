@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart';
 
 class RegistrationScreen extends StatelessWidget {
   const RegistrationScreen({super.key});
@@ -63,7 +64,12 @@ class RegistrationScreen extends StatelessWidget {
                   backgroundColor: Color(0xFFFDCC87),
                   padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MainScreen()),
+              );
+                },
                 child: const Text(
                   'Create Account',
                   style: TextStyle(color: Colors.black, fontSize: 16),

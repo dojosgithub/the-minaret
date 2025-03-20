@@ -5,6 +5,9 @@ import 'screens/post_screen.dart';
 import 'screens/user_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/menu_screen.dart';
+import 'screens/welcome_screen.dart';
+import 'screens/continue_with_screen.dart';
+import 'screens/registration_screen.dart';
 import 'widgets/bottom_nav_bar.dart';
 import 'widgets/top_bar.dart';
 
@@ -23,7 +26,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-      home: const MainScreen(),
+      home: const WelcomeScreen(), // Set WelcomeScreen as the initial screen
     );
   }
 }
@@ -53,30 +56,27 @@ class MainScreenState extends State<MainScreen> {
       color: const Color(0xFF4F245A),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-      appBar: TopBar(
-        onMenuPressed: () {
-          // Add menu functionality here
+        appBar: TopBar(
+          onMenuPressed: () {
             Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MenuScreen()),
+              context,
+              MaterialPageRoute(builder: (context) => const MenuScreen()),
             );
-        },  
-        onProfilePressed: () {
-          // Add profile functionality here
-          debugPrint('Profile picture pressed');
-        },
-        profileImage: 'assets/profile_picture.png', // Path to your profile picture
-      ),
-      body: _screens[_currentIndex], // Display the selected screen
-      bottomNavigationBar: BottomNavBar(
-        currentIndex: _currentIndex, // Pass the current index
-        onTap: (index) {
-          // Update the state to change the selected index
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-      ),
+          },  
+          onProfilePressed: () {
+            debugPrint('Profile picture pressed');
+          },
+          profileImage: 'assets/profile_picture.png',
+        ),
+        body: _screens[_currentIndex],
+        bottomNavigationBar: BottomNavBar(
+          currentIndex: _currentIndex,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+        ),
       )
     );
   }
