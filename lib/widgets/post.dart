@@ -6,6 +6,9 @@ class Post extends StatelessWidget {
   final String username;
   final String profilePic;
   final String text;
+  final int upvoteCount; // New member: upvote count
+  final int downvoteCount; // New member: downvote count
+  final int repostCount; // New member: repost count
 
   const Post({
     super.key,
@@ -13,6 +16,9 @@ class Post extends StatelessWidget {
     required this.username,
     required this.profilePic,
     required this.text,
+    required this.upvoteCount,
+    required this.downvoteCount,
+    required this.repostCount,
   });
 
   void _showSharePopup(BuildContext context) {
@@ -21,7 +27,7 @@ class Post extends StatelessWidget {
       builder: (context) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          child: SingleChildScrollView( // Allow scrolling for smaller devices
+          child: SingleChildScrollView(
             child: Container(
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
@@ -29,8 +35,8 @@ class Post extends StatelessWidget {
                 borderRadius: BorderRadius.circular(15),
               ),
               constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.9, // Limit width to 90% of screen
-                maxHeight: MediaQuery.of(context).size.height * 0.7, // Limit height to 70% of screen
+                maxWidth: MediaQuery.of(context).size.width * 0.9,
+                maxHeight: MediaQuery.of(context).size.height * 0.7,
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -40,9 +46,9 @@ class Post extends StatelessWidget {
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
-                  Wrap( // Use Wrap instead of Row for better responsiveness
-                    spacing: 10, // Horizontal spacing between items
-                    runSpacing: 10, // Vertical spacing between rows
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
                     alignment: WrapAlignment.center,
                     children: List.generate(6, (index) {
                       return Column(
@@ -72,7 +78,7 @@ class Post extends StatelessWidget {
                     thickness: 1,
                     height: 20,
                   ),
-                  Wrap( // Use Wrap for the bottom row as well
+                  Wrap(
                     spacing: 10,
                     runSpacing: 10,
                     alignment: WrapAlignment.center,
@@ -235,11 +241,59 @@ class Post extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              IconButton(icon: const Icon(Icons.arrow_upward, color: Color(0xFFFDCC87)), onPressed: () {}),
-              IconButton(icon: const Icon(Icons.arrow_downward, color: Colors.grey), onPressed: () {}),
-              IconButton(icon: const Icon(Icons.comment, color: Colors.white), onPressed: () {}),
-              IconButton(icon: const Icon(Icons.repeat, color: Colors.white), onPressed: () {}),
-              IconButton(icon: const Icon(Icons.share, color: Colors.white), onPressed: () => _showSharePopup(context)),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_upward, color: Color(0xFFFDCC87)),
+                    onPressed: () {},
+                  ),
+                  Text(
+                    upvoteCount.toString(),
+                    style: const TextStyle(color: Color(0xFFFDCC87), // Yellow color for upvote count
+                  ),
+                  )
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.arrow_downward, color: Colors.grey),
+                    onPressed: () {},
+                  ),
+                  Text(
+                    downvoteCount.toString(),
+                    style: const TextStyle(color: Colors.white), // White color for downvote count
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.comment, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                  // Text(
+                  //   "0", // Placeholder for comment count (if needed)
+                  //   style: const TextStyle(color: Colors.white),
+                  // ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.repeat, color: Colors.white),
+                    onPressed: () {},
+                  ),
+                  Text(
+                    repostCount.toString(),
+                    style: const TextStyle(color: Colors.white), // White color for repost count
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.share, color: Colors.white),
+                onPressed: () => _showSharePopup(context),
+              ),
             ],
           ),
         ],
