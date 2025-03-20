@@ -21,56 +21,76 @@ class Post extends StatelessWidget {
       builder: (context) {
         return Dialog(
           backgroundColor: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3D1B45),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text("Send To", style: TextStyle(color: Colors.white, fontSize: 16)),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(6, (index) {
-                    return Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(3),
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Color(0xFFFDCC87),
+          child: SingleChildScrollView( // Allow scrolling for smaller devices
+            child: Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3D1B45),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.9, // Limit width to 90% of screen
+                maxHeight: MediaQuery.of(context).size.height * 0.7, // Limit height to 70% of screen
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    "Send To",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  Wrap( // Use Wrap instead of Row for better responsiveness
+                    spacing: 10, // Horizontal spacing between items
+                    runSpacing: 10, // Vertical spacing between rows
+                    alignment: WrapAlignment.center,
+                    children: List.generate(6, (index) {
+                      return Column(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(3),
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Color(0xFFFDCC87),
+                            ),
+                            child: const CircleAvatar(
+                              backgroundColor: Colors.grey,
+                              radius: 20,
+                            ),
                           ),
-                          child: const CircleAvatar(
-                            backgroundColor: Colors.grey,
-                            radius: 20,
+                          const SizedBox(height: 5),
+                          const Text(
+                            "User Name",
+                            style: TextStyle(color: Colors.white, fontSize: 12),
                           ),
-                        ),
-                        const SizedBox(height: 5),
-                        const Text("User Name", style: TextStyle(color: Colors.white, fontSize: 12))
-                      ],
-                    );
-                  }),
-                ),
-                const Divider(color: Color(0xFFFDCC87), thickness: 1, height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildShareOption(context, Icons.link, "Copy Link", () {
-                      Clipboard.setData(const ClipboardData(text: "Post Link"));
-                      Navigator.pop(context);
-                      _showCopiedMessage(context);
+                        ],
+                      );
                     }),
-                    _buildShareOption(context, Icons.heart_broken, "Not Interested", () {}),
-                    _buildShareOption(context, Icons.flag, "Flag", () {}),
-                    _buildShareOption(context, Icons.repeat, "Repost", () {}),
-                    _buildShareOptionWithImage(context, "assets/whatsapp.png", "WhatsApp", () {}),
-                    _buildShareOptionWithImage(context, "assets/telegram.png", "Telegram", () {}),
-                  ],
-                ),
-              ],
+                  ),
+                  const Divider(
+                    color: Color(0xFFFDCC87),
+                    thickness: 1,
+                    height: 20,
+                  ),
+                  Wrap( // Use Wrap for the bottom row as well
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      _buildShareOption(context, Icons.link, "Copy Link", () {
+                        Clipboard.setData(const ClipboardData(text: "Post Link"));
+                        Navigator.pop(context);
+                        _showCopiedMessage(context);
+                      }),
+                      _buildShareOption(context, Icons.heart_broken, "Not Interested", () {}),
+                      _buildShareOption(context, Icons.flag, "Flag", () {}),
+                      _buildShareOption(context, Icons.repeat, "Repost", () {}),
+                      _buildShareOptionWithImage(context, "assets/whatsapp.png", "WhatsApp", () {}),
+                      _buildShareOptionWithImage(context, "assets/telegram.png", "Telegram", () {}),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         );

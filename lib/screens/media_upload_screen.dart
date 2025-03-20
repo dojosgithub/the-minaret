@@ -87,7 +87,7 @@ class MediaUploadScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 250, // Increased height
                     decoration: BoxDecoration(
-                      color: Colors.grey.withOpacity(0.3), // Translucent
+                      color: Colors.grey.withValues(alpha: 0.3), // Translucent
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Center(
