@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import '../widgets/top_bar_without_menu.dart';
 
 class RegistrationScreen extends StatelessWidget {
   const RegistrationScreen({super.key});
@@ -7,7 +8,14 @@ class RegistrationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent, // Prevents default white background
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(120),
+        child: TopBarWithoutMenu(),
+      ),
       body: Container(
+        width: double.infinity,
+        height: double.infinity, // Ensures full coverage
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [Color(0xFF4F245A), Color(0xFF3D1B45)],
@@ -15,13 +23,12 @@ class RegistrationScreen extends StatelessWidget {
             end: Alignment.bottomCenter,
           ),
         ),
-        child: Padding(
+        child: SingleChildScrollView( // Prevents overflow if content exceeds screen size
           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Image.asset('assets/logo.png', height: 100),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(child: _buildTextField('First Name')),
@@ -49,8 +56,7 @@ class RegistrationScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              Column(
                 children: [
                   _buildSelectableOption('Muslim'),
                   _buildSelectableOption('Non-Muslim'),
@@ -61,14 +67,14 @@ class RegistrationScreen extends StatelessWidget {
               const SizedBox(height: 30),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFFFDCC87),
+                  backgroundColor: const Color(0xFFFDCC87),
                   padding: const EdgeInsets.symmetric(vertical: 15),
                 ),
                 onPressed: () {
-                Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MainScreen()),
-              );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MainScreen()),
+                  );
                 },
                 child: const Text(
                   'Create Account',
@@ -82,55 +88,60 @@ class RegistrationScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTextField(String hint, {bool obscureText = false}) {
-    return TextField(
-      obscureText: obscureText,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: Colors.white70),
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white70),
-          borderRadius: BorderRadius.circular(10),
+  Widget _buildTextField(String label, {bool obscureText = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white)),
+        const SizedBox(height: 5),
+        TextField(
+          obscureText: obscureText,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFF3A1E47), // Darker than background
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
+      ],
     );
   }
 
   Widget _buildDropdown(List<String> items) {
-    return DropdownButtonFormField(
-      dropdownColor: Color(0xFF3D1B45),
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        enabledBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white70),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.circular(10),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey),
         ),
       ),
-      items: items.map((item) => DropdownMenuItem(
-        value: item,
-        child: Text(item, style: const TextStyle(color: Colors.white)),
-      )).toList(),
-      onChanged: (value) {},
+      child: Text(
+        items.first,
+        style: const TextStyle(color: Color(0xFFFDCC87)), // Signature yellow
+        textAlign: TextAlign.center,
+      ),
     );
   }
 
   Widget _buildSelectableOption(String text) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.white),
-        borderRadius: BorderRadius.circular(10),
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey),
+        ),
       ),
-      child: Text(text, style: const TextStyle(color: Colors.white)),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white),
+      ),
     );
   }
 }

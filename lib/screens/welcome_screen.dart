@@ -7,6 +7,9 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+    double screenHeight = MediaQuery.of(context).size.height;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -15,59 +18,67 @@ class WelcomeScreen extends StatelessWidget {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF4F245A), Color(0xFF3D1B45)],
+            stops: [0.5, 0.9], 
+            colors: [Color(0xFF4F245A), Color(0xFF9D3267)], // Updated gradient
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            SizedBox(height: screenHeight * 0.06), // Moves content up based on screen size
+            
             // Large Logo
-            SvgPicture.asset("assets/logo.svg", height: 100),
-            const SizedBox(height: 10),
+            SvgPicture.asset("assets/logo.svg", height: screenHeight * 0.2), // Bigger logo
+            SizedBox(height: screenHeight * 0.02),
 
             // App Name
-            SvgPicture.asset("assets/name.svg", height: 50),
-            const SizedBox(height: 5),
+            SvgPicture.asset("assets/name.svg", height: screenHeight * 0.08), // Bigger name
+            SizedBox(height: screenHeight * 0.015),
 
-            // Slogan
-            SvgPicture.asset("assets/slogan.svg", height: 30),
-            const SizedBox(height: 20),
+            // Slogan (Smaller)
+            SvgPicture.asset("assets/slogan.svg", height: screenHeight * 0.04), // Smaller slogan
+            SizedBox(height: screenHeight * 0.05),
 
             // Choose Language Text
             const Text(
               "Choose your language",
-              style: TextStyle(color: Colors.white, fontSize: 14),
+              style: TextStyle(color: Colors.white, fontSize: 18), // Slightly larger text
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: screenHeight * 0.02),
 
-            // Language Selection Box
+            // Language Selection Box (Stacked layout)
             Container(
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              padding: EdgeInsets.symmetric(
+                vertical: screenHeight * 0.02, 
+                horizontal: screenWidth * 0.04
+              ), // Adjusts based on screen size
               decoration: BoxDecoration(
                 border: Border.all(color: Color(0xFFFDCC87)), // Signature yellow outline
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Column(
                 children: [
-                  const Text("سلام عليكم", style: TextStyle(color: Colors.white)),
-                  const SizedBox(width: 10),
+                  const Text("سلام عليكم", style: TextStyle(color: Colors.white, fontSize: 18)),
+                  SizedBox(height: screenHeight * 0.015),
                   ElevatedButton(
                     onPressed: () {
                       Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ContinueWithScreen()),
+                        context,
+                        MaterialPageRoute(builder: (context) => const ContinueWithScreen()),
                       );
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: screenWidth * 0.15, 
+                        vertical: screenHeight * 0.015
+                      ), // Scales with screen size
                     ),
-                    child: const Text("Salam"),
+                    child: const Text("Salam", style: TextStyle(fontSize: 18)),
                   ),
-                  const SizedBox(width: 10),
-                  const Text("Paz", style: TextStyle(color: Colors.white)),
+                  SizedBox(height: screenHeight * 0.015),
+                  const Text("Paz", style: TextStyle(color: Colors.white, fontSize: 18)),
                 ],
               ),
             ),
