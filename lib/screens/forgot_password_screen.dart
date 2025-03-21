@@ -1,42 +1,23 @@
 import 'package:flutter/material.dart';
-import '../widgets/top_bar_without_menu.dart';
-import 'verification_screen.dart';
+import 'login_screen.dart';
 
-class PhoneScreen extends StatelessWidget {
-  final bool isForgotPassword;
-  
-  const PhoneScreen({
-    super.key,
-    this.isForgotPassword = false,
-  });
+class ForgotPasswordScreen extends StatelessWidget {
+  const ForgotPasswordScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(100),
-        child: TopBarWithoutMenu(),
-      ),
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF4F245A), Color(0xFF3D1B45)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
+      body: Center(
+        child: SingleChildScrollView(
+          child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 40),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const Text(
-                  'Enter your phone number',
+                  'Reset Password',
                   style: TextStyle(
                     color: Color(0xFFFDCC87),
                     fontSize: 24,
@@ -45,17 +26,52 @@ class PhoneScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
+                
+                // New Password Field
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Phone Number',
+                      'New Password',
                       style: TextStyle(color: Colors.white),
                     ),
                     const SizedBox(height: 5),
                     TextField(
+                      obscureText: true,
                       style: const TextStyle(color: Colors.white),
-                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFF3A1E47),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                
+                // Confirm Password Field
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Confirm Password',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 5),
+                    TextField(
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color(0xFF3A1E47),
@@ -76,6 +92,8 @@ class PhoneScreen extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 40),
+                
+                // Reset Password Button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFDCC87),
@@ -85,18 +103,17 @@ class PhoneScreen extends StatelessWidget {
                     ),
                   ),
                   onPressed: () {
-                    Navigator.push(
+                    Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => VerificationScreen(
-                          isForgotPassword: isForgotPassword,
-                        ),
+                        builder: (context) => const LoginScreen(),
                       ),
+                      (route) => false,
                     );
                   },
-                  child: Text(
-                    isForgotPassword ? 'Continue' : 'Sign Up',
-                    style: const TextStyle(
+                  child: const Text(
+                    'Reset Password',
+                    style: TextStyle(
                       color: Colors.black,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,

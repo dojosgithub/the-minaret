@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'registration_screen.dart'; // Import the registration screen
 import 'phone_screen.dart';
+import 'login_screen.dart';
 
 class ContinueWithScreen extends StatelessWidget {
   const ContinueWithScreen({super.key});
@@ -59,7 +60,12 @@ class ContinueWithScreen extends StatelessWidget {
             // Login text
             GestureDetector(
               onTap: () {
-                // Add login navigation functionality here
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                );
               },
               child: const Text.rich(
                 TextSpan(
