@@ -56,10 +56,10 @@ flutter:
   assets:
     - assets/profile_picture.png
     - assets/logo.png
-    - assets/quran.png
-    - assets/tafsir.png
-    - assets/sunnah.png
-    - assets/hadith.png
+    - assets/quran.svg
+    - assets/tafsir.svg
+    - assets/sunnah.svg
+    - assets/hadith.svg
     - assets/whatsapp.png
     - assets/telegram.png
     - assets/logo.svg
