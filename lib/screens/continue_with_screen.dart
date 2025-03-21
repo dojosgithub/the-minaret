@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'registration_screen.dart'; // Import the registration screen
+import 'phone_screen.dart';
 
 class ContinueWithScreen extends StatelessWidget {
   const ContinueWithScreen({super.key});
@@ -38,13 +39,19 @@ class ContinueWithScreen extends StatelessWidget {
             SizedBox(height: screenHeight * 0.02),
 
             _buildOption(context, 'Continue with WhatsApp', () {
-              // Add WhatsApp functionality here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PhoneScreen()),
+              );
             }, screenWidth),
 
             SizedBox(height: screenHeight * 0.02),
 
             _buildOption(context, 'Continue with Telegram', () {
-              // Add Telegram functionality here
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const PhoneScreen()),
+              );
             }, screenWidth),
 
             const Spacer(flex: 1), // Push login text downward
