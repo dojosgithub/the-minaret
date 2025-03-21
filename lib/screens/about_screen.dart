@@ -6,6 +6,10 @@ class AboutScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions
+    final screenHeight = MediaQuery.of(context).size.height;
+    final screenWidth = MediaQuery.of(context).size.width;
+    
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
 
@@ -17,63 +21,77 @@ class AboutScreen extends StatelessWidget {
       ),
 
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: SingleChildScrollView(  // Prevents content overflow
+        padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+        child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Back Arrow & Title
-              const SizedBox(height: 10),
+              SizedBox(height: screenHeight * 0.015),
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+                    icon: Icon(
+                      Icons.arrow_back,
+                      color: const Color(0xFFFDCC87),
+                      size: screenWidth * 0.06,
+                    ),
                     onPressed: () => Navigator.pop(context),
                   ),
-                  const SizedBox(width: 10),
-                  const Text(
+                  SizedBox(width: screenWidth * 0.02),
+                  Text(
                     "About the Minaret",
                     style: TextStyle(
-                      color: Color(0xFFFDCC87),
-                      fontSize: 24,
+                      color: const Color(0xFFFDCC87),
+                      fontSize: screenWidth * 0.06,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.025),
 
               // App Description
-              const Text(
+              Text(
                 "Welcome to our app – a platform designed for engaging discussions, sharing insights, and scaling your experiences with a vibrant community. Whether you're here to participate in meaningful conversations, provide feedback, or manage your privacy settings, our app offers a seamless and user-friendly experience.",
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: screenWidth * 0.04,
+                ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.025),
 
-              const Text(
+              Text(
                 "Features:",
                 style: TextStyle(
-                  color: Color(0xFFFDCC87),
-                  fontSize: 18,
+                  color: const Color(0xFFFDCC87),
+                  fontSize: screenWidth * 0.045,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: screenHeight * 0.015),
 
-              const Text(
+              Text(
                 "• Personalized Privacy & Safety settings allowing control over who can comment, upvote, share, and view your profile.\n\n"
                 "• Community Guidelines that ensure a respectful and positive experience for all users.\n\n"
                 "• A structured feedback system where you can share your experience and help improve the platform.\n\n"
                 "• A seamless language selection experience to navigate in your preferred language.\n\n"
                 "• A beautiful, intuitive UI with a unique theme designed for clarity and ease of use.",
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: screenWidth * 0.04,
+                ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: screenHeight * 0.025),
 
-              const Text(
+              Text(
                 "Thank you for being a part of our community. We hope you have a great experience!",
-                style: TextStyle(color: Colors.white, fontSize: 16, fontStyle: FontStyle.italic),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: screenWidth * 0.04,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
+              SizedBox(height: screenHeight * 0.02),
             ],
           ),
         ),
