@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../main.dart';
 import 'continue_with_screen.dart';
 import 'phone_screen.dart';
@@ -29,75 +30,66 @@ class LoginScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 SizedBox(height: screenHeight * 0.1),
-                Image.asset(
-                  'assets/logo.png',
+                SvgPicture.asset(
+                  'assets/logo.svg',
                   height: screenHeight * 0.3,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(height: 40),
                 
                 // Phone Number Field
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Phone Number',
-                      style: TextStyle(color: Colors.white),
+                const Text(
+                  'Phone Number',
+                  style: TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 5),
+                TextFormField(
+                  style: const TextStyle(color: Colors.white),
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFF3A1E47),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                    const SizedBox(height: 5),
-                    TextField(
-                      style: const TextStyle(color: Colors.white),
-                      keyboardType: TextInputType.phone,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color(0xFF3A1E47),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                      ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                  ],
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 
                 // Password Field
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Password',
-                      style: TextStyle(color: Colors.white),
+                const Text(
+                  'Password',
+                  style: TextStyle(color: Colors.white),
+                ),
+                const SizedBox(height: 5),
+                TextFormField(
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFF3A1E47),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                    const SizedBox(height: 5),
-                    TextField(
-                      obscureText: true,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: const Color(0xFF3A1E47),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide.none,
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.white),
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
-                      ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: const BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                  ],
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                  ),
                 ),
                 
                 // Forgot Password
@@ -154,17 +146,17 @@ class LoginScreen extends StatelessWidget {
                 const SizedBox(height: 20),
                 
                 // Sign Up Text
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ContinueWithScreen(),
-                        ),
-                      );
-                    },
-                    child: const Text.rich(
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ContinueWithScreen(),
+                      ),
+                    );
+                  },
+                  child: const Center(
+                    child: Text.rich(
                       TextSpan(
                         text: "Don't have an account? ",
                         style: TextStyle(color: Colors.white, fontSize: 16),
