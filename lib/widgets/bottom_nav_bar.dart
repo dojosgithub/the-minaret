@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class BottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -14,7 +15,7 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double itemWidth = screenWidth / 5;
-    double indentHeight = 85; 
+    double indentHeight = 65;
     double navBarHeight = 70;
 
     return Stack(
@@ -23,7 +24,7 @@ class BottomNavBar extends StatelessWidget {
       ClipPath(
         clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
         child: ClipRRect(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)), // Curved top edges
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           child: Container(
             height: navBarHeight,
             decoration: const BoxDecoration(
@@ -47,7 +48,7 @@ class BottomNavBar extends StatelessWidget {
               type: BottomNavigationBarType.fixed,
               showSelectedLabels: false,
               showUnselectedLabels: false,
-              iconSize: 28,
+              iconSize: 24,
               items: List.generate(5, (index) => _buildNavItem(index, currentIndex)),
             ),
           ),
@@ -56,11 +57,11 @@ class BottomNavBar extends StatelessWidget {
 
      
         Positioned(
-          bottom: 45, 
-          left: (itemWidth * currentIndex) + (itemWidth / 2) - 30,
+          bottom: 50,
+          left: (itemWidth * currentIndex) + (itemWidth / 2) - 25,
           child: Container(
-            width: 65,
-            height: 65,
+            width: 50,
+            height: 50,
             decoration: BoxDecoration(
               color: const Color(0xFF9D3267),
               shape: BoxShape.circle,
@@ -72,19 +73,24 @@ class BottomNavBar extends StatelessWidget {
                 ),
               ],
             ),
-            child: Icon(
-              _getIcon(currentIndex),
-              color: Colors.white,
-              size: 35,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: SvgPicture.asset(
+                _getIconPath(currentIndex),
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
             ),
           ),
         ),
         
         Positioned(
-          bottom: 5, // Push label to the far bottom
+          bottom: 5,
           left: itemWidth * currentIndex,
-          width: itemWidth, // Ensure it takes the full width of one item
-          child: Center( // Centers the text properly under the selected icon
+          width: itemWidth,
+          child: Center(
             child: Text(
               _getLabel(currentIndex),
               style: const TextStyle(
@@ -101,27 +107,50 @@ class BottomNavBar extends StatelessWidget {
 
   BottomNavigationBarItem _buildNavItem(int index, int selectedIndex) {
     return BottomNavigationBarItem(
-      icon: index == selectedIndex ? const SizedBox.shrink() : Icon(_getIcon(index)),
-      label: '', // Hide all labels inside BottomNavigationBar
+      icon: index == selectedIndex 
+          ? const SizedBox.shrink() 
+          : Container(
+              color: Colors.transparent,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 35,
+                    height: 35,
+                    color: Colors.transparent,
+                  ),
+                  SvgPicture.asset(
+                    _getIconPath(index),
+                    height: 24,
+                    width: 24,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+      label: '',
     );
   }
 
-IconData _getIcon(int index) {
-  switch (index) {
-    case 0:
-      return Icons.home_outlined; // Hollow home icon
-    case 1:
-      return Icons.notifications_none; // Hollow notification icon
-    case 2:
-      return Icons.add; // Bold add icon
-    case 3:
-      return Icons.person_outline; // Hollow profile icon
-    case 4:
-      return Icons.search_outlined; // Hollow search icon
-    default:
-      return Icons.error_outline; // Hollow error icon
+  String _getIconPath(int index) {
+    switch (index) {
+      case 0:
+        return 'assets/home.svg';
+      case 1:
+        return 'assets/bell.svg';
+      case 2:
+        return 'assets/add.svg';
+      case 3:
+        return 'assets/user.svg';
+      case 4:
+        return 'assets/search.svg';
+      default:
+        return 'assets/home.svg';
+    }
   }
-}
 
   String _getLabel(int index) {
     switch (index) {
@@ -153,7 +182,7 @@ class BottomNavClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     Path path = Path();
     double indentCenter = (selectedIndex * itemWidth) + (itemWidth / 2);
-    double indentWidth = 65; // Keep indent width as is
+    double indentWidth = 45;
 
     path.lineTo(indentCenter - indentWidth, 0);
     path.quadraticBezierTo(indentCenter, indentHeight, indentCenter + indentWidth, 0);
