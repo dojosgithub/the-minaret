@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'registration_screen.dart'; // Import the registration screen
+import 'package:flutter_svg/flutter_svg.dart';
+import 'registration_screen.dart'; 
 import 'phone_screen.dart';
 import 'login_screen.dart';
 
@@ -26,7 +27,10 @@ class ContinueWithScreen extends StatelessWidget {
         child: Column(
           children: [
             const Spacer(flex: 2), // Push logo down slightly
-            Image.asset('assets/logo.png', height: screenHeight * 0.3), // Increased logo size
+            SvgPicture.asset(
+              'assets/logo.svg',
+              height: screenHeight * 0.2,
+            ),
             const Spacer(flex: 1), // Maintain same space between logo & buttons
 
             // Continue options

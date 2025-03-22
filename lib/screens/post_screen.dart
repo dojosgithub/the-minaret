@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'media_upload_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class PostScreen extends StatefulWidget {
@@ -178,10 +177,7 @@ class _PostPageState extends State<PostScreen> {
                 children: [
                   ElevatedButton.icon(
                     onPressed: () {
-                        Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const MediaUploadScreen()),
-                      );
+                      debugPrint("add photos / videos");
                     },
                     icon: const Icon(Icons.collections, color: Colors.white),
                     label: const Text('Photos / Videos', style: TextStyle(color: Colors.white)),

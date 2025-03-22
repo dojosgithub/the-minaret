@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
   const TopBarWithoutMenu({super.key});
@@ -11,7 +12,7 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          stops: [0.2, 0.8],
+          stops: [0.4, 1.0],
           colors: [
             Color(0xFF4F245A),
             Color(0xFF9D3267),
@@ -29,14 +30,14 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 90, // Reduced from 110
+          height: 110,
           child: Align(
             alignment: Alignment.bottomCenter,
             child: Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: Image.asset(
-                'assets/logo.png',
-                height: 65, // Increased from 65
+              child: SvgPicture.asset(
+                'assets/logo.svg',
+                height: 65,
                 fit: BoxFit.contain,
               ),
             ),
@@ -47,5 +48,5 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(100); // Reduced from 120
+  Size get preferredSize => const Size.fromHeight(120);
 }

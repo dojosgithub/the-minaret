@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onMenuPressed; // Callback for menu icon
@@ -17,12 +18,13 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)), // Curved edges
       child: Container(
-        height: 110, // Increased height for a wider top bar
+        width: double.infinity, // Added to match TopBarWithoutMenu
+        height: 120, // Increased height for a wider top bar
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            stops: [0.2, 0.8], // Pushes the dark color further down
+            stops: [0.4, 1.0], // Pushed the darker color further down
             colors: [
               Color(0xFF4F245A), // Background color of all pages (Top)
               Color(0xFF9D3267), // Current Top Bar color (Bottom)
@@ -75,9 +77,10 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               alignment: Alignment.bottomCenter,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 10), // Slightly above the bottom
-                child: Image.asset(
-                  'assets/logo.png', // Path to the logo image
+                child: SvgPicture.asset(
+                  'assets/logo.svg', // Path to the logo image
                   height: 65, // Slightly larger logo
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
