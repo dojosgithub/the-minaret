@@ -15,49 +15,47 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double itemWidth = screenWidth / 5;
-    double indentHeight = 65;
-    double navBarHeight = 70;
+    double indentHeight = 60; // Reduced indent height
+    double navBarHeight = 70; // Reduced navbar height
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
-      ClipPath(
-        clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: Container(
-            height: navBarHeight,
-            decoration: const BoxDecoration(
-              color: Color(0xFF9D3267),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black26,
-                  spreadRadius: 2,
-                  blurRadius: 10,
-                  offset: Offset(0, -2),
-                ),
-              ],
-            ),
-            child: BottomNavigationBar(
-              currentIndex: currentIndex,
-              onTap: onTap,
-              backgroundColor: Colors.transparent,
-              selectedItemColor: Colors.white,
-              unselectedItemColor: Colors.white70,
-              elevation: 0,
-              type: BottomNavigationBarType.fixed,
-              showSelectedLabels: false,
-              showUnselectedLabels: false,
-              iconSize: 24,
-              items: List.generate(5, (index) => _buildNavItem(index, currentIndex)),
+        ClipPath(
+          clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            child: Container(
+              height: navBarHeight,
+              decoration: const BoxDecoration(
+                color: Color(0xFF9D3267),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    spreadRadius: 2,
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: BottomNavigationBar(
+                currentIndex: currentIndex,
+                onTap: onTap,
+                backgroundColor: Colors.transparent,
+                selectedItemColor: Colors.white,
+                unselectedItemColor: Colors.white70,
+                elevation: 0,
+                type: BottomNavigationBarType.fixed,
+                showSelectedLabels: false,
+                showUnselectedLabels: false,
+                iconSize: 24,
+                items: List.generate(5, (index) => _buildNavItem(index, currentIndex)),
+              ),
             ),
           ),
         ),
-      ),
-
-     
         Positioned(
-          bottom: 50,
+          bottom: 50, // Increased to fix the overflow issue
           left: (itemWidth * currentIndex) + (itemWidth / 2) - 25,
           child: Container(
             width: 50,
@@ -75,28 +73,33 @@ class BottomNavBar extends StatelessWidget {
             ),
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: SvgPicture.asset(
-                _getIconPath(currentIndex),
-                colorFilter: const ColorFilter.mode(
-                  Colors.white,
-                  BlendMode.srcIn,
+              child: FittedBox(
+                fit: BoxFit.contain,
+                child: SvgPicture.asset(
+                  _getIconPath(currentIndex),
+                  colorFilter: const ColorFilter.mode(
+                    Colors.white,
+                    BlendMode.srcIn,
+                  ),
                 ),
               ),
             ),
           ),
         ),
-        
         Positioned(
-          bottom: 5,
+          bottom: 0, // Adjusted to align labels with the reduced navbar height
           left: itemWidth * currentIndex,
           width: itemWidth,
           child: Center(
-            child: Text(
-              _getLabel(currentIndex),
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                _getLabel(currentIndex),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -123,6 +126,7 @@ class BottomNavBar extends StatelessWidget {
                     _getIconPath(index),
                     height: 24,
                     width: 24,
+                    fit: BoxFit.contain, // Ensure proper scaling
                     colorFilter: const ColorFilter.mode(
                       Colors.white,
                       BlendMode.srcIn,

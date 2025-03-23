@@ -201,7 +201,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
               ),
             ),
             Dialog(

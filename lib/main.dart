@@ -34,7 +34,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  int _currentIndex = 0;
+  final int _currentIndex = 0; //final added
 
   final List<Widget> _screens = [
     const HomeScreen(),

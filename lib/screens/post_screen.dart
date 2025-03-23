@@ -95,7 +95,7 @@ class _PostPageState extends State<PostScreen> {
   Widget build(BuildContext context) {
     return ScreenWrapper(
       currentIndex: 2, // Adjust the index based on the navigation order
-      child: WillPopScope(
+        child: WillPopScope(
         onWillPop: _onWillPop,
         child: Scaffold(
           backgroundColor: const Color(0xFF4F245A),
