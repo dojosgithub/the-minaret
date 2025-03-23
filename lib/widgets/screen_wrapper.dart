@@ -7,6 +7,8 @@ import '../screens/notifications_screen.dart';
 import '../screens/post_screen.dart';
 import '../screens/user_screen.dart';
 import '../screens/search_screen.dart';
+import '../widgets/top_bar_settings.dart';
+
 
 class ScreenWrapper extends StatelessWidget {
   final Widget child;
@@ -25,15 +27,17 @@ class ScreenWrapper extends StatelessWidget {
       child: Scaffold(
         drawer: const MenuScreen(),
         backgroundColor: Colors.transparent,
-        appBar: TopBar(
-          onMenuPressed: () {
-            Scaffold.of(context).openDrawer();
-          },
-          onProfilePressed: () {
-            debugPrint('Profile picture pressed');
-          },
-          profileImage: 'assets/profile_picture.png',
-        ),
+        appBar: currentIndex == 4 // Check if it's the SearchScreen
+            ? const TopBarSettings()
+            : TopBar(
+                onMenuPressed: () {
+                  Scaffold.of(context).openDrawer();
+                },
+                onProfilePressed: () {
+                  debugPrint('Profile picture pressed');
+                },
+                profileImage: 'assets/profile_picture.png',
+              ),
         body: child,
         bottomNavigationBar: BottomNavBar(
           currentIndex: currentIndex,
@@ -78,4 +82,4 @@ class ScreenWrapper extends StatelessWidget {
       ),
     );
   }
-} 
+}

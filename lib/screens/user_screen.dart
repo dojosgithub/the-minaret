@@ -123,14 +123,12 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildPosts() {
-    return Center(
-      child: Text('User Posts', style: TextStyle(color: Colors.white, fontSize: 18)),
-    );
-  }
-
-  Widget _buildSaved() {
-    return Center(
-      child: Text('Saved Posts', style: TextStyle(color: Colors.white, fontSize: 18)),
-    );
+    return selectedTab == 0
+        ? Center(
+            child: Text('User Posts', style: TextStyle(color: Colors.white, fontSize: 18)),
+          )
+        : Center(
+            child: Text('Saved Posts', style: TextStyle(color: Colors.white, fontSize: 18)),
+          );
   }
 }
