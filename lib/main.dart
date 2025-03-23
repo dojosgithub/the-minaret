@@ -4,10 +4,7 @@ import 'screens/notifications_screen.dart';
 import 'screens/post_screen.dart';
 import 'screens/user_screen.dart';
 import 'screens/search_screen.dart';
-import 'screens/menu_screen.dart';
 import 'screens/welcome_screen.dart';
-import 'widgets/bottom_nav_bar.dart';
-import 'widgets/top_bar.dart';
 
 void main() {
   runApp(const MyApp());

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/screen_wrapper.dart';
 
 class PostScreen extends StatefulWidget {
@@ -94,217 +93,126 @@ class _PostPageState extends State<PostScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _onWillPop,
-      child: Scaffold(
-        backgroundColor: const Color(0xFF4F245A),
-        resizeToAvoidBottomInset: true,
-        body: SingleChildScrollView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.all(15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Color(0xFFFDCC87),
-                    ),
-                    child: const CircleAvatar(
-                      backgroundImage: AssetImage('assets/profile_picture.png'),
-                      radius: 25,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              GestureDetector(
-                onTap: () => _showTypeDialog(context),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF3D1B45),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(selectedType ?? 'Type', style: const TextStyle(color: Color(0xFFFDCC87))),
-                      const Icon(Icons.add, color: Colors.white),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3D1B45),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Column(
+    return ScreenWrapper(
+      currentIndex: 2, // Adjust the index based on the navigation order
+      child: WillPopScope(
+        onWillPop: _onWillPop,
+        child: Scaffold(
+          backgroundColor: const Color(0xFF4F245A),
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF4F245A),
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Create Post',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+          body: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TextField(
-                      controller: _titleController,
-                      maxLines: 1,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Title of Post',
-                        hintStyle: TextStyle(color: Color(0xFFFDCC87)),
+                    Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFFDCC87),
                       ),
-                    ),
-                    const Divider(color: Color(0xFFFDCC87)),
-                    TextField(
-                      controller: _bodyController,
-                      maxLines: 5,
-                      style: const TextStyle(color: Colors.white),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        hintText: 'Body Text',
-                        hintStyle: TextStyle(color: Color(0xFFFDCC87)),
+                      child: const CircleAvatar(
+                        backgroundImage: AssetImage('assets/profile_picture.png'),
+                        radius: 25,
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      debugPrint("add photos / videos");
-                    },
-                    icon: const Icon(Icons.collections, color: Colors.white),
-                    label: const Text('Photos / Videos', style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3D1B45),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                const SizedBox(height: 10),
+                GestureDetector(
+                  onTap: () {},
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF3D1B45),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(selectedType ?? 'Type', style: const TextStyle(color: Color(0xFFFDCC87))),
+                        const Icon(Icons.add, color: Colors.white),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.send, color: Colors.white),
-                    label: const Text('Link', style: TextStyle(color: Colors.white)),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF3D1B45),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    ),
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF3D1B45),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showTypeDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF3D1B45),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                title: const Text('Reporters', style: TextStyle(color: Colors.white)),
-                onTap: () => _selectType('Reporters'),
-              ),
-              ListTile(
-                title: const Text('Islamic Knowledge', style: TextStyle(color: Colors.white)),
-                onTap: () => _showIslamicOptions(context),
-              ),
-              ListTile(
-                title: const Text('Discussion', style: TextStyle(color: Colors.white)),
-                onTap: () => _selectType('Discussion'),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void _showIslamicOptions(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final iconSize = screenWidth * 0.12; // 12% of screen width
-    
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: const Color(0xFF3D1B45),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-          title: const Text('Islamic Knowledge', style: TextStyle(color: Colors.white)),
-          content: Container(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: _titleController,
+                        maxLines: 1,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Title of Post',
+                          hintStyle: TextStyle(color: Color(0xFFFDCC87)),
+                        ),
+                      ),
+                      const Divider(color: Color(0xFFFDCC87)),
+                      TextField(
+                        controller: _bodyController,
+                        maxLines: 5,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          hintText: 'Body Text',
+                          hintStyle: TextStyle(color: Color(0xFFFDCC87)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Expanded(child: _buildIslamicOption('assets/quran.svg', 'Teaching Quran', 'Teaching Quran', iconSize)),
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.collections, color: Colors.white),
+                      label: const Text('Photos / Videos', style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3D1B45),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
                     const SizedBox(width: 10),
-                    Expanded(child: _buildIslamicOption('assets/hadith.svg', 'Hadith', 'Hadith', iconSize)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _buildIslamicOption('assets/tafsir.svg', 'Tafsir', 'Tafsir', iconSize)),
-                    const SizedBox(width: 10),
-                    Expanded(child: _buildIslamicOption('assets/sunnah.svg', 'Sunnah', 'Sunnah', iconSize)),
+                    ElevatedButton.icon(
+                      onPressed: () {},
+                      icon: const Icon(Icons.send, color: Colors.white),
+                      label: const Text('Post', style: TextStyle(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF3D1B45),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildIslamicOption(String iconPath, String label, String type, double size) {
-    return GestureDetector(
-      onTap: () {
-        _selectType(type);
-        Navigator.pop(context);
-      },
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SvgPicture.asset(
-            iconPath,
-            width: size,
-            height: size,
-            color: const Color(0xFFFDCC87),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: size * 0.2, // 20% of icon size
-            ),
-          ),
-        ],
+        ),
       ),
     );
-  }
-
-  void _selectType(String type) {
-    setState(() {
-      selectedType = type;
-      _hasChanges = true;
-    });
-    Navigator.pop(context);
   }
 }
