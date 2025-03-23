@@ -1,22 +1,20 @@
 import 'package:flutter/material.dart';
+import '../widgets/screen_wrapper.dart';
 
-class SearchScreen extends StatefulWidget {
+class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchPageState();
-}
-
-class _SearchPageState extends State<SearchScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
+Widget build(BuildContext context) {
+  return ScreenWrapper(
+    currentIndex: 4,
+    child: Scaffold(
       backgroundColor: const Color(0xFF4F245A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF4F245A),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-          onPressed: () => debugPrint("back pressed"),//back button issues
+          onPressed: () => debugPrint("back pressed"), //back button issues
         ),
         title: Padding(
           padding: const EdgeInsets.only(top: 8.0),
@@ -49,9 +47,9 @@ class _SearchPageState extends State<SearchScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        _buildExpansionTile('Sort by', ['Date', 'Most Relevant', 'Recent']),
-                        _buildExpansionTile('Date Posted', ['Last 24 Hours', 'This Week', 'This Month', '2024']),
-                        _buildExpansionTile('Posted By', ['Me', 'Followings', 'Anyone']),
+                        _buildExpansionTile(context, 'Sort by', ['Date', 'Most Relevant', 'Recent']),
+                        _buildExpansionTile(context, 'Date Posted', ['Last 24 Hours', 'This Week', 'This Month', '2024']),
+                        _buildExpansionTile(context, 'Posted By', ['Me', 'Followings', 'Anyone']),
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () => Navigator.pop(context),
@@ -71,25 +69,28 @@ class _SearchPageState extends State<SearchScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildExpansionTile(String title, List<String> options) {
-    return ExpansionTile(
-      title: Text(title, style: const TextStyle(color: Color(0xFFFDCC87))),
-      children: options
-          .map(
-            (option) => Column(
-              children: [
-                ListTile(
-                  title: Text(option, style: const TextStyle(color: Color(0xFFFDCC87))),
-                  onTap: () => Navigator.pop(context, option),
-                ),
-                if (option != options.last) const Divider(color: Colors.grey, thickness: 0.5),
-              ],
-            ),
-          )
-          .toList(),
-    );
-  }
+    ),
+  );
 }
+
+Widget _buildExpansionTile(BuildContext context, String title, List<String> options) {
+  return ExpansionTile(
+    title: Text(title, style: const TextStyle(color: Color(0xFFFDCC87))),
+    children: options
+        .map(
+          (option) => Column(
+            children: [
+              ListTile(
+                title: Text(option, style: const TextStyle(color: Color(0xFFFDCC87))),
+                onTap: () {
+                  Navigator.of(context).pop(option);
+                },
+              ),
+              if (option != options.last) const Divider(color: Colors.grey, thickness: 0.5),
+            ],
+          ),
+        )
+        .toList(),
+  );}
+}
+

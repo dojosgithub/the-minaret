@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import '../widgets/post.dart';
+import '../widgets/screen_wrapper.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A),
-      body: SingleChildScrollView(
+    return ScreenWrapper(
+      currentIndex: 0, // This is the home screen index
+      child: SingleChildScrollView(
         child: Column(
           children: const [
             Post(

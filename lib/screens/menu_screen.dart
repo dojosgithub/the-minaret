@@ -1,116 +1,152 @@
 import 'package:flutter/material.dart';
-import 'notifications_menu_screen.dart';
-import 'language_screen.dart';
-import 'feedback_screen.dart';
-import 'community_guidelines_screen.dart';
-import 'privacy_and_safety_screen.dart';
 import 'about_screen.dart';
-import '../widgets/top_bar.dart';
+import 'settings_screen.dart';
+import 'home_screen.dart';
+import 'user_screen.dart';
 
 class MenuScreen extends StatelessWidget {
   const MenuScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A), // Background color of all pages
-      appBar: TopBar(
-        onMenuPressed: () {},
-        onProfilePressed: () {},
-        profileImage: 'assets/profile_picture.png',
-      ),
-      body: Column(
-        children: [
-          // Back button & title section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)), // Yellow back button
-                  onPressed: () => Navigator.pop(context),
+    return Drawer(
+      child: Material(
+        color: const Color(0xFF4F245A),
+        child: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Section 1: Home
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: _buildMenuItem(
+                  context,
+                  'Home',
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    );
+                  },
                 ),
-                const SizedBox(width: 10), // Space between icon and title
-                const Expanded(
-                  child: Text(
-                    "Settings",
-                    style: TextStyle(
-                      color: Color(0xFFFDCC87), // Signature yellow color
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10), // Add some spacing
-
-          // Menu items inside a scrollable view
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  _buildMenuItem(context, "Notifications", Icons.notifications_outlined, () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const NotificationsMenuScreen()),
-                    );
-                  }),
-                  _buildMenuItem(context, "Language", Icons.language_outlined, () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LanguageScreen()),
-                    );
-                  }),
-                  _buildMenuItem(context, "Community Guidelines", Icons.groups_outlined, () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const CommunityGuidelinesScreen()),
-                    );
-                  }),
-                  _buildMenuItem(context, "Feedback", Icons.verified_user_outlined, () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const FeedbackScreen()),
-                    );
-                  }),
-                  _buildMenuItem(context, "Privacy & Safety", Icons.lock_outline, () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const PrivacySafetyScreen()),
-                    );
-                  }),
-                  _buildMenuItem(context, "About the Minaret", Icons.info_outline, () {
-                      Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const AboutScreen()),
-                    );
-                  }),
-                ],
               ),
-            ),
+
+              const Divider(color: Colors.grey, height: 1),
+
+              // Section 2: Knowledge Categories
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildMenuItem(context, 'All'),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Islamic Knowledge',
+                      onTap: () {
+                        Navigator.pop(context); // Close drawer before navigation
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Teachings of the Quran',
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Tafsir',
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Sunnah',
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Hadith',
+                      onTap: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+
+              const Divider(color: Colors.grey, height: 1),
+
+              // Section 3: User Related
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildMenuItem(
+                      context, 
+                      'Settings',
+                      onTap: () {
+                        Navigator.pop(context); // Close drawer before navigation
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SettingsScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Profile',
+                      onTap: () {
+                        Navigator.pop(context); // Close drawer before navigation
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const UserScreen()),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'About',
+                      onTap: () {
+                        Navigator.pop(context); // Close drawer before navigation
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AboutScreen()),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  // Function to build menu item
-  Widget _buildMenuItem(BuildContext context, String title, IconData icon, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.white), // Icons moved to the left
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white, // White text for readability
-            fontSize: 18,
-          ),
+  Widget _buildMenuItem(BuildContext context, String title, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
         ),
-        onTap: onTap,
       ),
     );
   }

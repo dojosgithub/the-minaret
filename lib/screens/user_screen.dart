@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'edit_profile_screen.dart';
+import '../widgets/screen_wrapper.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
 
   @override
-  State<UserScreen> createState() => _UserProfileScreenState();
+  State<UserScreen> createState() => _UserScreenState();
 }
 
-class _UserProfileScreenState extends State<UserScreen> {
+class _UserScreenState extends State<UserScreen> {
   int selectedTab = 0;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A),
-      body: SingleChildScrollView(
+    return ScreenWrapper(
+      currentIndex: 3,
+      child: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(15.0),
           child: Column(
@@ -87,7 +88,7 @@ class _UserProfileScreenState extends State<UserScreen> {
               const SizedBox(height: 10),
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.5,
-                child: selectedTab == 0 ? _buildPosts() : _buildSaved(),
+                child: _buildPosts(),
               ),
             ],
           ),

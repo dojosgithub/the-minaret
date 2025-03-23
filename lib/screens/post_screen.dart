@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../widgets/screen_wrapper.dart';
 
 class PostScreen extends StatefulWidget {
   const PostScreen({super.key});

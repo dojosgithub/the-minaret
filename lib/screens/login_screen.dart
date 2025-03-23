@@ -10,6 +10,7 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       body: Container(
@@ -24,156 +25,166 @@ class LoginScreen extends StatelessWidget {
           ),
         ),
         child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                SizedBox(height: screenHeight * 0.1),
-                SvgPicture.asset(
-                  'assets/logo.svg',
-                  height: screenHeight * 0.3,
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 40),
-                
-                // Phone Number Field
-                const Text(
-                  'Phone Number',
-                  style: TextStyle(color: Colors.white),
-                ),
-                const SizedBox(height: 5),
-                TextFormField(
-                  style: const TextStyle(color: Colors.white),
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF3A1E47),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(25),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxWidth: screenWidth * 0.9,
+                minHeight: screenHeight,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: SvgPicture.asset(
+                        'assets/logo.svg',
+                        height: screenHeight * 0.2,
+                        fit: BoxFit.contain,
+                      ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(25),
+                    const SizedBox(height: 40),
+                    
+                    // Phone Number Field
+                    const Text(
+                      'Phone Number',
+                      style: TextStyle(color: Colors.white),
                     ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-                
-                // Password Field
-                const Text(
-                  'Password',
-                  style: TextStyle(color: Colors.white),
-                ),
-                const SizedBox(height: 5),
-                TextFormField(
-                  obscureText: true,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    filled: true,
-                    fillColor: const Color(0xFF3A1E47),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: const BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
-                
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PhoneScreen(isForgotPassword: true),
+                    const SizedBox(height: 5),
+                    TextFormField(
+                      style: const TextStyle(color: Colors.white),
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFF3A1E47),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(25),
                         ),
-                      );
-                    },
-                    child: const Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        color: Color(0xFFFDCC87),
-                        fontSize: 14,
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                
-                const SizedBox(height: 30),
-                
-                // Login Button
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFDCC87),
-                    padding: const EdgeInsets.symmetric(vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
+                    const SizedBox(height: 20),
+                    
+                    // Password Field
+                    const Text(
+                      'Password',
+                      style: TextStyle(color: Colors.white),
                     ),
-                  ),
-                  onPressed: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const MainScreen(),
+                    const SizedBox(height: 5),
+                    TextFormField(
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: const Color(0xFF3A1E47),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide.none,
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: const BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
                       ),
-                    );
-                  },
-                  child: const Text(
-                    'Log In',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // Sign Up Text
-                GestureDetector(
-                  onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ContinueWithScreen(),
-                      ),
-                    );
-                  },
-                  child: const Center(
-                    child: Text.rich(
-                      TextSpan(
-                        text: "Don't have an account? ",
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                        children: [
-                          TextSpan(
-                            text: 'Sign up',
-                            style: TextStyle(
-                              color: Color(0xFFFDCC87),
-                              fontWeight: FontWeight.bold,
+                    
+                    // Forgot Password
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const PhoneScreen(isForgotPassword: true),
                             ),
+                          );
+                        },
+                        child: const Text(
+                          'Forgot Password?',
+                          style: TextStyle(
+                            color: Color(0xFFFDCC87),
+                            fontSize: 14,
                           ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+                    
+                    const SizedBox(height: 30),
+                    
+                    // Login Button
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFDCC87),
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MainScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Log In',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    
+                    const SizedBox(height: 20),
+                    
+                    // Sign Up Text
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ContinueWithScreen(),
+                          ),
+                        );
+                      },
+                      child: const Center(
+                        child: Text.rich(
+                          TextSpan(
+                            text: "Don't have an account? ",
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                            children: [
+                              TextSpan(
+                                text: 'Sign up',
+                                style: TextStyle(
+                                  color: Color(0xFFFDCC87),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
