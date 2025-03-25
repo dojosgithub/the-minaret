@@ -104,14 +104,6 @@ class _PostPageState extends State<PostScreen> {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
-              title: const Text(
-                'Select Option',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

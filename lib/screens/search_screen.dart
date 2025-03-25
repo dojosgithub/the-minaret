@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/screen_wrapper.dart';
+import 'home_screen.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -14,7 +15,11 @@ Widget build(BuildContext context) {
         backgroundColor: const Color(0xFF4F245A),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-          onPressed: () => debugPrint("back pressed"), //back button issues
+        onPressed: ()  {                
+          Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+                );}, //back button issues
         ),
         title: Padding(
           padding: const EdgeInsets.only(top: 8.0),

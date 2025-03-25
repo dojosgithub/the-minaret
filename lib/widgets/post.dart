@@ -6,9 +6,9 @@ class Post extends StatelessWidget {
   final String username;
   final String profilePic;
   final String text;
-  final int upvoteCount; // New member: upvote count
-  final int downvoteCount; // New member: downvote count
-  final int repostCount; // New member: repost count
+  final int upvoteCount; 
+  final int downvoteCount; 
+  final int repostCount; 
 
   const Post({
     super.key,
