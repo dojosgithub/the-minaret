@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../widgets/screen_wrapper.dart';
 
 class PostScreen extends StatefulWidget {
@@ -91,6 +92,105 @@ class _PostPageState extends State<PostScreen> {
     return result ?? false;
   }
 
+  void _showOptionsPopup() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        String? selectedMainOption;
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF3D1B45),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              title: const Text(
+                'Select Option',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (selectedMainOption == null) ...[
+                    ListTile(
+                      title: const Text('Reporters', style: TextStyle(color: Color(0xFFFDCC87))),
+                      onTap: () {
+                        setState(() {
+                          selectedType = 'Reporters';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('Islamic Knowledge', style: TextStyle(color: Color(0xFFFDCC87))),
+                      onTap: () {
+                        setState(() => selectedMainOption = 'Islamic Knowledge');
+                      },
+                    ),
+                    ListTile(
+                      title: const Text('Discussion', style: TextStyle(color: Color(0xFFFDCC87))),
+                      onTap: () {
+                        setState(() {
+                          selectedType = 'Discussion';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ] else if (selectedMainOption == 'Islamic Knowledge') ...[
+                    ListTile(
+                      leading: SvgPicture.asset('assets/quran.svg', height: 24, width: 24),
+                      title: const Text('Teaching Quran', style: TextStyle(color: Color(0xFFFDCC87))),
+                      onTap: () {
+                        setState(() {
+                          selectedType = 'Teaching Quran';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: SvgPicture.asset('assets/hadith.svg', height: 24, width: 24),
+                      title: const Text('Hadith', style: TextStyle(color: Color(0xFFFDCC87))),
+                      onTap: () {
+                        setState(() {
+                          selectedType = 'Hadith';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: SvgPicture.asset('assets/tafsir.svg', height: 24, width: 24),
+                      title: const Text('Tafsir', style: TextStyle(color: Color(0xFFFDCC87))),
+                      onTap: () {
+                        setState(() {
+                          selectedType = 'Tafsir';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                    ListTile(
+                      leading: SvgPicture.asset('assets/sunnah.svg', height: 24, width: 24),
+                      title: const Text('Sunnah', style: TextStyle(color: Color(0xFFFDCC87))),
+                      onTap: () {
+                        setState(() {
+                          selectedType = 'Sunnah';
+                        });
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScreenWrapper(
@@ -99,17 +199,6 @@ class _PostPageState extends State<PostScreen> {
         onWillPop: _onWillPop,
         child: Scaffold(
           backgroundColor: const Color(0xFF4F245A),
-          appBar: AppBar(
-            backgroundColor: const Color(0xFF4F245A),
-            leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-              onPressed: () => Navigator.pop(context),
-            ),
-            title: const Text(
-              'Create Post',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
           body: SingleChildScrollView(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.all(15.0),
@@ -134,7 +223,7 @@ class _PostPageState extends State<PostScreen> {
                 ),
                 const SizedBox(height: 10),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: _showOptionsPopup,
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
                     decoration: BoxDecoration(
@@ -216,3 +305,4 @@ class _PostPageState extends State<PostScreen> {
     );
   }
 }
+
