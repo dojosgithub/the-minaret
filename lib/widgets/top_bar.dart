@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../screens/user_screen.dart';
 
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onMenuPressed; // Callback for menu icon
@@ -62,11 +63,16 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 actions: [
                   // Profile picture on the right
                   GestureDetector(
-                    onTap: onProfilePressed,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const UserScreen()),
+                      );
+                    },
                     child: Padding(
                       padding: const EdgeInsets.only(right: 16),
                       child: CircleAvatar(
-                        backgroundImage: AssetImage(profileImage),
+                        backgroundImage: AssetImage('assets/profile_picture.png'), // Updated path
                         radius: 18, // Slightly bigger profile image
                       ),
                     ),
