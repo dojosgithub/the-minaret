@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class Post extends StatelessWidget {
+class Post extends StatefulWidget {
   final String name;
   final String username;
   final String profilePic;
@@ -20,6 +20,13 @@ class Post extends StatelessWidget {
     required this.downvoteCount,
     required this.repostCount,
   });
+
+  @override
+  _PostState createState() => _PostState();
+}
+
+class _PostState extends State<Post> {
+  bool _isBookmarked = false;
 
   void _showSharePopup(BuildContext context) {
     showDialog(
@@ -89,7 +96,9 @@ class Post extends StatelessWidget {
                         _showCopiedMessage(context);
                       }),
                       _buildShareOption(context, Icons.heart_broken, "Not Interested", () {}),
-                      _buildShareOption(context, Icons.flag, "Flag", () {}),
+                      _buildShareOption(context, Icons.flag, "Report", () {
+                        _showReportPopup(context);
+                      }),
                       _buildShareOption(context, Icons.repeat, "Repost", () {}),
                       _buildShareOptionWithImage(context, "assets/whatsapp.png", "WhatsApp", () {}),
                       _buildShareOptionWithImage(context, "assets/telegram.png", "Telegram", () {}),
@@ -104,10 +113,85 @@ class Post extends StatelessWidget {
     );
   }
 
+  void _showReportPopup(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3D1B45),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Report Post",
+                  style: TextStyle(color: Colors.white, fontSize: 16),
+                ),
+                const SizedBox(height: 10),
+                Column(
+                  children: [
+                    _buildReportReason("Spam"),
+                    _buildReportReason("Harassment"),
+                    _buildReportReason("Misinformation"),
+                    _buildReportReason("Hate Speech"),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFFDCC87),
+                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text(
+                    "Submit Report",
+                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildReportReason(String reason) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        children: [
+          const Icon(Icons.radio_button_unchecked, color: Colors.white),
+          const SizedBox(width: 10),
+          Text(reason, style: const TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
+  }
+
   Widget _buildShareOption(BuildContext context, IconData icon, String label, VoidCallback onTap) {
     return Column(
       children: [
-        IconButton(icon: Icon(icon, color: Colors.white), onPressed: onTap),
+        Container(
+          width: 50, // Match user circle size
+          height: 50, // Match user circle size
+          padding: const EdgeInsets.all(8),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color(0xFFFDCC87), // Yellow circle
+          ),
+          child: IconButton(icon: Icon(icon, color: Colors.black), onPressed: onTap),
+        ),
         Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
       ],
     );
@@ -116,9 +200,18 @@ class Post extends StatelessWidget {
   Widget _buildShareOptionWithImage(BuildContext context, String assetPath, String label, VoidCallback onTap) {
     return Column(
       children: [
-        IconButton(
-          icon: Image.asset(assetPath, width: 30, height: 30),
-          onPressed: onTap,
+        Container(
+          width: 50, // Match user circle size
+          height: 50, // Match user circle size
+          padding: const EdgeInsets.all(3),
+          decoration: const BoxDecoration(
+            shape: BoxShape.circle,
+            color: Color(0xFFFDCC87), // Yellow circle
+          ),
+          child: IconButton(
+            icon: Image.asset(assetPath, fit: BoxFit.cover),
+            onPressed: onTap,
+          ),
         ),
         Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
       ],
@@ -175,7 +268,7 @@ class Post extends StatelessWidget {
                   color: Color(0xFFFDCC87),
                 ),
                 child: CircleAvatar(
-                  backgroundImage: AssetImage(profilePic),
+                  backgroundImage: AssetImage(widget.profilePic),
                   radius: 25,
                 ),
               ),
@@ -193,7 +286,7 @@ class Post extends StatelessWidget {
                             GestureDetector(
                               onTap: () {},
                               child: Text(
-                                name,
+                                widget.name,
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 16,
@@ -205,7 +298,7 @@ class Post extends StatelessWidget {
                             GestureDetector(
                               onTap: () {},
                               child: Text(
-                                '@$username',
+                                '@${widget.username}',
                                 style: const TextStyle(
                                   color: Color(0xFFFDCC87),
                                   fontSize: 14,
@@ -216,17 +309,21 @@ class Post extends StatelessWidget {
                           ],
                         ),
                         IconButton(
-                          icon: const Icon(
-                            Icons.bookmark_border,
-                            color: Color(0xFFFDCC87),
+                          icon: Icon(
+                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                            color: const Color(0xFFFDCC87),
                           ),
-                          onPressed: () {},
+                          onPressed: () {
+                            setState(() {
+                              _isBookmarked = !_isBookmarked;
+                            });
+                          },
                         ),
                       ],
                     ),
                     const SizedBox(height: 5),
                     Text(
-                      text,
+                      widget.text,
                       style: const TextStyle(
                         fontSize: 14,
                         color: Colors.white,
@@ -248,7 +345,7 @@ class Post extends StatelessWidget {
                     onPressed: () {},
                   ),
                   Text(
-                    upvoteCount.toString(),
+                    widget.upvoteCount.toString(),
                     style: const TextStyle(color: Color(0xFFFDCC87), // Yellow color for upvote count
                   ),
                   )
@@ -261,7 +358,7 @@ class Post extends StatelessWidget {
                     onPressed: () {},
                   ),
                   Text(
-                    downvoteCount.toString(),
+                    widget.downvoteCount.toString(),
                     style: const TextStyle(color: Colors.white), // White color for downvote count
                   ),
                 ],
@@ -285,7 +382,7 @@ class Post extends StatelessWidget {
                     onPressed: () {},
                   ),
                   Text(
-                    repostCount.toString(),
+                    widget.repostCount.toString(),
                     style: const TextStyle(color: Colors.white), // White color for repost count
                   ),
                 ],
