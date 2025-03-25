@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../widgets/top_bar_without_menu.dart';
+import '../widgets/top_bar_without_menu.dart'; 
+import 'user_screen.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -15,7 +16,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       backgroundColor: const Color(0xFF4F245A),
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(100),
-        child: TopBarWithoutMenu(),
+        child: TopBarWithoutMenu(), // Updated to use TopBar
       ),
       body: Container(
         width: double.infinity,
@@ -154,9 +155,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                         borderRadius: BorderRadius.circular(25),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const UserScreen()),
+                  );
+                },
                     child: const Text(
                       'Change Password',
                       style: TextStyle(

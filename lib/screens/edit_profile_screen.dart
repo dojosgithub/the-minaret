@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/top_bar_without_menu.dart'; // Added import
 import 'change_password_screen.dart';
+import 'user_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -13,11 +15,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text('Edit Profile', style: TextStyle(color: Colors.white)),
-        centerTitle: true,
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: TopBarWithoutMenu(), // Replaced AppBar with TopBar
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
@@ -53,7 +53,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  // Save profile changes
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const UserScreen()),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFDCC87),
