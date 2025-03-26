@@ -97,6 +97,7 @@ class _PostPageState extends State<PostScreen> {
       context: context,
       builder: (context) {
         String? selectedMainOption;
+        String? selectedSubOption;
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
@@ -133,45 +134,65 @@ class _PostPageState extends State<PostScreen> {
                       },
                     ),
                   ] else if (selectedMainOption == 'Islamic Knowledge') ...[
-                    ListTile(
-                      leading: SvgPicture.asset('assets/quran.svg', height: 24, width: 24),
-                      title: const Text('Teaching Quran', style: TextStyle(color: Color(0xFFFDCC87))),
-                      onTap: () {
-                        setState(() {
-                          selectedType = 'Teaching Quran';
-                        });
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      leading: SvgPicture.asset('assets/hadith.svg', height: 24, width: 24),
-                      title: const Text('Hadith', style: TextStyle(color: Color(0xFFFDCC87))),
-                      onTap: () {
-                        setState(() {
-                          selectedType = 'Hadith';
-                        });
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      leading: SvgPicture.asset('assets/tafsir.svg', height: 24, width: 24),
-                      title: const Text('Tafsir', style: TextStyle(color: Color(0xFFFDCC87))),
-                      onTap: () {
-                        setState(() {
-                          selectedType = 'Tafsir';
-                        });
-                        Navigator.pop(context);
-                      },
-                    ),
-                    ListTile(
-                      leading: SvgPicture.asset('assets/sunnah.svg', height: 24, width: 24),
-                      title: const Text('Sunnah', style: TextStyle(color: Color(0xFFFDCC87))),
-                      onTap: () {
-                        setState(() {
-                          selectedType = 'Sunnah';
-                        });
-                        Navigator.pop(context);
-                      },
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildSubOption(
+                          context,
+                          'Teaching Quran',
+                          'assets/quran.svg',
+                          selectedSubOption,
+                          (value) {
+                            setState(() {
+                              selectedSubOption = value;
+                              selectedType = value;
+                            });
+                            Navigator.pop(context); // Close popup on selection
+                          },
+                        ),
+                        const SizedBox(width: 10), // Add space between suboptions
+                        _buildSubOption(
+                          context,
+                          'Hadith',
+                          'assets/hadith.svg',
+                          selectedSubOption,
+                          (value) {
+                            setState(() {
+                              selectedSubOption = value;
+                              selectedType = value;
+                            });
+                            Navigator.pop(context); // Close popup on selection
+                          },
+                        ),
+                        const SizedBox(width: 10), // Add space between suboptions
+                        _buildSubOption(
+                          context,
+                          'Tafsir',
+                          'assets/tafsir.svg',
+                          selectedSubOption,
+                          (value) {
+                            setState(() {
+                              selectedSubOption = value;
+                              selectedType = value;
+                            });
+                            Navigator.pop(context); // Close popup on selection
+                          },
+                        ),
+                        const SizedBox(width: 10), // Add space between suboptions
+                        _buildSubOption(
+                          context,
+                          'Sunnah',
+                          'assets/sunnah.svg',
+                          selectedSubOption,
+                          (value) {
+                            setState(() {
+                              selectedSubOption = value;
+                              selectedType = value;
+                            });
+                            Navigator.pop(context); // Close popup on selection
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ],
@@ -183,12 +204,52 @@ class _PostPageState extends State<PostScreen> {
     );
   }
 
+  Widget _buildSubOption(BuildContext context, String label, String assetPath, String? selected, Function(String) onTap) {
+    final isSelected = selected == label;
+    return GestureDetector(
+      onTap: () => onTap(label),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: isSelected ? const Color(0xFFFDCC87) : const Color(0xFF3D1B45),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: SvgPicture.asset(
+              assetPath,
+              height: 40,
+              width: 40,
+              colorFilter: ColorFilter.mode( // Replaced deprecated color parameter
+                isSelected ? Colors.black : Colors.white,
+                BlendMode.srcIn,
+              ),
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            label,
+            style: TextStyle(color: isSelected ? Colors.black : const Color(0xFFFDCC87)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScreenWrapper(
       currentIndex: 2, // Adjust the index based on the navigation order
-        child: WillPopScope(
-        onWillPop: _onWillPop,
+      child: PopScope( // Replaced deprecated WillPopScope
+        canPop: false,
+        onPopInvoked: (didPop) async {
+          if (!didPop) {
+            final shouldPop = await _onWillPop();
+            if (shouldPop) {
+              Navigator.of(context).pop();
+            }
+          }
+        },
         child: Scaffold(
           backgroundColor: const Color(0xFF4F245A),
           body: SingleChildScrollView(
@@ -266,35 +327,51 @@ class _PostPageState extends State<PostScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  children: [
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.collections, color: Colors.white),
-                      label: const Text('Photos / Videos', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3D1B45),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    ElevatedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.send, color: Colors.white),
-                      label: const Text('Post', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF3D1B45),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    ),
-                  ],
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3D1B45),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    minimumSize: const Size(double.infinity, 50), // Full width
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start, // Float text to the left
+                    children: const [
+                      Icon(Icons.collections, color: Colors.white),
+                      SizedBox(width: 10),
+                      Text('Photos / Videos', style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF3D1B45),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    minimumSize: const Size(double.infinity, 50), // Full width
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start, // Float text to the left
+                    children: const [
+                      Icon(Icons.send, color: Colors.white),
+                      SizedBox(width: 10),
+                      Text('Link', style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
                 ),
               ],
             ),
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              // Handle post action
+            },
+            backgroundColor: const Color(0xFFFDCC87),
+            child: const Icon(Icons.post_add, color: Colors.black),
           ),
         ),
       ),
     );
   }
 }
-
