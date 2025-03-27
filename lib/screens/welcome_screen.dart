@@ -15,6 +15,11 @@ class WelcomeScreen extends StatelessWidget {
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage("assets/splash_screen_pattern.png"),
+            fit: BoxFit.cover,
+            opacity: 1.0, // Max opacity
+          ),
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -41,7 +46,7 @@ class WelcomeScreen extends StatelessWidget {
 
             // Choose Language Text
             const Text(
-              "Choose your language",
+              "Please Choose your Language",
               style: TextStyle(color: Colors.white, fontSize: 18), // Slightly larger text
             ),
             SizedBox(height: screenHeight * 0.02),

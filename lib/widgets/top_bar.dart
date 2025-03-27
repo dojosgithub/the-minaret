@@ -46,11 +46,11 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
               // Translucent Background Pattern Overlay
               Positioned.fill(
                 child: Opacity(
-                  opacity: 0.2, // Adjust transparency as needed
-                  // child: Image.asset(
-                  //   'assets/pattern.png', // Replace with your pattern image
-                  //   fit: BoxFit.cover, // Covers entire top bar
-                  // ),
+                  opacity: 1.0, // Adjust transparency as needed
+                  child: Image.asset(
+                    'assets/top_bar_pattern.png', // Updated with the new pattern image
+                    fit: BoxFit.cover, // Covers entire top bar
+                  ),
                 ),
               ),
               AppBar(

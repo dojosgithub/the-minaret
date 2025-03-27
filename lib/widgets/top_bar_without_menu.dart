@@ -28,21 +28,31 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
         ],
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
       ),
-      child: SafeArea(
-        child: SizedBox(
-          height: 110,
-          child: Align(
-            alignment: Alignment.bottomCenter,
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: SvgPicture.asset(
-                'assets/logo.svg',
-                height: 65,
-                fit: BoxFit.contain,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/top_bar_pattern.png', // Added the new pattern image
+              fit: BoxFit.cover, // Covers entire top bar
+            ),
+          ),
+          SafeArea(
+            child: SizedBox(
+              height: 110,
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: SvgPicture.asset(
+                    'assets/logo.svg',
+                    height: 65,
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

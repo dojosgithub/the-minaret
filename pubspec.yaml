@@ -69,6 +69,8 @@ flutter:
     - assets/bell.svg
     - assets/user.svg
     - assets/search.svg 
+    - assets/top_bar_pattern.png
+    - assets/splash_screen_pattern.png
 
 
   # The following line ensures that the Material Icons font is
