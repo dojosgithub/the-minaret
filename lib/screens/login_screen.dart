@@ -3,9 +3,25 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../main.dart';
 import 'continue_with_screen.dart';
 import 'phone_screen.dart';
+import '../services/api_service.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    phoneNumberController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +69,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     TextFormField(
+                      controller: phoneNumberController,
                       style: const TextStyle(color: Colors.white),
                       keyboardType: TextInputType.phone,
                       decoration: InputDecoration(
@@ -81,6 +98,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 5),
                     TextFormField(
+                      controller: passwordController,
                       obscureText: true,
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
@@ -134,13 +152,79 @@ class LoginScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MainScreen(),
-                          ),
-                        );
+                      onPressed: () async {
+                        if (phoneNumberController.text.isEmpty || passwordController.text.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Please enter both phone number and password'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        try {
+                          // Show loading indicator
+                          if (!mounted) return;
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext context) {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                ),
+                              );
+                            },
+                          );
+
+                          // Test connection first
+                          print('Testing connection...'); // Debug log
+                          bool isConnected = await ApiService.testConnection();
+                          
+                          if (!isConnected) {
+                            if (!mounted) return;
+                            Navigator.pop(context); // Hide loading
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Cannot connect to server. Please check if the server is running.'),
+                                backgroundColor: Colors.red,
+                                duration: Duration(seconds: 3),
+                              ),
+                            );
+                            return;
+                          }
+
+                          print('Connection successful, attempting login...'); // Debug log
+                          final result = await ApiService.login(
+                            phoneNumberController.text,
+                            passwordController.text,
+                          );
+                          
+                          if (!mounted) return;
+                          Navigator.pop(context); // Hide loading
+                          
+                          if (result) {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const MainScreen()),
+                            );
+                          }
+                        } catch (e) {
+                          print('Login error: $e'); // Debug log
+                          if (!mounted) return;
+                          // Make sure to close the loading dialog
+                          if (Navigator.canPop(context)) {
+                            Navigator.pop(context);
+                          }
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(e.toString()),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 3),
+                            ),
+                          );
+                        }
                       },
                       child: const Text(
                         'Log In',
@@ -181,6 +265,34 @@ class LoginScreen extends StatelessWidget {
                           ),
                         ),
                       ),
+                    ),
+
+                    ElevatedButton(
+                      onPressed: () async {
+                        try {
+                          final isConnected = await ApiService.testConnection();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(isConnected 
+                                  ? 'Successfully connected to server!' 
+                                  : 'Could not connect to server'),
+                                backgroundColor: isConnected ? Colors.green : Colors.red,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Error: $e'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                      child: const Text('Test Connection'),
                     ),
                   ],
                 ),

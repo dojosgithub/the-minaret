@@ -1,36 +1,90 @@
 import 'package:flutter/material.dart';
 import '../widgets/post.dart';
 import '../widgets/screen_wrapper.dart';
+import '../services/api_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late Future<List<Map<String, dynamic>>> _postsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePosts();
+  }
+
+  void _initializePosts() {
+    _postsFuture = ApiService.getPosts().catchError((error) {
+      print('Error fetching posts: $error');
+      return []; // Return empty list on error
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return ScreenWrapper(
-      currentIndex: 0, // This is the home screen index
-      child: SingleChildScrollView(
-        child: Column(
-          children: const [
-            Post(
-              name: 'John Doe',
-              username: 'johndoe',
-              profilePic: 'assets/profile_picture.png',
-              text: 'This is my second post. Happy to be a part of the Minaret Community!',
-              upvoteCount: 56, 
-              downvoteCount: 5, 
-              repostCount: 85,
-            ),
-              Post(
-              name: 'John Doe',
-              username: 'johndoe',
-              profilePic: 'assets/profile_picture.png',
-              text: 'This is a sample post. Excited to be here!',
-              upvoteCount: 200, 
-              downvoteCount: 3, 
-              repostCount: 12,
-            ),
-          ],
+      currentIndex: 0,
+      child: RefreshIndicator(
+        onRefresh: () async {
+          setState(() {
+            _initializePosts();
+          });
+        },
+        child: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _postsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Error: ${snapshot.error}'),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _initializePosts();
+                        });
+                      },
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final posts = snapshot.data ?? [];
+            
+            if (posts.isEmpty) {
+              return const Center(
+                child: Text('No posts available'),
+              );
+            }
+
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: posts.map((post) => Post(
+                  name: "${post['author']['firstName']} ${post['author']['lastName']}",
+                  username: post['author']['username'],
+                  profilePic: post['author']['profileImage'],
+                  text: post['body'],
+                  upvoteCount: post['likes']?.length ?? 0,
+                  downvoteCount: 0,
+                  repostCount: 0,
+                )).toList(),
+              ),
+            );
+          },
         ),
       ),
     );

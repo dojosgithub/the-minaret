@@ -3,7 +3,14 @@
 ## Project Overview
 This Flutter project is a social media app featuring a bottom navigation bar and customizable post widgets. The app consists of multiple screens, including Home, Notifications, Post, User, and Search screens, with a consistent theme and user-friendly layout.
 
-## Folder Structure
+## Prerequisites
+- Flutter SDK (latest stable version)
+- Dart SDK (latest stable version)
+- Node.js (v14 or higher)
+- MongoDB (v4.4 or higher)
+- Git
+
+## Project Structure
 ```
 lib
 |-- main.dart                      # Entry point of the application
