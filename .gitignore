@@ -30,6 +30,7 @@ migrate_working_dir/
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
+.packages
 .pub-cache/
 .pub/
 /build/
@@ -62,3 +63,27 @@ coverage/
 dist/
 build/
 .cache/
+
+# Backend specific
+minaret-backend/node_modules/
+minaret-backend/.env
+minaret-backend/.env.*
+minaret-backend/npm-debug.log
+minaret-backend/yarn-debug.log
+minaret-backend/yarn-error.log
+minaret-backend/dist/
+minaret-backend/coverage/
+minaret-backend/.nyc_output/
+minaret-backend/logs/
+minaret-backend/*.log
+
+# VS Code specific
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# System Files
+.DS_Store
+Thumbs.db

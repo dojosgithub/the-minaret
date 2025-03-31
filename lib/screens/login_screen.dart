@@ -13,12 +13,12 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController phoneNumberController = TextEditingController();
+  final TextEditingController loginIdentifierController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   @override
   void dispose() {
-    phoneNumberController.dispose();
+    loginIdentifierController.dispose();
     passwordController.dispose();
     super.dispose();
   }
@@ -62,19 +62,21 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 40),
                     
-                    // Phone Number Field
+                    // Email or Phone Number Field
                     const Text(
-                      'Phone Number',
+                      'Email or Phone Number',
                       style: TextStyle(color: Colors.white),
                     ),
                     const SizedBox(height: 5),
                     TextFormField(
-                      controller: phoneNumberController,
+                      controller: loginIdentifierController,
                       style: const TextStyle(color: Colors.white),
-                      keyboardType: TextInputType.phone,
+                      keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color(0xFF3A1E47),
+                        hintText: 'Enter email or phone number',
+                        hintStyle: const TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide.none,
                           borderRadius: BorderRadius.circular(25),
@@ -153,10 +155,10 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       onPressed: () async {
-                        if (phoneNumberController.text.isEmpty || passwordController.text.isEmpty) {
+                        if (loginIdentifierController.text.isEmpty || passwordController.text.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Please enter both phone number and password'),
+                              content: Text('Please enter email/phone number and password'),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -197,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           print('Connection successful, attempting login...'); // Debug log
                           final result = await ApiService.login(
-                            phoneNumberController.text,
+                            loginIdentifierController.text,
                             passwordController.text,
                           );
                           

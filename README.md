@@ -1,7 +1,7 @@
 # Flutter Minaret App
 
 ## Project Overview
-This Flutter project is a social media app featuring a bottom navigation bar and customizable post widgets. The app consists of multiple screens, including Home, Notifications, Post, User, and Search screens, with a consistent theme and user-friendly layout.
+A full-stack social media application built with Flutter and Node.js.
 
 ## Prerequisites
 - Flutter SDK (latest stable version)
@@ -9,6 +9,131 @@ This Flutter project is a social media app featuring a bottom navigation bar and
 - Node.js (v14 or higher)
 - MongoDB (v4.4 or higher)
 - Git
+
+## Installation Steps
+
+### 1. Database Setup
+```bash
+# Start MongoDB
+# Windows
+net start MongoDB
+
+# macOS
+brew services start mongodb-community
+
+# Linux
+sudo systemctl start mongod
+```
+
+### 2. Backend Setup
+```bash
+# Navigate to backend directory
+cd minaret-backend
+
+# Install dependencies
+npm install
+
+# Create .env file
+cp .env.example .env
+
+# Update .env with your configuration:
+MONGODB_URI=mongodb://localhost:27017/minaret
+JWT_SECRET=your_secret_key_here
+PORT=5000
+
+# Seed the database with initial data
+node scripts/seedData.js
+
+# Start the backend server
+npm start
+```
+
+### 3. Flutter Setup
+```bash
+# Install Flutter dependencies
+flutter pub get
+
+# Run the app
+flutter run
+```
+
+## Development Setup
+
+### Backend Development
+```bash
+cd minaret-backend
+npm install
+npm run dev  # Runs with nodemon for hot reload
+```
+
+### Frontend Development
+```bash
+# Run with hot reload
+flutter run
+
+# Build for release
+flutter build apk  # For Android
+flutter build ios  # For iOS
+```
+
+## API Configuration
+
+### Local Development
+Update `lib/services/api_service.dart` with the correct backend URL:
+
+- Android Emulator: `http://10.0.2.2:5000/api`
+- iOS Simulator: `http://localhost:5000/api`
+- Physical Device: `http://your.computer.ip:5000/api`
+
+### Production
+Update the API URL in `api_service.dart` with your production backend URL.
+
+## Testing
+
+### Backend Tests
+```bash
+cd minaret-backend
+npm test
+```
+
+### Flutter Tests
+```bash
+flutter test
+```
+
+## Common Issues & Solutions
+
+### Backend Connection Issues
+1. Verify MongoDB is running:
+```bash
+mongo --eval "db.version()"
+```
+
+2. Check backend status:
+```bash
+curl http://localhost:5000/api/test
+```
+
+3. For physical devices:
+- Ensure device and computer are on same network
+- Configure firewall to allow port 5000
+- Use correct IP address in API configuration
+
+### Registration Issues
+- Username must be unique
+- Password must be at least 8 characters
+- Phone number must be unique and in valid format
+- All fields are required
+
+## Contributing
+1. Fork the repository
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
+
+## License
+[Add your license information]
 
 ## Project Structure
 ```
@@ -39,15 +164,6 @@ The `Post` widget displays user-generated content and consists of:
 - **Text content** of the post
 - **Bookmark icon** (functionality to be added later)
 
-### Post Widget Example
-```dart
-Post(
-  name: 'John Doe',
-  username: '@johndoe',
-  profilePic: 'assets/profile_picture.png',
-  text: 'This is a sample post!',
-)
-```
 
 ## How to Change Background Color
 To change the background color of all screens, wrap the `Scaffold` widget in a `Container` with the desired `color`:
@@ -69,8 +185,4 @@ return Container(
 flutter run
 ```
 
-## Future Enhancements
-- Implement functionality for the bookmark icon.
-- Add interactive features to the top bar and navigation bar.
-- Improve post styling and support multimedia content.
 

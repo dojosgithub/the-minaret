@@ -84,20 +84,20 @@ class ApiService {
     }
   }
 
-  static Future<bool> login(String phoneNumber, String password) async {
+  static Future<bool> login(String identifier, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'phoneNumber': phoneNumber,
+          'identifier': identifier, // Can be either email or phone number
           'password': password,
         }),
       );
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        _authToken = data['token']; // Save the token
+        _authToken = data['token'];
         return true;
       } else {
         final error = json.decode(response.body);
@@ -105,7 +105,7 @@ class ApiService {
       }
     } catch (e) {
       print('Error in login: $e');
-      rethrow;
+      throw Exception('Invalid Credentials. Please try again.');
     }
   }
 
@@ -118,5 +118,29 @@ class ApiService {
       headers['Authorization'] = 'Bearer $_authToken';
     }
     return headers;
+  }
+
+  static Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(userData),
+      );
+
+      final data = json.decode(response.body);
+      if (response.statusCode == 201) {
+        _authToken = data['token'];
+        return {'success': true};
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Registration failed',
+        };
+      }
+    } catch (e) {
+      print('Registration error: $e');
+      throw Exception('Failed to connect to server, Please Restart');
+    }
   }
 } 

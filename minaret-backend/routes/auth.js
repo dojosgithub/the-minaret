@@ -7,19 +7,39 @@ const User = require('../models/User');
 // Register
 router.post('/register', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, firstName, lastName, phoneNumber, type, birthday } = req.body;
 
-    // Check if user exists
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ message: 'User already exists' });
+    // Check if user exists with same username or email
+    let existingUser = await User.findOne({
+      $or: [
+        { email },
+        { username },
+        ...(phoneNumber ? [{ phoneNumber }] : [])
+      ]
+    });
+
+    if (existingUser) {
+      if (existingUser.email === email) {
+        return res.status(400).json({ message: 'Email already in use' });
+      }
+      if (existingUser.username === username) {
+        return res.status(400).json({ message: 'Username already taken' });
+      }
+      if (phoneNumber && existingUser.phoneNumber === phoneNumber) {
+        return res.status(400).json({ message: 'Phone number already in use' });
+      }
     }
 
     // Create new user
-    user = new User({
+    const user = new User({
+      firstName,
+      lastName,
       username,
       email,
       password,
+      phoneNumber,
+      userType: type,
+      dateOfBirth: birthday
     });
 
     // Hash password
@@ -41,22 +61,28 @@ router.post('/register', async (req, res) => {
       { expiresIn: '7d' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token });
+        res.status(201).json({ token });
       }
     );
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+    console.error('Registration error:', err.message);
+    res.status(500).json({ message: 'Server error during registration' });
   }
 });
 
 // Login
 router.post('/login', async (req, res) => {
   try {
-    const { phoneNumber, password } = req.body;
+    const { identifier, password } = req.body;
 
-    // Find user by phone number
-    let user = await User.findOne({ phoneNumber });
+    // Find user by email or phone number
+    let user = await User.findOne({
+      $or: [
+        { email: identifier },
+        { phoneNumber: identifier }
+      ]
+    });
+
     if (!user) {
       return res.status(400).json({ message: 'Invalid credentials' });
     }

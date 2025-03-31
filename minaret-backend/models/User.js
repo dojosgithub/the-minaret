@@ -14,14 +14,20 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   password: {
     type: String,
     required: true,
   },
   phoneNumber: {
     type: String,
-    required: true,
     unique: true,
+    sparse: true, // This allows null/undefined values while maintaining uniqueness
+    required: false,
   },
   userType: {
     type: String,
