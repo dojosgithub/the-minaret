@@ -2,19 +2,49 @@ const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
 const Post = require('../models/Post');
+const multer = require('multer');
+const path = require('path');
 
-// Create a post
-router.post('/', auth, async (req, res) => {
+// Configure multer for media uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/')
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname))
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type'));
+    }
+  }
+});
+
+// Create a post with media
+router.post('/', auth, upload.array('media', 4), async (req, res) => {
   try {
-    const { type, title, body, media, links } = req.body;
+    const { type, title, body, links } = req.body;
     
+    const media = req.files ? req.files.map(file => ({
+      type: file.mimetype.startsWith('image/') ? 'image' : 'video',
+      url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`
+    })) : [];
+
+    const parsedLinks = links ? JSON.parse(links) : [];
+
     const newPost = new Post({
       author: req.user.id,
       type,
       title,
       body,
       media,
-      links,
+      links: parsedLinks,
     });
 
     const post = await newPost.save();

@@ -106,6 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: const Color(0xFF3A1E47),
+                        hintText: 'Enter Password',
+                        hintStyle: const TextStyle(color: Colors.grey),
                         enabledBorder: OutlineInputBorder(
                           borderSide: BorderSide.none,
                           borderRadius: BorderRadius.circular(25),

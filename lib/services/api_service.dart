@@ -143,4 +143,37 @@ class ApiService {
       throw Exception('Failed to connect to server, Please Restart');
     }
   }
+
+  static Future<bool> createPost(String type, String title, String body, 
+      List<String> mediaFiles, List<Map<String, String>> links) async {
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/posts'));
+      
+      // Add auth token
+      request.headers.addAll(_headers);
+
+      // Add text fields
+      request.fields['type'] = type;
+      request.fields['title'] = title;
+      request.fields['body'] = body;
+      request.fields['links'] = json.encode(links);
+
+      // Add media files
+      for (String filePath in mediaFiles) {
+        request.files.add(await http.MultipartFile.fromPath('media', filePath));
+      }
+
+      final response = await request.send();
+      final responseData = await response.stream.bytesToString();
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        throw Exception(json.decode(responseData)['message'] ?? 'Failed to create post');
+      }
+    } catch (e) {
+      print('Error creating post: $e');
+      rethrow;
+    }
+  }
 } 

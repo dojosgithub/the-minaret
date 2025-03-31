@@ -20,10 +20,22 @@ const postSchema = new mongoose.Schema({
     required: true,
   },
   media: [{
-    type: String, // URLs to uploaded media
+    type: {
+      type: String,
+      enum: ['image', 'video'],
+      required: true
+    },
+    url: {
+      type: String,
+      required: true
+    }
   }],
   links: [{
-    type: String,
+    title: String,
+    url: {
+      type: String,
+      required: true
+    }
   }],
   likes: [{
     type: mongoose.Schema.Types.ObjectId,
