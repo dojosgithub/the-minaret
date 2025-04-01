@@ -1,6 +1,11 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 
 class ApiService {
   // Uncomment the correct URL based on your setup:
@@ -90,7 +95,7 @@ class ApiService {
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
-          'identifier': identifier, // Can be either email or phone number
+          'identifier': identifier,
           'password': password,
         }),
       );
@@ -98,13 +103,14 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         _authToken = data['token'];
+        debugPrint('Token stored: $_authToken'); // Debug print to verify token
         return true;
       } else {
         final error = json.decode(response.body);
         throw Exception(error['message'] ?? 'Login failed');
       }
     } catch (e) {
-      print('Error in login: $e');
+      debugPrint('Error in login: $e');
       throw Exception('Invalid Credentials. Please try again.');
     }
   }
@@ -144,13 +150,25 @@ class ApiService {
     }
   }
 
-  static Future<bool> createPost(String type, String title, String body, 
-      List<String> mediaFiles, List<Map<String, String>> links) async {
+  static Future<bool> createPost(
+      String type,
+      String title,
+      String body,
+      List<String> mediaFiles,
+      List<Map<String, String>> links) async {
     try {
+      debugPrint('Creating post with token: $_authToken');
+
+      if (_authToken == null) {
+        throw Exception('No token - Authorization denied');
+      }
+
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/posts'));
       
-      // Add auth token
-      request.headers.addAll(_headers);
+      // Add auth token to headers
+      request.headers.addAll({
+        'Authorization': 'Bearer $_authToken',
+      });
 
       // Add text fields
       request.fields['type'] = type;
@@ -159,21 +177,62 @@ class ApiService {
       request.fields['links'] = json.encode(links);
 
       // Add media files
-      for (String filePath in mediaFiles) {
-        request.files.add(await http.MultipartFile.fromPath('media', filePath));
+      if (mediaFiles.isNotEmpty) {
+        for (String filePath in mediaFiles) {
+          final file = File(filePath);
+          final filename = filePath.split('/').last;
+          final mimeType = filename.endsWith('.jpg') || filename.endsWith('.jpeg') 
+              ? 'image/jpeg' 
+              : filename.endsWith('.png') 
+                  ? 'image/png' 
+                  : 'application/octet-stream';
+                  
+          request.files.add(
+            await http.MultipartFile.fromPath(
+              'media',
+              filePath,
+              contentType: MediaType.parse(mimeType),
+            ),
+          );
+        }
       }
 
-      final response = await request.send();
-      final responseData = await response.stream.bytesToString();
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201) {
         return true;
       } else {
-        throw Exception(json.decode(responseData)['message'] ?? 'Failed to create post');
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to create post');
       }
     } catch (e) {
-      print('Error creating post: $e');
+      debugPrint('Error creating post: $e');
       rethrow;
+    }
+  }
+
+  static String? getAuthToken() {
+    return _authToken;
+  }
+
+  static Future<bool> verifyToken() async {
+    if (_authToken == null) return false;
+    
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/profile'),
+        headers: {
+          'Authorization': 'Bearer $_authToken',
+        },
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('Token verification failed: $e');
+      return false;
     }
   }
 } 

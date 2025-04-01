@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher_string.dart';
+import '../utils/time_utils.dart';
 
 class Post extends StatefulWidget {
   final String name;
@@ -13,6 +14,7 @@ class Post extends StatefulWidget {
   final int upvoteCount;
   final int downvoteCount;
   final int repostCount;
+  final String createdAt;
 
   const Post({
     super.key,
@@ -26,6 +28,7 @@ class Post extends StatefulWidget {
     required this.upvoteCount,
     required this.downvoteCount,
     required this.repostCount,
+    required this.createdAt,
   });
 
   @override
@@ -267,42 +270,82 @@ class _PostState extends State<Post> {
   Widget _buildMediaGrid() {
     if (widget.media.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: widget.media.length == 1 ? 200 : 300, // Limit height for single images
-      ),
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: widget.media.length == 1 ? 1 : 2,
-          crossAxisSpacing: 8,
-          mainAxisSpacing: 8,
-          childAspectRatio: widget.media.length == 1 ? 16/9 : 1, // Wider aspect ratio for single image
+    if (widget.media.length == 1) {
+      // For single image, enforce square aspect ratio
+      return AspectRatio(
+        aspectRatio: 1, // Force square
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          clipBehavior: Clip.hardEdge,
+          child: Image.network(
+            widget.media[0]['url'],
+            fit: BoxFit.cover, // This will crop the image to fill the square
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: Colors.grey[300],
+                child: const Icon(Icons.error),
+              );
+            },
+          ),
         ),
-        itemCount: widget.media.length,
-        itemBuilder: (context, index) {
-          final mediaItem = widget.media[index];
-          if (mediaItem['type'] == 'image') {
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                mediaItem['url'],
-                fit: BoxFit.cover,
-              ),
-            );
-          } else if (mediaItem['type'] == 'video') {
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.black,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(Icons.play_circle_fill, color: Colors.white),
-            );
-          }
-          return const SizedBox.shrink();
-        },
+      );
+    }
+
+    // For multiple images, keep your existing grid layout
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: widget.media.length < 4 ? 2 : 3,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
       ),
+      itemCount: widget.media.length,
+      itemBuilder: (context, index) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(8),
+          ),
+          clipBehavior: Clip.hardEdge,
+          child: Image.network(
+            widget.media[index]['url'],
+            fit: BoxFit.cover,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: Colors.grey[300],
+                child: const Icon(Icons.error),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
@@ -416,16 +459,28 @@ class _PostState extends State<Post> {
                             ),
                           ],
                         ),
-                        IconButton(
-                          icon: Icon(
-                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                            color: const Color(0xFFFDCC87),
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isBookmarked = !_isBookmarked;
-                            });
-                          },
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                color: const Color(0xFFFDCC87),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _isBookmarked = !_isBookmarked;
+                                });
+                              },
+                            ),
+                            Text(
+                              getTimeAgo(DateTime.parse(widget.createdAt)),
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.6),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),

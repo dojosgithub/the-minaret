@@ -21,8 +21,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _initializePosts() {
     _postsFuture = ApiService.getPosts().catchError((error) {
-      print('Error fetching posts: $error');
-      return []; // Return empty list on error
+      debugPrint('Error fetching posts: $error');
+      return <Map<String, dynamic>>[]; // Explicitly specify the return type
     });
   }
 
@@ -74,16 +74,17 @@ class _HomeScreenState extends State<HomeScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: posts.map((post) => Post(
-                  name: "${post['author']['firstName']} ${post['author']['lastName']}",
-                  username: post['author']['username'],
-                  profilePic: post['author']['profileImage'],
-                  title: post['title'],
-                  text: post['body'],
+                  name: post['author']['firstName'] ?? 'Unknown',
+                  username: post['author']['username'] ?? 'unknown',
+                  profilePic: post['author']['profileImage'] ?? 'assets/profile_picture.png',
+                  title: post['title'] ?? '',
+                  text: post['body'] ?? '',
                   media: List<Map<String, dynamic>>.from(post['media'] ?? []),
                   links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                  upvoteCount: post['likes']?.length ?? 0,
+                  upvoteCount: (post['likes'] as List?)?.length ?? 0,
                   downvoteCount: 0,
                   repostCount: 0,
+                  createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
                 )).toList(),
               ),
             );

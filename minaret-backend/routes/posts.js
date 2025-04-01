@@ -15,46 +15,66 @@ const storage = multer.diskStorage({
   }
 });
 
+const fileFilter = (req, file, cb) => {
+  // Accept images and videos
+  if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+    cb(null, true);
+  } else {
+    // Reject file
+    cb(null, false);
+    cb(new Error('Only images and videos are allowed'));
+  }
+};
+
 const upload = multer({
   storage: storage,
-  fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type'));
-    }
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit
   }
-});
+}).array('media', 4);
 
 // Create a post with media
-router.post('/', auth, upload.array('media', 4), async (req, res) => {
-  try {
-    const { type, title, body, links } = req.body;
-    
-    const media = req.files ? req.files.map(file => ({
-      type: file.mimetype.startsWith('image/') ? 'image' : 'video',
-      url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`
-    })) : [];
+router.post('/', auth, (req, res) => {
+  upload(req, res, async function(err) {
+    if (err instanceof multer.MulterError) {
+      // A Multer error occurred when uploading
+      console.error('Multer error:', err);
+      return res.status(400).json({ message: `Upload error: ${err.message}` });
+    } else if (err) {
+      // An unknown error occurred
+      console.error('Unknown error:', err);
+      return res.status(400).json({ message: err.message });
+    }
 
-    const parsedLinks = links ? JSON.parse(links) : [];
+    try {
+      const { type, title, body, links } = req.body;
+      
+      const media = req.files ? req.files.map(file => ({
+        type: file.mimetype.startsWith('image/') ? 'image' : 'video',
+        url: `${req.protocol}://${req.get('host')}/uploads/${file.filename}`
+      })) : [];
 
-    const newPost = new Post({
-      author: req.user.id,
-      type,
-      title,
-      body,
-      media,
-      links: parsedLinks,
-    });
+      const parsedLinks = links ? JSON.parse(links) : [];
 
-    const post = await newPost.save();
-    await post.populate('author', 'username profileImage');
-    
-    res.json(post);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
+      const newPost = new Post({
+        author: req.user.id,
+        type,
+        title,
+        body,
+        media,
+        links: parsedLinks,
+      });
+
+      const post = await newPost.save();
+      await post.populate('author', 'username profileImage');
+      
+      res.status(201).json(post);
+    } catch (err) {
+      console.error('Post creation error:', err);
+      res.status(500).json({ message: 'Error creating post' });
+    }
+  });
 });
 
 // Get all posts
