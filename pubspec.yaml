@@ -74,6 +74,7 @@ flutter:
     - assets/search.svg 
     - assets/top_bar_pattern.png
     - assets/splash_screen_pattern.png
+    - assets/default_profile.png
 
 
   # The following line ensures that the Material Icons font is

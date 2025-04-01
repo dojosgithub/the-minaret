@@ -291,4 +291,75 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<String?> uploadProfileImage(File image) async {
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/users/upload-profile-image'),
+      );
+
+      request.headers['Authorization'] = 'Bearer $_authToken';
+
+      // Get the file extension
+      String extension = image.path.split('.').last.toLowerCase();
+      String mimeType;
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          mimeType = 'image/jpeg';
+          break;
+        case 'png':
+          mimeType = 'image/png';
+          break;
+        default:
+          throw Exception('Unsupported file type');
+      }
+
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image',
+          image.path,
+          contentType: MediaType.parse(mimeType),
+        ),
+      );
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+
+      debugPrint('Upload response status: ${response.statusCode}');
+      debugPrint('Upload response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['imageUrl'];
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to upload image');
+      }
+    } catch (e) {
+      debugPrint('Error uploading profile image: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> updateProfile(Map<String, dynamic> updateData) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/profile'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_authToken',
+        },
+        body: json.encode(updateData),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update profile');
+      }
+    } catch (e) {
+      debugPrint('Error updating profile: $e');
+      rethrow;
+    }
+  }
 } 
