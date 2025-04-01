@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'edit_profile_screen.dart';
 import '../widgets/screen_wrapper.dart';
+import '../widgets/post.dart';
+import '../services/api_service.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});
@@ -11,89 +13,175 @@ class UserScreen extends StatefulWidget {
 
 class _UserScreenState extends State<UserScreen> {
   int selectedTab = 0;
+  Map<String, dynamic>? userData;
+  List<Map<String, dynamic>> userPosts = [];
+  List<Map<String, dynamic>> savedPosts = [];
+  bool isLoading = true;
+  String? error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    setState(() {
+      isLoading = true;
+      error = null;
+    });
+
+    try {
+      // Verify token first
+      final isValid = await ApiService.verifyToken();
+      if (!isValid) {
+        throw Exception('Please log in again');
+      }
+
+      // Load user profile
+      final data = await ApiService.getUserProfile();
+      debugPrint('User data received: $data'); // Debug print
+
+      // Load posts
+      final posts = await ApiService.getUserPosts();
+      debugPrint('User posts received: ${posts.length}'); // Debug print
+
+      // Load saved posts
+      final saved = await ApiService.getSavedPosts();
+      debugPrint('Saved posts received: ${saved.length}'); // Debug print
+      
+      if (mounted) {
+        setState(() {
+          userData = data;
+          userPosts = posts;
+          savedPosts = saved;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+      if (mounted) {
+        setState(() {
+          error = e.toString();
+          isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return ScreenWrapper(
       currentIndex: 3,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(15.0),
+      child: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+              ),
+            )
+          : error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Error: $error',
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadUserData,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadUserData,
+                  color: const Color(0xFFFDCC87),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildUserHeader(),
+                          const SizedBox(height: 10),
+                          Text(
+                            userData?['bio'] ?? 'No bio available',
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            softWrap: true,
+                          ),
+                          const SizedBox(height: 20),
+                          _buildTabs(),
+                          const SizedBox(height: 10),
+                          _buildPosts(),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+    );
+  }
+
+  Widget _buildUserHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+            );
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFFDCC87), width: 2),
+            ),
+            child: CircleAvatar(
+              radius: 40,
+              backgroundImage: userData?['profileImage'] != null
+                  ? NetworkImage(userData!['profileImage'])
+                  : const AssetImage('assets/profile_picture.png') as ImageProvider,
+            ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-                      );
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFFDCC87), width: 2),
-                      ),
-                      child: const CircleAvatar(
-                        radius: 40,
-                        backgroundImage: AssetImage('assets/profile_picture.png'),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'John Doe',
-                          style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                        const Text(
-                          '@johndoe',
-                          style: TextStyle(color: Colors.grey, fontSize: 16),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Text('150 ', style: TextStyle(color: const Color(0xFFFDCC87), fontSize: 16, fontWeight: FontWeight.bold)),
-                            const Text('Followers', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                            const SizedBox(width: 15),
-                            Text('200 ', style: TextStyle(color: const Color(0xFFFDCC87), fontSize: 16, fontWeight: FontWeight.bold)),
-                            const Text('Following', style: TextStyle(color: Colors.grey, fontSize: 14)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              Text(
+                '${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                '@${userData?['username'] ?? ''}',
+                style: const TextStyle(color: Colors.grey, fontSize: 16),
               ),
               const SizedBox(height: 10),
-              const Text(
-                'This is the user bio where the user describes themselves. I am testing the wrapping property because it was long and it had issues and I guess it is okay?.',
-                style: TextStyle(color: Colors.white, fontSize: 14),
-                softWrap: true,
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildTabButton(0, 'Posts'),
-                  _buildTabButton(1, 'Saved'),
-                ],
-              ),
-              const SizedBox(height: 10),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.5,
-                child: _buildPosts(),
-              ),
+              _buildFollowCounts(),
             ],
           ),
         ),
-      ),
+      ],
+    );
+  }
+
+  Widget _buildTabs() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildTabButton(0, 'Posts'),
+        _buildTabButton(1, 'Saved'),
+      ],
     );
   }
 
@@ -123,12 +211,69 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildPosts() {
-    return selectedTab == 0
-        ? Center(
-            child: Text('User Posts', style: TextStyle(color: Colors.white, fontSize: 18)),
-          )
-        : Center(
-            child: Text('Saved Posts', style: TextStyle(color: Colors.white, fontSize: 18)),
-          );
+    final posts = selectedTab == 0 ? userPosts : savedPosts;
+    
+    if (posts.isEmpty) {
+      return Center(
+        child: Text(
+          selectedTab == 0 ? 'No posts yet' : 'No saved posts',
+          style: const TextStyle(color: Colors.grey, fontSize: 16),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: posts.length,
+      itemBuilder: (context, index) {
+        final post = posts[index];
+        return Post(
+          name: post['author']['firstName'] + ' ' + post['author']['lastName'],
+          username: post['author']['username'],
+          profilePic: post['author']['profileImage'] ?? 'assets/profile_picture.png',
+          title: post['title'],
+          text: post['body'],
+          media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+          links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+          upvoteCount: (post['likes'] as List?)?.length ?? 0,
+          downvoteCount: 0,
+          repostCount: 0,
+          createdAt: post['createdAt'],
+        );
+      },
+    );
+  }
+
+  Widget _buildFollowCounts() {
+    return Row(
+      children: [
+        Text(
+          '${userData?['followers']?.length ?? 0} ',
+          style: const TextStyle(
+            color: Color(0xFFFDCC87),
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const Text(
+          'Followers',
+          style: TextStyle(color: Colors.grey, fontSize: 14),
+        ),
+        const SizedBox(width: 15),
+        Text(
+          '${userData?['following']?.length ?? 0} ',
+          style: const TextStyle(
+            color: Color(0xFFFDCC87),
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const Text(
+          'Following',
+          style: TextStyle(color: Colors.grey, fontSize: 14),
+        ),
+      ],
+    );
   }
 }

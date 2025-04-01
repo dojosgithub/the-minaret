@@ -157,13 +157,6 @@ lib
 - Post background color: Darker shade `#3D1B45`
 - Profile picture circle: `#FFE4A7`
 
-## Post Widget
-The `Post` widget displays user-generated content and consists of:
-- **Profile picture** with a decorative circle
-- **Name** and **Username** displayed vertically
-- **Text content** of the post
-- **Bookmark icon** (functionality to be added later)
-
 
 ## How to Change Background Color
 To change the background color of all screens, wrap the `Scaffold` widget in a `Container` with the desired `color`:
@@ -176,13 +169,6 @@ return Container(
 );
 ```
 
-## How to Run
-1. Ensure Flutter and Dart are properly set up.
-2. Launch the Google Pixel 5 emulator.
-3. In VSCode terminal, navigate to the project directory.
-4. Run the project:
-```bash
-flutter run
-```
+
 
 

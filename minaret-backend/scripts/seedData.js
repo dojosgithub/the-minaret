@@ -14,7 +14,7 @@ async function seedData() {
     await Post.deleteMany({});
     await Notification.deleteMany({});
 
-    // Create sample users
+    // Create sample users with more detailed info
     const hashedPassword = await bcrypt.hash('test', 10);
     
     const users = await User.insertMany([
@@ -27,7 +27,10 @@ async function seedData() {
         phoneNumber: '1234567890',
         userType: 'Scholar',
         profileImage: 'assets/profile_picture.png',
-        bio: 'Islamic Scholar',
+        bio: 'Islamic Scholar specializing in Quranic studies and contemporary fiqh. Teaching and spreading knowledge for over 10 years.',
+        followers: [], // Will be populated later
+        following: [], // Will be populated later
+        savedPosts: [], // Will be populated later
       },
       {
         firstName: 'Jane',
@@ -38,7 +41,10 @@ async function seedData() {
         phoneNumber: '1234567891',
         userType: 'Muslim',
         profileImage: 'assets/profile_picture.png',
-        bio: 'Seeking knowledge',
+        bio: 'Dedicated to learning and sharing Islamic knowledge. Interested in Islamic history and architecture.',
+        followers: [], // Will be populated later
+        following: [], // Will be populated later
+        savedPosts: [], // Will be populated later
       },
     ]);
 
@@ -133,6 +139,23 @@ async function seedData() {
         createdAt: new Date(),
       }
     ]);
+
+    // Update users with followers and saved posts
+    await User.findByIdAndUpdate(users[0]._id, {
+      $push: {
+        followers: users[1]._id,
+        following: users[1]._id,
+        savedPosts: [posts[1]._id, posts[3]._id]
+      }
+    });
+
+    await User.findByIdAndUpdate(users[1]._id, {
+      $push: {
+        followers: users[0]._id,
+        following: users[0]._id,
+        savedPosts: [posts[0]._id, posts[2]._id]
+      }
+    });
 
     // Create sample notifications
     await Notification.insertMany([

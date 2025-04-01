@@ -235,4 +235,60 @@ class ApiService {
       return false;
     }
   }
+
+  static Future<Map<String, dynamic>> getUserProfile() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/profile'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load user profile');
+      }
+    } catch (e) {
+      debugPrint('Error getting user profile: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getUserPosts() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/posts'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load user posts');
+      }
+    } catch (e) {
+      debugPrint('Error getting user posts: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getSavedPosts() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/saved-posts'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load saved posts');
+      }
+    } catch (e) {
+      debugPrint('Error getting saved posts: $e');
+      rethrow;
+    }
+  }
 } 
