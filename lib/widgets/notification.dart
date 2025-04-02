@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import '../utils/time_utils.dart';
 
 class NotificationWidget extends StatelessWidget {
   final String name;
   final String profilePic;
   final String text;
-  final String date;
+  final DateTime dateTime;
 
   const NotificationWidget({
     super.key,
     required this.name,
     required this.profilePic,
     required this.text,
-    required this.date,
+    required this.dateTime,
   });
 
   @override
@@ -74,7 +75,7 @@ class NotificationWidget extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               Text(
-                date,
+                getTimeAgo(dateTime),
                 style: const TextStyle(
                   fontSize: 12,
                   color: Colors.white70,

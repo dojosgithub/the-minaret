@@ -145,7 +145,7 @@ class _UserScreenState extends State<UserScreen> {
               radius: 40,
               backgroundImage: userData?['profileImage'] != null
                   ? NetworkImage(userData!['profileImage'])
-                  : const AssetImage('assets/profile_picture.png') as ImageProvider,
+                  : const AssetImage('assets/default_profile.png') as ImageProvider,
             ),
           ),
         ),

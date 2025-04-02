@@ -27,26 +27,46 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         future: _notificationsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+              ),
+            );
           }
 
           if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Text(
+                'Error: ${snapshot.error}',
+                style: const TextStyle(color: Colors.white),
+              ),
+            );
           }
 
           final notifications = snapshot.data!;
 
+          if (notifications.isEmpty) {
+            return const Center(
+              child: Text(
+                'No notifications yet',
+                style: TextStyle(color: Colors.white, fontSize: 16),
+              ),
+            );
+          }
+
           return SingleChildScrollView(
             child: Column(
-              children: notifications.map((notification) => NotificationWidget(
-                name: notification['sender']['username'],
-                date: DateTime.parse(notification['createdAt'])
-                    .toLocal()
-                    .toString()
-                    .split(' ')[0],
-                profilePic: notification['sender']['profileImage'],
-                text: notification['message'],
-              )).toList(),
+              children: notifications.map((notification) {
+                // Parse the date string to DateTime
+                final dateTime = DateTime.parse(notification['createdAt']);
+                
+                return NotificationWidget(
+                  name: notification['sender']['username'],
+                  dateTime: dateTime,
+                  profilePic: notification['sender']['profileImage'] ?? 'assets/profile_picture.png',
+                  text: notification['message'],
+                );
+              }).toList(),
             ),
           );
         },

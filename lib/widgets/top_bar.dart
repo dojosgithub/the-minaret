@@ -5,13 +5,13 @@ import '../screens/user_screen.dart';
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onMenuPressed; // Callback for menu icon
   final VoidCallback onProfilePressed; // Callback for profile picture
-  final String profileImage; // Path to the profile picture
+  final String? profileImage; // Path to the profile picture, now nullable
 
   const TopBar({
     super.key,
     required this.onMenuPressed,
     required this.onProfilePressed,
-    required this.profileImage,
+    this.profileImage, // Made optional
   });
 
   @override
@@ -58,21 +58,18 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 elevation: 0, // Remove default elevation
                 leading: IconButton(
                   icon: const Icon(Icons.menu, color: Color(0xFFFDCC87)), // Menu icon (three bars)
-                  onPressed: () => Scaffold.of(context).openDrawer(),
+                  onPressed: onMenuPressed,
                 ),
                 actions: [
                   // Profile picture on the right
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const UserScreen()),
-                      );
-                    },
+                    onTap: onProfilePressed,
                     child: Padding(
                       padding: const EdgeInsets.only(right: 16),
                       child: CircleAvatar(
-                        backgroundImage: AssetImage('assets/profile_picture.png'), // Updated path
+                        backgroundImage: profileImage != null
+                            ? NetworkImage(profileImage!)
+                            : const AssetImage('assets/default_profile.png') as ImageProvider,
                         radius: 18, // Slightly bigger profile image
                       ),
                     ),

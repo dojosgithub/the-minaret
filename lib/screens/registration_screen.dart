@@ -89,23 +89,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       body: Form(
         key: _formKey,
         child: Container(
-          width: double.infinity,
-          height: double.infinity, // Ensures full coverage
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF4F245A), Color(0xFF3D1B45)],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
+        width: double.infinity,
+        height: double.infinity, // Ensures full coverage
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF4F245A), Color(0xFF3D1B45)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
           ),
-          child: SingleChildScrollView( // Prevents overflow if content exceeds screen size
-            padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 20),
-                Row(
-                  children: [
+        ),
+        child: SingleChildScrollView( // Prevents overflow if content exceeds screen size
+          padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 60),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 20),
+              Row(
+                children: [
                     Expanded(
                       child: _buildTextField(
                         'First Name',
@@ -116,7 +116,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 10),
+                  const SizedBox(width: 10),
                     Expanded(
                       child: _buildTextField(
                         'Last Name',
@@ -127,9 +127,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         },
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 15),
+                ],
+              ),
+              const SizedBox(height: 15),
                 _buildTextField(
                   'Username',
                   controller: _usernameController,
@@ -148,12 +148,12 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 15),
+              const SizedBox(height: 15),
                 _buildTextField(
                   'Phone Number (Optional)',
                   controller: _phoneController,
                 ),
-                const SizedBox(height: 15),
+              const SizedBox(height: 15),
                 _buildTextField(
                   'Password',
                   obscureText: true,
@@ -163,7 +163,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     return null;
                   },
                 ),
-                const SizedBox(height: 15),
+              const SizedBox(height: 15),
                 _buildTextField(
                   'Confirm Password',
                   obscureText: true,
@@ -175,7 +175,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 ),
                 const SizedBox(height: 20),
                 _buildBirthdayField(),
-                const SizedBox(height: 20),
+              const SizedBox(height: 20),
                 InkWell(
                   onTap: () {
                     setState(() {
@@ -193,7 +193,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
+                children: [
                               Text(
                                 _selectedType,
                                 style: TextStyle(
@@ -217,7 +217,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               ),
                             ),
                             child: Column(
-                              children: [
+                children: [
                                 _buildTypeOption('Muslim'),
                                 _buildTypeOption('Non-Muslim'),
                                 _buildTypeOption('Scholar'),
@@ -228,23 +228,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 30),
+              ),
+              const SizedBox(height: 30),
                 if (_isLoading)
                   const CircularProgressIndicator()
                 else
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFDCC87),
-                      padding: const EdgeInsets.symmetric(vertical: 15),
-                    ),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFDCC87),
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                ),
                     onPressed: _register,
-                    child: const Text(
-                      'Create Account',
-                      style: TextStyle(color: Colors.black, fontSize: 16),
-                    ),
-                  ),
-              ],
+                child: const Text(
+                  'Create Account',
+                  style: TextStyle(color: Colors.black, fontSize: 16),
+                ),
+              ),
+            ],
             ),
           ),
         ),
@@ -297,8 +297,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
-        decoration: const BoxDecoration(
-          border: Border(
+      decoration: const BoxDecoration(
+        border: Border(
             top: BorderSide(color: Colors.grey, width: 0.5),
           ),
         ),
@@ -445,7 +445,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                     childCount: 100,
                                     builder: (context, index) {
                                       return Center(
-                                        child: Text(
+      child: Text(
                                           '${2024 - index}',
                                           style: const TextStyle(
                                             color: Colors.white,

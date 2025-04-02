@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: posts.map((post) => Post(
                   name: post['author']['firstName'] ?? 'Unknown',
                   username: post['author']['username'] ?? 'unknown',
-                  profilePic: post['author']['profileImage'] ?? 'assets/profile_picture.png',
+                  profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
                   title: post['title'] ?? '',
                   text: post['body'] ?? '',
                   media: List<Map<String, dynamic>>.from(post['media'] ?? []),
