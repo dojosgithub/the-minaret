@@ -360,4 +360,30 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<bool> changePassword(String currentPassword, String newPassword) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/change-password'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_authToken',
+        },
+        body: json.encode({
+          'currentPassword': currentPassword,
+          'newPassword': newPassword,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to change password');
+      }
+    } catch (e) {
+      debugPrint('Error changing password: $e');
+      rethrow;
+    }
+  }
 } 

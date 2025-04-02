@@ -171,6 +171,29 @@ class _UserScreenState extends State<UserScreen> {
             ],
           ),
         ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFDCC87),
+            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+            );
+          },
+          child: const Text(
+            'Edit Profile',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
       ],
     );
   }
