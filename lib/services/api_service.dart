@@ -3,8 +3,6 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
-import 'package:http/http.dart' as http;
-import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 
 class ApiService {
@@ -36,7 +34,7 @@ class ApiService {
         throw Exception('Failed to load posts');
       }
     } catch (e) {
-      print('Error getting posts: $e');
+      debugPrint('Error getting posts: $e');
       rethrow;
     }
   }
@@ -56,7 +54,7 @@ class ApiService {
         throw Exception('Failed to load notifications');
       }
     } catch (e) {
-      print('Error getting notifications: $e');
+      debugPrint('Error getting notifications: $e');
       rethrow;
     }
   }
@@ -64,7 +62,7 @@ class ApiService {
   static Future<bool> testConnection() async {
     try {
       final url = '$baseUrl/test';
-      print('Testing connection to: $url');
+      debugPrint('Testing connection to: $url');
       
       final response = await http.get(
         Uri.parse(url),
@@ -72,18 +70,18 @@ class ApiService {
       ).timeout(
         const Duration(seconds: 5),
         onTimeout: () {
-          print('Connection timed out');
+          debugPrint('Connection timed out');
           throw TimeoutException('Connection timed out - Server might be unreachable');
         },
       );
       
-      print('Test connection response: ${response.statusCode}');
-      print('Test connection body: ${response.body}');
+      debugPrint('Test connection response: ${response.statusCode}');
+      debugPrint('Test connection body: ${response.body}');
       return response.statusCode == 200;
     } catch (e) {
-      print('Connection test failed with detailed error: $e');
+      debugPrint('Connection test failed with detailed error: $e');
       if (e.toString().contains('SocketException')) {
-        print('Socket error - Check firewall and port 5000');
+        debugPrint('Socket error - Check firewall and port 5000');
       }
       return false;
     }
@@ -103,7 +101,7 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         _authToken = data['token'];
-        debugPrint('Token stored: $_authToken'); // Debug print to verify token
+        debugPrint('Token stored: $_authToken'); // Debug debugPrintto verify token
         return true;
       } else {
         final error = json.decode(response.body);
@@ -145,7 +143,7 @@ class ApiService {
         };
       }
     } catch (e) {
-      print('Registration error: $e');
+      debugPrint('Registration error: $e');
       throw Exception('Failed to connect to server, Please Restart');
     }
   }
@@ -179,7 +177,7 @@ class ApiService {
       // Add media files
       if (mediaFiles.isNotEmpty) {
         for (String filePath in mediaFiles) {
-          final file = File(filePath);
+          //final file = File(filePath);
           final filename = filePath.split('/').last;
           final mimeType = filename.endsWith('.jpg') || filename.endsWith('.jpeg') 
               ? 'image/jpeg' 

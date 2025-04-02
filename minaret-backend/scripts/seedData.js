@@ -24,9 +24,9 @@ async function seedData() {
         username: 'johndoe',
         email: 'test@test',
         password: hashedPassword,
-        phoneNumber: '1234567890',
+        phoneNumber: '123456789',
         userType: 'Scholar',
-        profileImage: 'assets/profile_picture.png',
+        profileImage: 'minaret-backend/uploads/profiles/profile_picture.png',
         bio: 'Islamic Scholar specializing in Quranic studies and contemporary fiqh. Teaching and spreading knowledge for over 10 years.',
         followers: [], // Will be populated later
         following: [], // Will be populated later

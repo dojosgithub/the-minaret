@@ -46,7 +46,7 @@ class _PostState extends State<Post> {
         throw 'Could not launch $url';
       }
     } catch (e) {
-      print('Error launching URL: $e');
+      debugPrint('Error launching URL: $e');
       // You might want to show a snackbar or dialog here to inform the user
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -476,7 +476,7 @@ class _PostState extends State<Post> {
                             Text(
                               getTimeAgo(DateTime.parse(widget.createdAt)),
                               style: TextStyle(
-                                color: Colors.white.withOpacity(0.6),
+                                color: Colors.white.withValues(alpha: 0.6),
                                 fontSize: 12,
                               ),
                             ),

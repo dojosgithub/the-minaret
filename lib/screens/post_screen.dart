@@ -4,7 +4,6 @@ import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import '../widgets/screen_wrapper.dart';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show debugPrint;
 import '../screens/home_screen.dart';
 
 class PostScreen extends StatefulWidget {
@@ -21,8 +20,8 @@ class _PostPageState extends State<PostScreen> {
   final TextEditingController _linkTitleController = TextEditingController();
   final TextEditingController _linkUrlController = TextEditingController();
   bool _hasChanges = false;
-  List<File> _selectedMedia = [];
-  List<Map<String, String>> _links = [];
+  final List<File> _selectedMedia = [];
+  final List<Map<String, String>> _links = [];
   bool _isLoading = false;
 
   @override

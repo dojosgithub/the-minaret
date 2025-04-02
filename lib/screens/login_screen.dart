@@ -23,6 +23,114 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _handleLogin(BuildContext context) async {
+    if (loginIdentifierController.text.isEmpty || passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter email/phone number and password'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    try {
+      // Store context before async operation
+      final currentContext = context;
+      
+      // Show loading indicator
+      showDialog(
+        context: currentContext,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+            ),
+          );
+        },
+      );
+
+      // Test connection first
+      debugPrint('Testing connection...');
+      bool isConnected = await ApiService.testConnection();
+      
+      if (!mounted) return;
+
+      // Hide loading indicator
+      Navigator.pop(currentContext);
+      
+      if (!isConnected) {
+        ScaffoldMessenger.of(currentContext).showSnackBar(
+          const SnackBar(
+            content: Text('Cannot connect to server. Please check if the server is running.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
+      debugPrint('Connection successful, attempting login...');
+      final result = await ApiService.login(
+        loginIdentifierController.text,
+        passwordController.text,
+      );
+      
+      if (!mounted) return;
+      
+      if (result) {
+        Navigator.pushReplacement(
+          currentContext,
+          MaterialPageRoute(builder: (context) => const MainScreen()),
+        );
+      }
+    } catch (e) {
+      debugPrint('Login error: $e');
+      if (!mounted) return;
+      
+      // Make sure to close the loading dialog if it's still showing
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString()),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _testConnection(BuildContext context) async {
+    try {
+      final currentContext = context;
+      final isConnected = await ApiService.testConnection();
+      
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(currentContext).showSnackBar(
+        SnackBar(
+          content: Text(isConnected 
+            ? 'Successfully connected to server!' 
+            : 'Could not connect to server'),
+          backgroundColor: isConnected ? Colors.green : Colors.red,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -156,80 +264,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      onPressed: () async {
-                        if (loginIdentifierController.text.isEmpty || passwordController.text.isEmpty) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Please enter email/phone number and password'),
-                              backgroundColor: Colors.red,
-                            ),
-                          );
-                          return;
-                        }
-
-                        try {
-                          // Show loading indicator
-                          if (!mounted) return;
-                          showDialog(
-                            context: context,
-                            barrierDismissible: false,
-                            builder: (BuildContext context) {
-                              return const Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                                ),
-                              );
-                            },
-                          );
-
-                          // Test connection first
-                          print('Testing connection...'); // Debug log
-                          bool isConnected = await ApiService.testConnection();
-                          
-                          if (!isConnected) {
-                            if (!mounted) return;
-                            Navigator.pop(context); // Hide loading
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Cannot connect to server. Please check if the server is running.'),
-                                backgroundColor: Colors.red,
-                                duration: Duration(seconds: 3),
-                              ),
-                            );
-                            return;
-                          }
-
-                          print('Connection successful, attempting login...'); // Debug log
-                          final result = await ApiService.login(
-                            loginIdentifierController.text,
-                            passwordController.text,
-                          );
-                          
-                          if (!mounted) return;
-                          Navigator.pop(context); // Hide loading
-                          
-                          if (result) {
-                            Navigator.pushReplacement(
-                              context,
-                              MaterialPageRoute(builder: (context) => const MainScreen()),
-                            );
-                          }
-                        } catch (e) {
-                          print('Login error: $e'); // Debug log
-                          if (!mounted) return;
-                          // Make sure to close the loading dialog
-                          if (Navigator.canPop(context)) {
-                            Navigator.pop(context);
-                          }
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(e.toString()),
-                              backgroundColor: Colors.red,
-                              duration: const Duration(seconds: 3),
-                            ),
-                          );
-                        }
-                      },
+                      onPressed: () => _handleLogin(context),
                       child: const Text(
                         'Log In',
                         style: TextStyle(
@@ -272,30 +307,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
 
                     ElevatedButton(
-                      onPressed: () async {
-                        try {
-                          final isConnected = await ApiService.testConnection();
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(isConnected 
-                                  ? 'Successfully connected to server!' 
-                                  : 'Could not connect to server'),
-                                backgroundColor: isConnected ? Colors.green : Colors.red,
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Error: $e'),
-                                backgroundColor: Colors.red,
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onPressed: () => _testConnection(context),
                       child: const Text('Test Connection'),
                     ),
                   ],
