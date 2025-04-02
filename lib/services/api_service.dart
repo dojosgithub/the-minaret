@@ -386,4 +386,61 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<bool> savePost(String postId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/save'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to save post');
+      }
+    } catch (e) {
+      debugPrint('Error saving post: $e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> unsavePost(String postId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/posts/$postId/save'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to unsave post');
+      }
+    } catch (e) {
+      debugPrint('Error unsaving post: $e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> isPostSaved(String postId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/$postId/save'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['isSaved'];
+      } else {
+        throw Exception('Failed to check if post is saved');
+      }
+    } catch (e) {
+      debugPrint('Error checking if post is saved: $e');
+      rethrow;
+    }
+  }
 } 

@@ -17,7 +17,7 @@ class SettingsScreen extends StatelessWidget {
       appBar: TopBar(
         onMenuPressed: () {},
         onProfilePressed: () {},
-        profileImage: 'assets/profile_picture.png',
+        profileImage: 'assets/default_profile.png',
       ),
       body: Column(
         children: [

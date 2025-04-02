@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../utils/time_utils.dart';
+import '../services/api_service.dart';
 
 class Post extends StatefulWidget {
+  final String id;
   final String name;
   final String username;
   final String profilePic;
@@ -18,6 +20,7 @@ class Post extends StatefulWidget {
 
   const Post({
     super.key,
+    required this.id,
     required this.name,
     required this.username,
     required this.profilePic,
@@ -37,6 +40,61 @@ class Post extends StatefulWidget {
 
 class _PostState extends State<Post> {
   bool _isBookmarked = false;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkIfSaved();
+  }
+
+  Future<void> _checkIfSaved() async {
+    try {
+      final isSaved = await ApiService.isPostSaved(widget.id);
+      if (mounted) {
+        setState(() {
+          _isBookmarked = isSaved;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking if post is saved: $e');
+    }
+  }
+
+  Future<void> _toggleSave() async {
+    if (_isLoading) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      if (_isBookmarked) {
+        await ApiService.unsavePost(widget.id);
+      } else {
+        await ApiService.savePost(widget.id);
+      }
+      
+      if (mounted) {
+        setState(() {
+          _isBookmarked = !_isBookmarked;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error toggling save: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to ${_isBookmarked ? 'unsave' : 'save'} post')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   Future<void> _launchURL(String url) async {
     try {
@@ -463,15 +521,20 @@ class _PostState extends State<Post> {
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
                             IconButton(
-                              icon: Icon(
-                                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                color: const Color(0xFFFDCC87),
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isBookmarked = !_isBookmarked;
-                                });
-                              },
+                              icon: _isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                      ),
+                                    )
+                                  : Icon(
+                                      _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                      color: const Color(0xFFFDCC87),
+                                    ),
+                              onPressed: _toggleSave,
                             ),
                             Text(
                               getTimeAgo(DateTime.parse(widget.createdAt)),

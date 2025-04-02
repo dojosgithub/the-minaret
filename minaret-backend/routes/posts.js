@@ -4,6 +4,7 @@ const auth = require('../middleware/auth');
 const Post = require('../models/Post');
 const multer = require('multer');
 const path = require('path');
+const User = require('../models/User');
 
 // Configure multer for media uploads
 const storage = multer.diskStorage({
@@ -78,9 +79,10 @@ router.post('/', auth, (req, res) => {
 });
 
 // Get all posts
-router.get('/', async (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
-    const posts = await Post.find()
+    // Get posts from all users except the current user
+    const posts = await Post.find({ author: { $ne: req.user.id } })
       .sort({ createdAt: -1 })
       .populate('author', 'firstName lastName username profileImage');
     res.json(posts);
@@ -97,6 +99,67 @@ router.get('/type/:type', async (req, res) => {
       .sort({ createdAt: -1 })
       .populate('author', 'username profileImage');
     res.json(posts);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// Save post
+router.post('/:id/save', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if post is already saved
+    if (user.savedPosts.includes(post._id)) {
+      return res.status(400).json({ message: 'Post already saved' });
+    }
+
+    // Add post to saved posts
+    user.savedPosts.push(post._id);
+    await user.save();
+
+    res.json({ message: 'Post saved successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// Unsave post
+router.delete('/:id/save', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Remove post from saved posts
+    user.savedPosts = user.savedPosts.filter(
+      (postId) => postId.toString() !== post._id.toString()
+    );
+    await user.save();
+
+    res.json({ message: 'Post unsaved successfully' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server error');
+  }
+});
+
+// Check if post is saved
+router.get('/:id/save', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const isSaved = user.savedPosts.includes(req.params.id);
+    res.json({ isSaved });
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server error');

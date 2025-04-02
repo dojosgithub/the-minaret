@@ -22,7 +22,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
       appBar: TopBar(
         onMenuPressed: () => Navigator.pop(context),
         onProfilePressed: () {},
-        profileImage: 'assets/profile_picture.png',
+        profileImage: 'assets/default_profile.png',
       ),
 
       body: Padding(

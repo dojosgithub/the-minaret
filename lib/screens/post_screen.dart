@@ -421,7 +421,7 @@ class _PostPageState extends State<PostScreen> {
                             color: Color(0xFFFDCC87),
                           ),
                           child: const CircleAvatar(
-                            backgroundImage: AssetImage('assets/profile_picture.png'),
+                            backgroundImage: AssetImage('assets/default_profile.png'),
                             radius: 25,
                           ),
                         ),

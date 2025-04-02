@@ -57,7 +57,6 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/profile_picture.png
     - assets/quran.svg
     - assets/tafsir.svg
     - assets/sunnah.svg
@@ -75,7 +74,6 @@ flutter:
     - assets/top_bar_pattern.png
     - assets/splash_screen_pattern.png
     - assets/default_profile.png
-
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

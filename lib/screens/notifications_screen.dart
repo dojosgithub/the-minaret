@@ -63,7 +63,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 return NotificationWidget(
                   name: notification['sender']['username'],
                   dateTime: dateTime,
-                  profilePic: notification['sender']['profileImage'] ?? 'assets/profile_picture.png',
+                  profilePic: notification['sender']['profileImage'] ?? 'assets/default_profile.png',
                   text: notification['message'],
                 );
               }).toList(),

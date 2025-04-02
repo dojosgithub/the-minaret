@@ -22,11 +22,11 @@ async function seedData() {
         firstName: 'John',
         lastName: 'Doe',
         username: 'johndoe',
-        email: 'test@test',
-        password: hashedPassword,
+        email: 'john@example.com',
+        password: 'password123',
         phoneNumber: '123456789',
         userType: 'Scholar',
-        profileImage: 'minaret-backend/uploads/profiles/profile_picture.png',
+        profileImage: '/uploads/profiles/default_profile.png',
         bio: 'Islamic Scholar specializing in Quranic studies and contemporary fiqh. Teaching and spreading knowledge for over 10 years.',
         followers: [], // Will be populated later
         following: [], // Will be populated later
@@ -37,10 +37,10 @@ async function seedData() {
         lastName: 'Smith',
         username: 'janesmith',
         email: 'jane@example.com',
-        password: hashedPassword,
+        password: 'password123',
         phoneNumber: '1234567891',
         userType: 'Muslim',
-        profileImage: 'assets/profile_picture.png',
+        profileImage: '/uploads/profiles/default_profile.png',
         bio: 'Dedicated to learning and sharing Islamic knowledge. Interested in Islamic history and architecture.',
         followers: [], // Will be populated later
         following: [], // Will be populated later

@@ -143,7 +143,7 @@ class _UserScreenState extends State<UserScreen> {
             ),
             child: CircleAvatar(
               radius: 40,
-              backgroundImage: userData?['profileImage'] != null
+              backgroundImage: userData?['profileImage'] != null && userData!['profileImage'].isNotEmpty
                   ? NetworkImage(userData!['profileImage'])
                   : const AssetImage('assets/default_profile.png') as ImageProvider,
             ),
@@ -252,9 +252,12 @@ class _UserScreenState extends State<UserScreen> {
       itemBuilder: (context, index) {
         final post = posts[index];
         return Post(
+          id: post['_id'],
           name: post['author']['firstName'] + ' ' + post['author']['lastName'],
           username: post['author']['username'],
-          profilePic: post['author']['profileImage'] ?? 'assets/profile_picture.png',
+          profilePic: post['author']['profileImage'] != null && post['author']['profileImage'].isNotEmpty
+              ? post['author']['profileImage']
+              : 'assets/default_profile.png',
           title: post['title'],
           text: post['body'],
           media: List<Map<String, dynamic>>.from(post['media'] ?? []),

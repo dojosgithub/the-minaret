@@ -44,6 +44,12 @@ router.get('/profile', auth, async (req, res) => {
       .select('-password')
       .populate('followers')
       .populate('following');
+    
+    // If no profile image is set, use the default
+    if (!user.profileImage) {
+      user.profileImage = '/uploads/profiles/default_profile.png';
+    }
+    
     res.json(user);
   } catch (err) {
     console.error(err.message);
@@ -88,6 +94,12 @@ router.get('/:id', async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    // If no profile image is set, use the default
+    if (!user.profileImage) {
+      user.profileImage = '/uploads/profiles/default_profile.png';
+    }
+    
     res.json(user);
   } catch (err) {
     console.error(err.message);
