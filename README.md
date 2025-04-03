@@ -133,24 +133,8 @@ curl http://localhost:5000/api/test
 5. Create Pull Request
 
 ## License
-[Add your license information]
+Property of Dojo IT Solutions.
 
-## Project Structure
-```
-lib
-|-- main.dart                      # Entry point of the application
-|-- screens
-|   |-- home_screen.dart           # Home screen implementation
-|   |-- notifications_screen.dart  # Notifications screen implementation
-|   |-- post_screen.dart           # Post creation screen
-|   |-- user_screen.dart           # User profile screen
-|   |-- search_screen.dart         # Search screen implementation
-|
-|-- widgets
-|   |-- bottom_nav_bar.dart        # Custom bottom navigation bar with curved edges
-|   |-- top_bar.dart               # Custom top bar with profile picture and menu button
-|   |-- post.dart                  # Customizable post widget
-```
 
 ## App Theme
 - Primary background color: `#4F245A`
@@ -158,16 +142,6 @@ lib
 - Profile picture circle: `#FFE4A7`
 
 
-## How to Change Background Color
-To change the background color of all screens, wrap the `Scaffold` widget in a `Container` with the desired `color`:
-```dart
-return Container(
-  color: const Color(0xFF4F245A),
-  child: Scaffold(
-    // Screen content here
-  ),
-);
-```
 
 
 
