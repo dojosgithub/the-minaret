@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/post.dart';
 import '../widgets/screen_wrapper.dart';
+import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -22,7 +23,13 @@ class _HomeScreenState extends State<HomeScreen> {
   void _initializePosts() {
     _postsFuture = ApiService.getPosts().catchError((error) {
       debugPrint('Error fetching posts: $error');
-      return <Map<String, dynamic>>[]; // Explicitly specify the return type
+      throw error; // Re-throw the error to trigger the error state
+    });
+  }
+
+  void _refreshPosts() {
+    setState(() {
+      _initializePosts();
     });
   }
 
@@ -30,47 +37,40 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return ScreenWrapper(
       currentIndex: 0,
-      child: RefreshIndicator(
-        onRefresh: () async {
-          setState(() {
-            _initializePosts();
-          });
-        },
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _postsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      child: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _postsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+              ),
+            );
+          }
 
-            if (snapshot.hasError) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Error: ${snapshot.error}'),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _initializePosts();
-                        });
-                      },
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            }
+          if (snapshot.hasError) {
+            return ConnectionErrorWidget(
+              onRetry: _refreshPosts,
+            );
+          }
 
-            final posts = snapshot.data ?? [];
-            
-            if (posts.isEmpty) {
-              return const Center(
-                child: Text('No posts available'),
-              );
-            }
+          final posts = snapshot.data ?? [];
+          
+          if (posts.isEmpty) {
+            return const Center(
+              child: Text(
+                'No posts available',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
+          }
 
-            return SingleChildScrollView(
+          return RefreshIndicator(
+            onRefresh: () async {
+              _refreshPosts();
+            },
+            color: const Color(0xFFFDCC87),
+            child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: Column(
                 children: posts.map((post) => Post(
@@ -89,9 +89,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   authorId: post['author']['_id'] ?? '',
                 )).toList(),
               ),
-            );
-          },
-        ),
+            ),
+          );
+        },
       ),
     );
   }

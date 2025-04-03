@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'edit_profile_screen.dart';
 import '../widgets/screen_wrapper.dart';
 import '../widgets/post.dart';
+import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 
 class UserScreen extends StatefulWidget {
@@ -40,15 +41,15 @@ class _UserScreenState extends State<UserScreen> {
 
       // Load user profile
       final data = await ApiService.getUserProfile();
-      debugPrint('User data received: $data'); // Debug print
+      debugPrint('User data received: $data');
 
       // Load posts
       final posts = await ApiService.getUserPosts();
-      debugPrint('User posts received: ${posts.length}'); // Debug print
+      debugPrint('User posts received: ${posts.length}');
 
       // Load saved posts
       final saved = await ApiService.getSavedPosts();
-      debugPrint('Saved posts received: ${saved.length}'); // Debug print
+      debugPrint('Saved posts received: ${saved.length}');
       
       if (mounted) {
         setState(() {
@@ -80,22 +81,8 @@ class _UserScreenState extends State<UserScreen> {
               ),
             )
           : error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Error: $error',
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadUserData,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
+              ? ConnectionErrorWidget(
+                  onRetry: _loadUserData,
                 )
               : RefreshIndicator(
                   onRefresh: _loadUserData,

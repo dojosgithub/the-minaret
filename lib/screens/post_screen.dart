@@ -83,7 +83,7 @@ class _PostPageState extends State<PostScreen> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF3D1B45),
-        title: const Text('Add Link', style: TextStyle(color: Colors.white)),
+        title: const Text('Add Link', style: TextStyle(color: Color(0xFFFDCC87))),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

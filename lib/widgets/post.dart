@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../utils/time_utils.dart';
 import '../services/api_service.dart';
 import '../screens/profile_screen.dart';
+import '../screens/user_screen.dart';
 
 class Post extends StatefulWidget {
   final String id;
@@ -114,6 +115,31 @@ class _PostState extends State<Post> {
           SnackBar(content: Text('Could not open link: $url')),
         );
       }
+    }
+  }
+
+  Future<void> _navigateToProfile(BuildContext context) async {
+    try {
+      // Get current user's ID
+      final currentUser = await ApiService.getUserProfile();
+      final currentUserId = currentUser['_id'];
+
+      // Navigate to appropriate screen based on whether it's the current user
+      if (widget.authorId == currentUserId) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const UserScreen()),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(userId: widget.authorId),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error navigating to profile: $e');
     }
   }
 
@@ -456,14 +482,7 @@ class _PostState extends State<Post> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfileScreen(userId: widget.authorId),
-              ),
-            );
-          },
+          onTap: () => _navigateToProfile(context),
           child: Container(
             padding: const EdgeInsets.all(3),
             decoration: const BoxDecoration(
@@ -488,14 +507,7 @@ class _PostState extends State<Post> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfileScreen(userId: widget.authorId),
-                            ),
-                          );
-                        },
+                        onTap: () => _navigateToProfile(context),
                         child: Text(
                           widget.name,
                           style: const TextStyle(
@@ -507,14 +519,7 @@ class _PostState extends State<Post> {
                         ),
                       ),
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ProfileScreen(userId: widget.authorId),
-                            ),
-                          );
-                        },
+                        onTap: () => _navigateToProfile(context),
                         child: Text(
                           '@${widget.username}',
                           style: const TextStyle(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/screen_wrapper.dart';
 import '../services/api_service.dart';
 import '../widgets/post.dart';
+import '../widgets/connection_error_widget.dart';
 import 'home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Map<String, dynamic>> _searchResults = [];
   List<String> _recentSearches = [];
   bool _isLoading = false;
+  bool _hasError = false;
   String? _selectedSortBy;
   String? _selectedDatePosted;
   String? _selectedPostedBy;
@@ -33,14 +35,13 @@ class _SearchScreenState extends State<SearchScreen> {
       debugPrint('Loaded recent searches: $searches');
       setState(() {
         _recentSearches = searches;
+        _hasError = false;
       });
     } catch (e) {
       debugPrint('Error loading recent searches: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading recent searches: ${e.toString()}')),
-        );
-      }
+      setState(() {
+        _hasError = true;
+      });
     }
   }
 
@@ -49,6 +50,7 @@ class _SearchScreenState extends State<SearchScreen> {
 
     setState(() {
       _isLoading = true;
+      _hasError = false;
     });
 
     try {
@@ -69,12 +71,8 @@ class _SearchScreenState extends State<SearchScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
+        _hasError = true;
       });
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to perform search')),
-        );
-      }
     }
   }
 
@@ -83,9 +81,13 @@ class _SearchScreenState extends State<SearchScreen> {
       await ApiService.clearRecentSearches();
       setState(() {
         _recentSearches = [];
+        _hasError = false;
       });
     } catch (e) {
       debugPrint('Error clearing recent searches: $e');
+      setState(() {
+        _hasError = true;
+      });
     }
   }
 
@@ -196,64 +198,74 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
-            : _searchResults.isNotEmpty
-                ? ListView.builder(
-                    itemCount: _searchResults.length,
-                    itemBuilder: (context, index) {
-                      final post = _searchResults[index];
-                      debugPrint('Post author data: ${post['author']}');
-                      return Post(
-                        id: post['_id'] ?? '',
-                        name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
-                        username: post['author']['username'] ?? '',
-                        profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
-                        title: post['title'] ?? '',
-                        text: post['body'] ?? '',
-                        media: List<Map<String, dynamic>>.from(post['media'] ?? []),
-                        links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                        upvoteCount: post['upvotes'] ?? 0,
-                        downvoteCount: post['downvotes'] ?? 0,
-                        repostCount: post['reposts'] ?? 0,
-                        createdAt: post['createdAt'] ?? '',
-                        authorId: post['author']['_id'] ?? '',
-                      );
+            : _hasError
+                ? ConnectionErrorWidget(
+                    onRetry: () {
+                      if (_searchController.text.isNotEmpty) {
+                        _performSearch();
+                      } else {
+                        _loadRecentSearches();
+                      }
                     },
                   )
-                : Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                : _searchResults.isNotEmpty
+                    ? ListView.builder(
+                        itemCount: _searchResults.length,
+                        itemBuilder: (context, index) {
+                          final post = _searchResults[index];
+                          debugPrint('Post author data: ${post['author']}');
+                          return Post(
+                            id: post['_id'] ?? '',
+                            name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
+                            username: post['author']['username'] ?? '',
+                            profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+                            title: post['title'] ?? '',
+                            text: post['body'] ?? '',
+                            media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+                            links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+                            upvoteCount: post['upvotes'] ?? 0,
+                            downvoteCount: post['downvotes'] ?? 0,
+                            repostCount: post['reposts'] ?? 0,
+                            createdAt: post['createdAt'] ?? '',
+                            authorId: post['author']['_id'] ?? '',
+                          );
+                        },
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              "Recently Searched",
-                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            if (_recentSearches.isNotEmpty)
-                              TextButton(
-                                onPressed: _clearRecentSearches,
-                                child: const Text(
-                                  "Clear All",
-                                  style: TextStyle(color: Color(0xFFFDCC87)),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  "Recently Searched",
+                                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
                                 ),
-                              ),
+                                if (_recentSearches.isNotEmpty)
+                                  TextButton(
+                                    onPressed: _clearRecentSearches,
+                                    child: const Text(
+                                      "Clear All",
+                                      style: TextStyle(color: Color(0xFFFDCC87)),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 10),
+                            if (_recentSearches.isEmpty)
+                              const Center(
+                                child: Text(
+                                  "No recent searches",
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              )
+                            else
+                              ..._recentSearches.map((search) => _buildRecentlySearchedOption(search)),
                           ],
                         ),
-                        const SizedBox(height: 10),
-                        if (_recentSearches.isEmpty)
-                          const Center(
-                            child: Text(
-                              "No recent searches",
-                              style: TextStyle(color: Colors.white70),
-                            ),
-                          )
-                        else
-                          ..._recentSearches.map((search) => _buildRecentlySearchedOption(search)),
-                      ],
-                    ),
-                  ),
+                      ),
       ),
     );
   }

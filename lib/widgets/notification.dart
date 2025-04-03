@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import '../utils/time_utils.dart';
+import '../screens/profile_screen.dart';
+import '../screens/user_screen.dart';
+import '../services/api_service.dart';
 
 class NotificationWidget extends StatelessWidget {
   final String name;
   final String profilePic;
   final String text;
   final DateTime dateTime;
+  final String senderId;
 
   const NotificationWidget({
     super.key,
@@ -13,7 +17,33 @@ class NotificationWidget extends StatelessWidget {
     required this.profilePic,
     required this.text,
     required this.dateTime,
+    required this.senderId,
   });
+
+  Future<void> _navigateToProfile(BuildContext context) async {
+    try {
+      // Get current user's ID
+      final currentUser = await ApiService.getUserProfile();
+      final currentUserId = currentUser['_id'];
+
+      // Navigate to appropriate screen based on whether it's the current user
+      if (senderId == currentUserId) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const UserScreen()),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfileScreen(userId: senderId),
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error navigating to profile: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,24 +67,31 @@ class NotificationWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFFFE4A7), 
-                ),
-                child: CircleAvatar(
-                  backgroundImage: AssetImage(profilePic),
-                  radius: 20,
+              GestureDetector(
+                onTap: () => _navigateToProfile(context),
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Color(0xFFFFE4A7), 
+                  ),
+                  child: CircleAvatar(
+                    backgroundImage: AssetImage(profilePic),
+                    radius: 20,
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
-                name,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
+              GestureDetector(
+                onTap: () => _navigateToProfile(context),
+                child: Text(
+                  name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.white,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/screen_wrapper.dart';
 import '../widgets/post.dart';
+import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -112,22 +113,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             )
           : error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Error: $error',
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _loadUserData,
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  ),
+              ? ConnectionErrorWidget(
+                  onRetry: _loadUserData,
                 )
               : RefreshIndicator(
                   onRefresh: _loadUserData,

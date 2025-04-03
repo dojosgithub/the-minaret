@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/notification.dart';
 import '../widgets/screen_wrapper.dart';
+import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -19,6 +20,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _notificationsFuture = ApiService.getNotifications();
   }
 
+  void _refreshNotifications() {
+    setState(() {
+      _notificationsFuture = ApiService.getNotifications();
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ScreenWrapper(
@@ -35,11 +42,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Error: ${snapshot.error}',
-                style: const TextStyle(color: Colors.white),
-              ),
+            return ConnectionErrorWidget(
+              onRetry: _refreshNotifications,
             );
           }
 
@@ -54,19 +58,26 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             );
           }
 
-          return SingleChildScrollView(
-            child: Column(
-              children: notifications.map((notification) {
-                // Parse the date string to DateTime
-                final dateTime = DateTime.parse(notification['createdAt']);
-                
-                return NotificationWidget(
-                  name: notification['sender']['username'],
-                  dateTime: dateTime,
-                  profilePic: notification['sender']['profileImage'] ?? 'assets/default_profile.png',
-                  text: notification['message'],
-                );
-              }).toList(),
+          return RefreshIndicator(
+            onRefresh: () async {
+              _refreshNotifications();
+            },
+            color: const Color(0xFFFDCC87),
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                children: notifications.map((notification) {
+                  final dateTime = DateTime.parse(notification['createdAt']);
+                  
+                  return NotificationWidget(
+                    name: notification['sender']['username'],
+                    dateTime: dateTime,
+                    profilePic: notification['sender']['profileImage'] ?? 'assets/default_profile.png',
+                    text: notification['message'],
+                    senderId: notification['sender']['_id'],
+                  );
+                }).toList(),
+              ),
             ),
           );
         },
