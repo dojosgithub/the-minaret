@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../utils/time_utils.dart';
 import '../services/api_service.dart';
+import '../screens/profile_screen.dart';
 
 class Post extends StatefulWidget {
   final String id;
@@ -17,6 +18,7 @@ class Post extends StatefulWidget {
   final int downvoteCount;
   final int repostCount;
   final String createdAt;
+  final String authorId;
 
   const Post({
     super.key,
@@ -32,6 +34,7 @@ class Post extends StatefulWidget {
     required this.downvoteCount,
     required this.repostCount,
     required this.createdAt,
+    required this.authorId,
   });
 
   @override
@@ -448,6 +451,135 @@ class _PostState extends State<Post> {
     );
   }
 
+  Widget _buildUserInfo() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(userId: widget.authorId),
+              ),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(3),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color(0xFFFDCC87),
+            ),
+            child: CircleAvatar(
+              backgroundImage: AssetImage(widget.profilePic),
+              radius: 25,
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfileScreen(userId: widget.authorId),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          widget.name,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProfileScreen(userId: widget.authorId),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          '@${widget.username}',
+                          style: const TextStyle(
+                            color: Color(0xFFFDCC87),
+                            fontSize: 14,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      IconButton(
+                        icon: _isLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                ),
+                              )
+                            : Icon(
+                                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                color: const Color(0xFFFDCC87),
+                              ),
+                        onPressed: _toggleSave,
+                      ),
+                      Text(
+                        getTimeAgo(DateTime.parse(widget.createdAt)),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.6),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 5),
+              Text(
+                widget.title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Text(
+                widget.text,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -467,108 +599,7 @@ class _PostState extends State<Post> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFFDCC87),
-                ),
-                child: CircleAvatar(
-                  backgroundImage: AssetImage(widget.profilePic),
-                  radius: 25,
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () {},
-                              child: Text(
-                                widget.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {},
-                              child: Text(
-                                '@${widget.username}',
-                                style: const TextStyle(
-                                  color: Color(0xFFFDCC87),
-                                  fontSize: 14,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: _isLoading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                                      ),
-                                    )
-                                  : Icon(
-                                      _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                      color: const Color(0xFFFDCC87),
-                                    ),
-                              onPressed: _toggleSave,
-                            ),
-                            Text(
-                              getTimeAgo(DateTime.parse(widget.createdAt)),
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.6),
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.title,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.text,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          _buildUserInfo(),
           const SizedBox(height: 5),
           _buildLinks(),
           const SizedBox(height: 5),

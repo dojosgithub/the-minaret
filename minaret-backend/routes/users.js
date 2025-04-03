@@ -87,23 +87,96 @@ router.get('/saved-posts', auth, async (req, res) => {
   }
 });
 
-// Get user by id
-router.get('/:id', async (req, res) => {
+// Get user by ID
+router.get('/:userId', auth, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(req.params.userId)
+      .select('-password')
+      .populate('followers', 'firstName lastName username profileImage')
+      .populate('following', 'firstName lastName username profileImage');
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
-    // If no profile image is set, use the default
-    if (!user.profileImage) {
-      user.profileImage = '/uploads/profiles/default_profile.png';
-    }
-    
+
     res.json(user);
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server Error');
+    console.error('Error getting user:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
+// Check if current user is following another user
+router.get('/is-following/:userId', auth, async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user.id);
+    const isFollowing = currentUser.following.includes(req.params.userId);
+    res.json({ isFollowing });
+  } catch (err) {
+    console.error('Error checking follow status:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
+// Follow a user
+router.post('/follow/:userId', auth, async (req, res) => {
+  try {
+    const userToFollow = await User.findById(req.params.userId);
+    if (!userToFollow) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const currentUser = await User.findById(req.user.id);
+    
+    // Check if already following
+    if (currentUser.following.includes(req.params.userId)) {
+      return res.status(400).json({ message: 'Already following this user' });
+    }
+
+    // Add to following and followers
+    currentUser.following.push(req.params.userId);
+    userToFollow.followers.push(req.user.id);
+
+    await currentUser.save();
+    await userToFollow.save();
+
+    res.json({ message: 'Successfully followed user' });
+  } catch (err) {
+    console.error('Error following user:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
+// Unfollow a user
+router.post('/unfollow/:userId', auth, async (req, res) => {
+  try {
+    const userToUnfollow = await User.findById(req.params.userId);
+    if (!userToUnfollow) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    const currentUser = await User.findById(req.user.id);
+    
+    // Check if not following
+    if (!currentUser.following.includes(req.params.userId)) {
+      return res.status(400).json({ message: 'Not following this user' });
+    }
+
+    // Remove from following and followers
+    currentUser.following = currentUser.following.filter(
+      id => id.toString() !== req.params.userId
+    );
+    userToUnfollow.followers = userToUnfollow.followers.filter(
+      id => id.toString() !== req.user.id
+    );
+
+    await currentUser.save();
+    await userToUnfollow.save();
+
+    res.json({ message: 'Successfully unfollowed user' });
+  } catch (err) {
+    console.error('Error unfollowing user:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
   }
 });
 

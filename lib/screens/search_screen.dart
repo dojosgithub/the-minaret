@@ -215,6 +215,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         downvoteCount: post['downvotes'] ?? 0,
                         repostCount: post['reposts'] ?? 0,
                         createdAt: post['createdAt'] ?? '',
+                        authorId: post['author']['_id'] ?? '',
                       );
                     },
                   )

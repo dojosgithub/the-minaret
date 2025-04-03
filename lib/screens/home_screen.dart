@@ -75,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: posts.map((post) => Post(
                   id: post['_id'],
-                  name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
+                  name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? 'Minaret User'}',
                   username: post['author']['username'] ?? 'unknown',
                   profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
                   title: post['title'] ?? '',
@@ -86,6 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   downvoteCount: 0,
                   repostCount: 0,
                   createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
+                  authorId: post['author']['_id'] ?? '',
                 )).toList(),
               ),
             );

@@ -244,4 +244,19 @@ router.get('/search', auth, async (req, res) => {
   }
 });
 
+// Get posts by user ID
+router.get('/user/:userId', auth, async (req, res) => {
+  try {
+    const posts = await Post.find({ author: req.params.userId })
+      .sort({ createdAt: -1 })
+      .populate('author', 'firstName lastName username profileImage')
+      .populate('likes', 'firstName lastName username profileImage');
+
+    res.json(posts);
+  } catch (err) {
+    console.error('Error getting user posts:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
 module.exports = router; 

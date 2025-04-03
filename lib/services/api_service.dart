@@ -548,4 +548,92 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<Map<String, dynamic>> getUserById(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load user profile');
+      }
+    } catch (e) {
+      debugPrint('Error getting user by ID: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getUserPostsById(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/user/$userId'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load user posts');
+      }
+    } catch (e) {
+      debugPrint('Error getting user posts: $e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> isFollowing(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/is-following/$userId'),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['isFollowing'] ?? false;
+      } else {
+        throw Exception('Failed to check follow status');
+      }
+    } catch (e) {
+      debugPrint('Error checking follow status: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> followUser(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/follow/$userId'),
+        headers: _headers,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to follow user');
+      }
+    } catch (e) {
+      debugPrint('Error following user: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> unfollowUser(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/unfollow/$userId'),
+        headers: _headers,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to unfollow user');
+      }
+    } catch (e) {
+      debugPrint('Error unfollowing user: $e');
+      rethrow;
+    }
+  }
 } 
