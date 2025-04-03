@@ -62,6 +62,10 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Post',
   }],
+  recentSearches: {
+    type: [String],
+    default: [],
+  },
 });
 
 module.exports = mongoose.model('User', userSchema); 

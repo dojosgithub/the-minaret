@@ -75,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 children: posts.map((post) => Post(
                   id: post['_id'],
-                  name: post['author']['firstName'] ?? 'Unknown',
+                  name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
                   username: post['author']['username'] ?? 'unknown',
                   profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
                   title: post['title'] ?? '',

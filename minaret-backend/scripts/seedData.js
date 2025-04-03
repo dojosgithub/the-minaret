@@ -22,8 +22,8 @@ async function seedData() {
         firstName: 'John',
         lastName: 'Doe',
         username: 'johndoe',
-        email: 'john@example.com',
-        password: 'password123',
+        email: 'test',
+        password: hashedPassword,
         phoneNumber: '123456789',
         userType: 'Scholar',
         profileImage: '/uploads/profiles/default_profile.png',
@@ -31,13 +31,20 @@ async function seedData() {
         followers: [], // Will be populated later
         following: [], // Will be populated later
         savedPosts: [], // Will be populated later
+        recentSearches: [
+          'Quranic studies',
+          'Islamic history',
+          'Fiqh rulings',
+          'Hadith collection',
+          'Islamic architecture'
+        ],
       },
       {
         firstName: 'Jane',
         lastName: 'Smith',
         username: 'janesmith',
-        email: 'jane@example.com',
-        password: 'password123',
+        email: 'test2',
+        password: hashedPassword,
         phoneNumber: '1234567891',
         userType: 'Muslim',
         profileImage: '/uploads/profiles/default_profile.png',
@@ -45,6 +52,13 @@ async function seedData() {
         followers: [], // Will be populated later
         following: [], // Will be populated later
         savedPosts: [], // Will be populated later
+        recentSearches: [
+          'Islamic architecture',
+          'Mosque designs',
+          'Islamic art',
+          'Muslim community events',
+          'Islamic education'
+        ],
       },
     ]);
 

@@ -1,9 +1,93 @@
 import 'package:flutter/material.dart';
 import '../widgets/screen_wrapper.dart';
+import '../services/api_service.dart';
+import '../widgets/post.dart';
 import 'home_screen.dart';
 
-class SearchScreen extends StatelessWidget {
+class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
+
+  @override
+  State<SearchScreen> createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State<SearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> _searchResults = [];
+  List<String> _recentSearches = [];
+  bool _isLoading = false;
+  String? _selectedSortBy;
+  String? _selectedDatePosted;
+  String? _selectedPostedBy;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRecentSearches();
+  }
+
+  Future<void> _loadRecentSearches() async {
+    try {
+      debugPrint('Loading recent searches...');
+      final searches = await ApiService.getRecentSearches();
+      debugPrint('Loaded recent searches: $searches');
+      setState(() {
+        _recentSearches = searches;
+      });
+    } catch (e) {
+      debugPrint('Error loading recent searches: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading recent searches: ${e.toString()}')),
+        );
+      }
+    }
+  }
+
+  Future<void> _performSearch() async {
+    if (_searchController.text.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final results = await ApiService.searchPosts(
+        query: _searchController.text,
+        sortBy: _selectedSortBy,
+        datePosted: _selectedDatePosted,
+        postedBy: _selectedPostedBy,
+      );
+
+      await ApiService.addRecentSearch(_searchController.text);
+      await _loadRecentSearches();
+
+      setState(() {
+        _searchResults = results;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to perform search')),
+        );
+      }
+    }
+  }
+
+  Future<void> _clearRecentSearches() async {
+    try {
+      await ApiService.clearRecentSearches();
+      setState(() {
+        _recentSearches = [];
+      });
+    } catch (e) {
+      debugPrint('Error clearing recent searches: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +109,9 @@ class SearchScreen extends StatelessWidget {
           title: Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: SizedBox(
-              height: 50, // Fix height to prevent cutting
+              height: 50,
               child: TextField(
+                controller: _searchController,
                 style: const TextStyle(color: Colors.black),
                 decoration: InputDecoration(
                   filled: true,
@@ -34,10 +119,15 @@ class SearchScreen extends StatelessWidget {
                   hintText: 'Search...',
                   hintStyle: const TextStyle(color: Colors.grey),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20), // Increased curvature
+                    borderRadius: BorderRadius.circular(20),
                     borderSide: BorderSide.none,
                   ),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.search, color: Colors.grey),
+                    onPressed: _performSearch,
+                  ),
                 ),
+                onSubmitted: (_) => _performSearch(),
               ),
             ),
           ),
@@ -47,54 +137,122 @@ class SearchScreen extends StatelessWidget {
               onPressed: () => showDialog(
                 context: context,
                 builder: (BuildContext context) {
-                  return AlertDialog(
-                    backgroundColor: const Color(0xFF3D1B45),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    content: SingleChildScrollView(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildExpansionTile(context, 'Sort by', ['Date', 'Most Relevant', 'Recent']),
-                          _buildExpansionTile(context, 'Date Posted', ['Last 24 Hours', 'This Week', 'This Month', '2024']),
-                          _buildExpansionTile(context, 'Posted By', ['Me', 'Followings', 'Anyone']),
-                          const SizedBox(height: 20),
-                          ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFDCC87),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                              minimumSize: const Size(double.infinity, 50),
-                            ),
-                            child: const Text('Show Results', style: TextStyle(color: Colors.black)),
+                  return StatefulBuilder(
+                    builder: (context, setState) {
+                      return AlertDialog(
+                        backgroundColor: const Color(0xFF3D1B45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        content: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildExpansionTile(
+                                context,
+                                'Sort by',
+                                ['Date', 'Most Relevant', 'Recent'],
+                                _selectedSortBy,
+                                (value) => setState(() => _selectedSortBy = value),
+                              ),
+                              _buildExpansionTile(
+                                context,
+                                'Date Posted',
+                                ['Last 24 Hours', 'This Week', 'This Month', '2024'],
+                                _selectedDatePosted,
+                                (value) => setState(() => _selectedDatePosted = value),
+                              ),
+                              _buildExpansionTile(
+                                context,
+                                'Posted By',
+                                ['Me', 'Followings', 'Anyone'],
+                                _selectedPostedBy,
+                                (value) => setState(() => _selectedPostedBy = value),
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _performSearch();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFDCC87),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  minimumSize: const Size(double.infinity, 50),
+                                ),
+                                child: const Text('Show Results', style: TextStyle(color: Colors.black)),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   );
                 },
               ),
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Recently Searched",
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
-              _buildRecentlySearchedOption("Today's Breaking News"),
-              _buildRecentlySearchedOption("Teaching of the Quran"),
-              _buildRecentlySearchedOption("Islamic Knowledge"),
-            ],
-          ),
-        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
+            : _searchResults.isNotEmpty
+                ? ListView.builder(
+                    itemCount: _searchResults.length,
+                    itemBuilder: (context, index) {
+                      final post = _searchResults[index];
+                      debugPrint('Post author data: ${post['author']}');
+                      return Post(
+                        id: post['_id'] ?? '',
+                        name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
+                        username: post['author']['username'] ?? '',
+                        profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+                        title: post['title'] ?? '',
+                        text: post['body'] ?? '',
+                        media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+                        links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+                        upvoteCount: post['upvotes'] ?? 0,
+                        downvoteCount: post['downvotes'] ?? 0,
+                        repostCount: post['reposts'] ?? 0,
+                        createdAt: post['createdAt'] ?? '',
+                      );
+                    },
+                  )
+                : Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              "Recently Searched",
+                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            if (_recentSearches.isNotEmpty)
+                              TextButton(
+                                onPressed: _clearRecentSearches,
+                                child: const Text(
+                                  "Clear All",
+                                  style: TextStyle(color: Color(0xFFFDCC87)),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        if (_recentSearches.isEmpty)
+                          const Center(
+                            child: Text(
+                              "No recent searches",
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          )
+                        else
+                          ..._recentSearches.map((search) => _buildRecentlySearchedOption(search)),
+                      ],
+                    ),
+                  ),
       ),
     );
   }
@@ -116,7 +274,9 @@ class SearchScreen extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.close, color: Colors.grey),
             onPressed: () {
-              // Handle removal of the option
+              setState(() {
+                _recentSearches.remove(text);
+              });
             },
           ),
         ],
@@ -124,19 +284,30 @@ class SearchScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildExpansionTile(BuildContext context, String title, List<String> options) {
+  Widget _buildExpansionTile(
+    BuildContext context,
+    String title,
+    List<String> options,
+    String? selectedValue,
+    ValueChanged<String> onSelect,
+  ) {
     return Padding(
-      padding: const EdgeInsets.only(left: 10.0), // Indentation for suboptions
+      padding: const EdgeInsets.only(left: 10.0),
       child: ExpansionTile(
         title: Text(title, style: const TextStyle(color: Color(0xFFFDCC87))),
         children: options
             .map(
               (option) => Padding(
-                padding: const EdgeInsets.only(left: 20.0), // Further indentation for suboptions
+                padding: const EdgeInsets.only(left: 20.0),
                 child: ListTile(
-                  title: Text(option, style: const TextStyle(color: Color(0xFFFDCC87))),
+                  title: Text(
+                    option,
+                    style: TextStyle(
+                      color: selectedValue == option ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                  ),
                   onTap: () {
-                    // Do nothing here to ensure popup doesn't close
+                    onSelect(option);
                   },
                 ),
               ),
@@ -144,5 +315,11 @@ class SearchScreen extends StatelessWidget {
             .toList(),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 }

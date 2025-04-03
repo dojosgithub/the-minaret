@@ -166,4 +166,82 @@ router.get('/:id/save', auth, async (req, res) => {
   }
 });
 
+// Search posts
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { query, sortBy, datePosted, postedBy } = req.query;
+    
+    // Build the search query
+    let searchQuery = {};
+    
+    // Add text search
+    if (query) {
+      searchQuery.$or = [
+        { title: { $regex: query, $options: 'i' } },
+        { body: { $regex: query, $options: 'i' } }
+      ];
+    }
+
+    // Add date filter
+    if (datePosted) {
+      const now = new Date();
+      switch (datePosted) {
+        case 'Last 24 Hours':
+          searchQuery.createdAt = { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
+          break;
+        case 'This Week':
+          searchQuery.createdAt = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+          break;
+        case 'This Month':
+          searchQuery.createdAt = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+          break;
+        case '2024':
+          searchQuery.createdAt = { $gte: new Date('2024-01-01') };
+          break;
+      }
+    }
+
+    // Add posted by filter
+    if (postedBy) {
+      switch (postedBy) {
+        case 'Me':
+          searchQuery.author = req.user.id;
+          break;
+        case 'Followings':
+          const user = await User.findById(req.user.id);
+          searchQuery.author = { $in: user.following };
+          break;
+        // 'Anyone' doesn't need any additional filter
+      }
+    }
+
+    // Build sort options
+    let sortOptions = { createdAt: -1 }; // Default sort by newest
+    if (sortBy) {
+      switch (sortBy) {
+        case 'Most Relevant':
+          // For text search, MongoDB's text score is already considered
+          break;
+        case 'Recent':
+          sortOptions = { createdAt: -1 };
+          break;
+        case 'Date':
+          sortOptions = { createdAt: -1 };
+          break;
+      }
+    }
+
+    // Execute the search
+    const posts = await Post.find(searchQuery)
+      .sort(sortOptions)
+      .populate('author', 'firstName lastName username profileImage')
+      .lean();
+
+    res.json(posts);
+  } catch (err) {
+    console.error('Search error:', err);
+    res.status(500).json({ message: 'Server error during search' });
+  }
+});
+
 module.exports = router; 

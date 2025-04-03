@@ -169,4 +169,104 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+// Get recent searches
+router.get('/recent-searches', auth, async (req, res) => {
+  try {
+    console.log('Getting recent searches for user:', req.user.id);
+    
+    // Find user and explicitly include recentSearches
+    const user = await User.findById(req.user.id);
+    
+    if (!user) {
+      console.log('User not found');
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Initialize recentSearches if it doesn't exist
+    if (!user.recentSearches) {
+      console.log('Initializing recentSearches for user');
+      user.recentSearches = [];
+      await user.save();
+    }
+
+    // Ensure recentSearches is an array
+    const recentSearches = Array.isArray(user.recentSearches) ? user.recentSearches : [];
+    console.log('User data:', {
+      id: user._id,
+      recentSearches: recentSearches,
+      recentSearchesType: typeof user.recentSearches
+    });
+    
+    res.json(recentSearches);
+  } catch (err) {
+    console.error('Error getting recent searches:', err);
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ 
+      message: 'Server Error',
+      error: err.message,
+      recentSearches: []
+    });
+  }
+});
+
+// Add recent search
+router.post('/recent-searches', auth, async (req, res) => {
+  try {
+    const { query } = req.body;
+    console.log('Adding recent search:', query, 'for user:', req.user.id);
+
+    if (!query) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Initialize recentSearches if it doesn't exist
+    if (!user.recentSearches) {
+      console.log('Initializing recentSearches for user');
+      user.recentSearches = [];
+    }
+
+    // Remove the query if it already exists
+    user.recentSearches = user.recentSearches.filter(search => search !== query);
+    
+    // Add the query to the beginning
+    user.recentSearches.unshift(query);
+    
+    // Keep only the last 10 searches
+    if (user.recentSearches.length > 10) {
+      user.recentSearches = user.recentSearches.slice(0, 10);
+    }
+
+    await user.save();
+    console.log('Updated recent searches:', user.recentSearches);
+    res.json(user.recentSearches);
+  } catch (err) {
+    console.error('Error adding recent search:', err);
+    console.error('Error stack:', err.stack);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
+// Clear recent searches
+router.delete('/recent-searches', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.recentSearches = [];
+    await user.save();
+    console.log('Cleared recent searches for user');
+    res.json({ message: 'Recent searches cleared' });
+  } catch (err) {
+    console.error('Error clearing recent searches:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
 module.exports = router; 

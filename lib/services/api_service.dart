@@ -443,4 +443,109 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<List<Map<String, dynamic>>> searchPosts({
+    required String query,
+    String? sortBy,
+    String? datePosted,
+    String? postedBy,
+  }) async {
+    try {
+      final Map<String, String> queryParams = {'query': query};
+      if (sortBy != null) queryParams['sortBy'] = sortBy;
+      if (datePosted != null) queryParams['datePosted'] = datePosted;
+      if (postedBy != null) queryParams['postedBy'] = postedBy;
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/search').replace(queryParameters: queryParams),
+        headers: _headers,
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to search posts');
+      }
+    } catch (e) {
+      debugPrint('Error searching posts: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<String>> getRecentSearches() async {
+    try {
+      debugPrint('Sending request to get recent searches...');
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/recent-searches'),
+        headers: _headers,
+      );
+
+      debugPrint('Recent searches response status: ${response.statusCode}');
+      debugPrint('Recent searches response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        try {
+          final List<dynamic> data = json.decode(response.body);
+          debugPrint('Decoded recent searches: $data');
+          return List<String>.from(data);
+        } catch (e) {
+          debugPrint('Error decoding recent searches: $e');
+          if (response.body.trim() == '[]') {
+            return [];
+          }
+          rethrow;
+        }
+      } else {
+        debugPrint('Error response: ${response.body}');
+        try {
+          final error = json.decode(response.body);
+          throw Exception(error['message'] ?? 'Failed to load recent searches');
+        } catch (e) {
+          throw Exception('Failed to load recent searches: ${response.body}');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error in getRecentSearches: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> addRecentSearch(String query) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/recent-searches'),
+        headers: {
+          ..._headers,
+          'Content-Type': 'application/json',
+        },
+        body: json.encode({'query': query}),
+      );
+
+      if (response.statusCode != 200) {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to add recent search');
+      }
+    } catch (e) {
+      debugPrint('Error adding recent search: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> clearRecentSearches() async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/users/recent-searches'),
+        headers: _headers,
+      );
+
+      if (response.statusCode != 200) {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to clear recent searches');
+      }
+    } catch (e) {
+      debugPrint('Error clearing recent searches: $e');
+      rethrow;
+    }
+  }
 } 
