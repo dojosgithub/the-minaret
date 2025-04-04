@@ -20,12 +20,51 @@ class ApiService {
 
   static String? _authToken;  // Store the JWT token
 
+  // Initialize auth token from SharedPreferences
+  static Future<void> initialize() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _authToken = prefs.getString('token');
+    } catch (e) {
+      debugPrint('Error initializing auth token: $e');
+    }
+  }
+
+  static Future<bool> isLoggedIn() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('token');
+      return token != null;
+    } catch (e) {
+      debugPrint('Error checking login status: $e');
+      return false;
+    }
+  }
+
+  static Future<String?> getToken() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return prefs.getString('token');
+    } catch (e) {
+      debugPrint('Error getting token: $e');
+      return null;
+    }
+  }
+
+  static Future<Map<String, String>> _getHeaders() async {
+    final token = await getToken();
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    };
+  }
+
   // Get all posts
   static Future<List<Map<String, dynamic>>> getPosts() async {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/posts'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -45,7 +84,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/notifications'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -88,48 +127,54 @@ class ApiService {
     }
   }
 
-  static Future<bool> login(String identifier, String password) async {
+  static Future<bool> login(String email, String password) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/login'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'identifier': identifier,
+        body: jsonEncode({
+          'identifier': email,
           'password': password,
         }),
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        _authToken = data['token'];
-        debugPrint('Token stored: $_authToken'); // Debug debugPrintto verify token
+        final data = jsonDecode(response.body);
+        final token = data['token'];
+        final user = data['user'];
+        
+        // Store token and user data
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        await prefs.setString('user', jsonEncode(user));
+        _authToken = token;
         return true;
       } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Login failed');
+        throw Exception('Failed to login: ${response.body}');
       }
     } catch (e) {
-      debugPrint('Error in login: $e');
-      throw Exception('Invalid Credentials. Please try again.');
+      debugPrint('Login error: $e');
+      throw Exception('Failed to login: $e');
     }
   }
 
-  // Add method to get authenticated headers
-  static Map<String, String> get _headers {
-    final headers = {
-      'Content-Type': 'application/json',
-    };
-    if (_authToken != null) {
-      headers['Authorization'] = 'Bearer $_authToken';
+  static Future<void> logout() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('token');
+      await prefs.remove('user');
+      _authToken = null;
+    } catch (e) {
+      debugPrint('Logout error: $e');
+      throw Exception('Failed to logout');
     }
-    return headers;
   }
 
   static Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/register'),
-        headers: {'Content-Type': 'application/json'},
+        headers: await _getHeaders(),
         body: json.encode(userData),
       );
 
@@ -165,9 +210,7 @@ class ApiService {
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/posts'));
       
       // Add auth token to headers
-      request.headers.addAll({
-        'Authorization': 'Bearer $_authToken',
-      });
+      request.headers.addAll(await _getHeaders());
 
       // Add text fields
       request.fields['type'] = type;
@@ -224,9 +267,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/profile'),
-        headers: {
-          'Authorization': 'Bearer $_authToken',
-        },
+        headers: await _getHeaders(),
       );
       return response.statusCode == 200;
     } catch (e) {
@@ -239,7 +280,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/profile'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -257,7 +298,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/posts'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -276,7 +317,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/saved-posts'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -298,7 +339,7 @@ class ApiService {
         Uri.parse('$baseUrl/users/upload-profile-image'),
       );
 
-      request.headers['Authorization'] = 'Bearer $_authToken';
+      request.headers.addAll(await _getHeaders());
 
       // Get the file extension
       String extension = image.path.split('.').last.toLowerCase();
@@ -346,10 +387,7 @@ class ApiService {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/users/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_authToken',
-        },
+        headers: await _getHeaders(),
         body: json.encode(updateData),
       );
 
@@ -366,10 +404,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/change-password'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_authToken',
-        },
+        headers: await _getHeaders(),
         body: json.encode({
           'currentPassword': currentPassword,
           'newPassword': newPassword,
@@ -392,7 +427,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/save'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -411,7 +446,7 @@ class ApiService {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/posts/$postId/save'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -430,7 +465,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/posts/$postId/save'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -459,7 +494,7 @@ class ApiService {
 
       final response = await http.get(
         Uri.parse('$baseUrl/posts/search').replace(queryParameters: queryParams),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -479,7 +514,7 @@ class ApiService {
       debugPrint('Sending request to get recent searches...');
       final response = await http.get(
         Uri.parse('$baseUrl/users/recent-searches'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       debugPrint('Recent searches response status: ${response.statusCode}');
@@ -516,10 +551,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/users/recent-searches'),
-        headers: {
-          ..._headers,
-          'Content-Type': 'application/json',
-        },
+        headers: await _getHeaders(),
         body: json.encode({'query': query}),
       );
 
@@ -537,7 +569,7 @@ class ApiService {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/users/recent-searches'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -554,7 +586,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/$userId'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -572,7 +604,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/posts/user/$userId'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -591,7 +623,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/is-following/$userId'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -610,7 +642,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/users/follow/$userId'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -626,7 +658,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/users/unfollow/$userId'),
-        headers: _headers,
+        headers: await _getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -636,21 +668,5 @@ class ApiService {
       debugPrint('Error unfollowing user: $e');
       rethrow;
     }
-  }
-
-  static Future<void> logout() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('token');
-      await prefs.remove('user');
-      _authToken = null;
-    } catch (e) {
-      debugPrint('Logout error: $e');
-      throw Exception('Failed to logout');
-    }
-  }
-
-  static Future<bool> isLoggedIn() async {
-    return _authToken != null;
   }
 } 

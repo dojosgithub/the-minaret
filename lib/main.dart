@@ -5,8 +5,11 @@ import 'screens/post_screen.dart';
 import 'screens/user_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/welcome_screen.dart';
+import 'services/api_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await ApiService.initialize();
   runApp(const MyApp());
 }
 
