@@ -18,6 +18,7 @@ class _SearchScreenState extends State<SearchScreen> {
   List<String> _recentSearches = [];
   bool _isLoading = false;
   bool _hasError = false;
+  String? _error;
   String? _selectedSortBy;
   String? _selectedDatePosted;
   String? _selectedPostedBy;
@@ -36,11 +37,13 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() {
         _recentSearches = searches;
         _hasError = false;
+        _error = null;
       });
     } catch (e) {
       debugPrint('Error loading recent searches: $e');
       setState(() {
-        _hasError = true;
+        _hasError = e.toString().contains('Failed to connect to server');
+        _error = e.toString();
       });
     }
   }
@@ -51,6 +54,7 @@ class _SearchScreenState extends State<SearchScreen> {
     setState(() {
       _isLoading = true;
       _hasError = false;
+      _error = null;
     });
 
     try {
@@ -71,7 +75,8 @@ class _SearchScreenState extends State<SearchScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _hasError = true;
+        _hasError = e.toString().contains('Failed to connect to server');
+        _error = e.toString();
       });
     }
   }
@@ -82,11 +87,13 @@ class _SearchScreenState extends State<SearchScreen> {
       setState(() {
         _recentSearches = [];
         _hasError = false;
+        _error = null;
       });
     } catch (e) {
       debugPrint('Error clearing recent searches: $e');
       setState(() {
-        _hasError = true;
+        _hasError = e.toString().contains('Failed to connect to server');
+        _error = e.toString();
       });
     }
   }
@@ -198,7 +205,7 @@ class _SearchScreenState extends State<SearchScreen> {
         ),
         body: _isLoading
             ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
-            : _hasError
+            : _hasError && _error != null && _error!.contains('Failed to connect to server')
                 ? ConnectionErrorWidget(
                     onRetry: () {
                       if (_searchController.text.isNotEmpty) {
