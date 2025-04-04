@@ -6,9 +6,72 @@ import 'community_guidelines_screen.dart';
 import 'privacy_and_safety_screen.dart';
 import 'about_screen.dart';
 import '../widgets/top_bar.dart';
+import '../services/api_service.dart';
+import 'welcome_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
+
+  Future<void> _showLogoutDialog(BuildContext context) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: const Text(
+            'Logout',
+            style: TextStyle(color: Color(0xFFFDCC87)),
+          ),
+          content: const Text(
+            'Are you sure you want to logout?',
+            style: TextStyle(color: Colors.white),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFDCC87),
+              ),
+              onPressed: () async {
+                try {
+                  await ApiService.logout();
+                  if (context.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+                      (route) => false,
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Failed to logout'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.black),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,40 +116,43 @@ class SettingsScreen extends StatelessWidget {
               child: Column(
                 children: [
                   _buildMenuItem(context, "Notifications", Icons.notifications_outlined, () {
-                      Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const NotificationsMenuScreen()),
                     );
                   }),
                   _buildMenuItem(context, "Language", Icons.language_outlined, () {
-                      Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const LanguageScreen()),
                     );
                   }),
                   _buildMenuItem(context, "Community Guidelines", Icons.groups_outlined, () {
-                      Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const CommunityGuidelinesScreen()),
                     );
                   }),
                   _buildMenuItem(context, "Feedback", Icons.verified_user_outlined, () {
-                      Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const FeedbackScreen()),
                     );
                   }),
                   _buildMenuItem(context, "Privacy & Safety", Icons.lock_outline, () {
-                      Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const PrivacySafetyScreen()),
                     );
                   }),
                   _buildMenuItem(context, "About the Minaret", Icons.info_outline, () {
-                      Navigator.push(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const AboutScreen()),
                     );
+                  }),
+                  _buildMenuItem(context, "Logout", Icons.logout, () {
+                    _showLogoutDialog(context);
                   }),
                 ],
               ),

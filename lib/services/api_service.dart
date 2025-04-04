@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 import 'package:http_parser/http_parser.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   // Uncomment the correct URL based on your setup:
@@ -635,5 +636,21 @@ class ApiService {
       debugPrint('Error unfollowing user: $e');
       rethrow;
     }
+  }
+
+  static Future<void> logout() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('token');
+      await prefs.remove('user');
+      _authToken = null;
+    } catch (e) {
+      debugPrint('Logout error: $e');
+      throw Exception('Failed to logout');
+    }
+  }
+
+  static Future<bool> isLoggedIn() async {
+    return _authToken != null;
   }
 } 
