@@ -4,7 +4,12 @@ import '../screens/settings_screen.dart';
 import '../screens/post_screen.dart';
 
 class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
-  const TopBarSettings({super.key});
+  final Function(int) onIndexChanged;
+
+  const TopBarSettings({
+    super.key,
+    required this.onIndexChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +63,7 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
                   IconButton(
                     icon: const Icon(Icons.add_circle_outline, color: Color(0xFFFDCC87)), // Post icon
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const PostScreen()),
-                      );
+                      onIndexChanged(2); // Navigate to post screen
                     },
                   ),
                 ],

@@ -63,11 +63,15 @@ class _ScreenWrapperState extends State<ScreenWrapper> {
       color: const Color(0xFF4F245A),
       child: Scaffold(
         key: _scaffoldKey,
-        drawer: const MenuScreen(),
+        drawer: MenuScreen(
+          onIndexChanged: widget.onIndexChanged,
+        ),
         drawerEdgeDragWidth: 0, // Disable swipe gesture to open drawer
         backgroundColor: Colors.transparent,
         appBar: widget.currentIndex == 4 // Check if it's the SearchScreen
-            ? const TopBarSettings()
+            ? TopBarSettings(
+                onIndexChanged: widget.onIndexChanged,
+              )
             : TopBar(
                 onMenuPressed: () {
                   _scaffoldKey.currentState?.openDrawer();

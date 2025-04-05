@@ -5,7 +5,12 @@ import 'home_screen.dart';
 import 'user_screen.dart';
 
 class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
+  final Function(int) onIndexChanged;
+
+  const MenuScreen({
+    super.key,
+    required this.onIndexChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,10 +28,8 @@ class MenuScreen extends StatelessWidget {
                   context,
                   'Home',
                   onTap: () {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => const HomeScreen()),
-                    );
+                    Navigator.pop(context); // Close drawer
+                    onIndexChanged(0); // Navigate to home screen
                   },
                 ),
               ),
@@ -108,11 +111,8 @@ class MenuScreen extends StatelessWidget {
                       context, 
                       'Profile',
                       onTap: () {
-                        Navigator.pop(context); // Close drawer before navigation
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const UserScreen()),
-                        );
+                        Navigator.pop(context); // Close drawer
+                        onIndexChanged(3); // Navigate to user screen
                       },
                     ),
                     const SizedBox(height: 15),
