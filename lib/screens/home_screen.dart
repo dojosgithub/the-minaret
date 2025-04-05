@@ -35,9 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenWrapper(
-      currentIndex: 0,
-      child: FutureBuilder<List<Map<String, dynamic>>>(
+    return Scaffold(
+      backgroundColor: const Color(0xFF4F245A),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
         future: _postsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

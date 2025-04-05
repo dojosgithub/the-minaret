@@ -106,6 +106,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return ScreenWrapper(
       currentIndex: 3,
+      onIndexChanged: (index) {
+        // Navigation is handled by MainScreen
+      },
       child: isLoading
           ? const Center(
               child: CircularProgressIndicator(

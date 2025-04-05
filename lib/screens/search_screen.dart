@@ -100,180 +100,177 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenWrapper(
-      currentIndex: 4,
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: const Color(0xFF4F245A),
+      appBar: AppBar(
         backgroundColor: const Color(0xFF4F245A),
-        appBar: AppBar(
-          backgroundColor: const Color(0xFF4F245A),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-            },
-          ),
-          title: Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: SizedBox(
-              height: 50,
-              child: TextField(
-                controller: _searchController,
-                style: const TextStyle(color: Colors.black),
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: Colors.white,
-                  hintText: 'Search...',
-                  hintStyle: const TextStyle(color: Colors.grey),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(20),
-                    borderSide: BorderSide.none,
-                  ),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.search, color: Colors.grey),
-                    onPressed: _performSearch,
-                  ),
-                ),
-                onSubmitted: (_) => _performSearch(),
-              ),
-            ),
-          ),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.sort, color: Color(0xFFFDCC87)),
-              onPressed: () => showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return StatefulBuilder(
-                    builder: (context, setState) {
-                      return AlertDialog(
-                        backgroundColor: const Color(0xFF3D1B45),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        content: SingleChildScrollView(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              _buildExpansionTile(
-                                context,
-                                'Sort by',
-                                ['Date', 'Most Relevant', 'Recent'],
-                                _selectedSortBy,
-                                (value) => setState(() => _selectedSortBy = value),
-                              ),
-                              _buildExpansionTile(
-                                context,
-                                'Date Posted',
-                                ['Last 24 Hours', 'This Week', 'This Month', '2024'],
-                                _selectedDatePosted,
-                                (value) => setState(() => _selectedDatePosted = value),
-                              ),
-                              _buildExpansionTile(
-                                context,
-                                'Posted By',
-                                ['Me', 'Followings', 'Anyone'],
-                                _selectedPostedBy,
-                                (value) => setState(() => _selectedPostedBy = value),
-                              ),
-                              const SizedBox(height: 20),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  _performSearch();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFDCC87),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                  minimumSize: const Size(double.infinity, 50),
-                                ),
-                                child: const Text('Show Results', style: TextStyle(color: Colors.black)),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                },
-              ),
-            ),
-          ],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const HomeScreen()),
+            );
+          },
         ),
-        body: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
-            : _hasError && _error != null && _error!.contains('Failed to connect to server')
-                ? ConnectionErrorWidget(
-                    onRetry: () {
-                      if (_searchController.text.isNotEmpty) {
-                        _performSearch();
-                      } else {
-                        _loadRecentSearches();
-                      }
-                    },
-                  )
-                : _searchResults.isNotEmpty
-                    ? ListView.builder(
-                        itemCount: _searchResults.length,
-                        itemBuilder: (context, index) {
-                          final post = _searchResults[index];
-                          debugPrint('Post author data: ${post['author']}');
-                          return Post(
-                            id: post['_id'] ?? '',
-                            name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
-                            username: post['author']['username'] ?? '',
-                            profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
-                            title: post['title'] ?? '',
-                            text: post['body'] ?? '',
-                            media: List<Map<String, dynamic>>.from(post['media'] ?? []),
-                            links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                            upvoteCount: post['upvotes'] ?? 0,
-                            downvoteCount: post['downvotes'] ?? 0,
-                            repostCount: post['reposts'] ?? 0,
-                            createdAt: post['createdAt'] ?? '',
-                            authorId: post['author']['_id'] ?? '',
-                          );
-                        },
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.all(16.0),
+        title: Padding(
+          padding: const EdgeInsets.only(top: 8.0),
+          child: SizedBox(
+            height: 50,
+            child: TextField(
+              controller: _searchController,
+              style: const TextStyle(color: Colors.black),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
+                hintText: 'Search...',
+                hintStyle: const TextStyle(color: Colors.grey),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  borderSide: BorderSide.none,
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.search, color: Colors.grey),
+                  onPressed: _performSearch,
+                ),
+              ),
+              onSubmitted: (_) => _performSearch(),
+            ),
+          ),
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.sort, color: Color(0xFFFDCC87)),
+            onPressed: () => showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return StatefulBuilder(
+                  builder: (context, setState) {
+                    return AlertDialog(
+                      backgroundColor: const Color(0xFF3D1B45),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      content: SingleChildScrollView(
                         child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  "Recently Searched",
-                                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                                ),
-                                if (_recentSearches.isNotEmpty)
-                                  TextButton(
-                                    onPressed: _clearRecentSearches,
-                                    child: const Text(
-                                      "Clear All",
-                                      style: TextStyle(color: Color(0xFFFDCC87)),
-                                    ),
-                                  ),
-                              ],
+                            _buildExpansionTile(
+                              context,
+                              'Sort by',
+                              ['Date', 'Most Relevant', 'Recent'],
+                              _selectedSortBy,
+                              (value) => setState(() => _selectedSortBy = value),
                             ),
-                            const SizedBox(height: 10),
-                            if (_recentSearches.isEmpty)
-                              const Center(
-                                child: Text(
-                                  "No recent searches",
-                                  style: TextStyle(color: Colors.white70),
-                                ),
-                              )
-                            else
-                              ..._recentSearches.map((search) => _buildRecentlySearchedOption(search)),
+                            _buildExpansionTile(
+                              context,
+                              'Date Posted',
+                              ['Last 24 Hours', 'This Week', 'This Month', '2024'],
+                              _selectedDatePosted,
+                              (value) => setState(() => _selectedDatePosted = value),
+                            ),
+                            _buildExpansionTile(
+                              context,
+                              'Posted By',
+                              ['Me', 'Followings', 'Anyone'],
+                              _selectedPostedBy,
+                              (value) => setState(() => _selectedPostedBy = value),
+                            ),
+                            const SizedBox(height: 20),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                _performSearch();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFDCC87),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                minimumSize: const Size(double.infinity, 50),
+                              ),
+                              child: const Text('Show Results', style: TextStyle(color: Colors.black)),
+                            ),
                           ],
                         ),
                       ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
+          : _hasError && _error != null && _error!.contains('Failed to connect to server')
+              ? ConnectionErrorWidget(
+                  onRetry: () {
+                    if (_searchController.text.isNotEmpty) {
+                      _performSearch();
+                    } else {
+                      _loadRecentSearches();
+                    }
+                  },
+                )
+              : _searchResults.isNotEmpty
+                  ? ListView.builder(
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final post = _searchResults[index];
+                        debugPrint('Post author data: ${post['author']}');
+                        return Post(
+                          id: post['_id'] ?? '',
+                          name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
+                          username: post['author']['username'] ?? '',
+                          profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+                          title: post['title'] ?? '',
+                          text: post['body'] ?? '',
+                          media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+                          links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+                          upvoteCount: post['upvotes'] ?? 0,
+                          downvoteCount: post['downvotes'] ?? 0,
+                          repostCount: post['reposts'] ?? 0,
+                          createdAt: post['createdAt'] ?? '',
+                          authorId: post['author']['_id'] ?? '',
+                        );
+                      },
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Recently Searched",
+                                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                              ),
+                              if (_recentSearches.isNotEmpty)
+                                TextButton(
+                                  onPressed: _clearRecentSearches,
+                                  child: const Text(
+                                    "Clear All",
+                                    style: TextStyle(color: Color(0xFFFDCC87)),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          if (_recentSearches.isEmpty)
+                            const Center(
+                              child: Text(
+                                "No recent searches",
+                                style: TextStyle(color: Colors.white70),
+                              ),
+                            )
+                          else
+                            ..._recentSearches.map((search) => _buildRecentlySearchedOption(search)),
+                        ],
+                      ),
+                    ),
     );
   }
 

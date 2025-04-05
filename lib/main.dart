@@ -6,6 +6,7 @@ import 'screens/user_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/api_service.dart';
+import 'widgets/screen_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,7 +25,21 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.purple,
       ),
-      home: const WelcomeScreen(), // Set WelcomeScreen as the initial screen
+      home: FutureBuilder<bool>(
+        future: ApiService.isLoggedIn(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+          
+          final isLoggedIn = snapshot.data ?? false;
+          return isLoggedIn ? const MainScreen() : const WelcomeScreen();
+        },
+      ),
     );
   }
 }
@@ -37,7 +52,7 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  final int _currentIndex = 0; //final added
+  int _currentIndex = 0;
 
   final List<Widget> _screens = [
     const HomeScreen(),
@@ -47,8 +62,24 @@ class MainScreenState extends State<MainScreen> {
     const SearchScreen(),
   ];
 
+  void setIndex(int index) {
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return _screens[_currentIndex];
+    return WillPopScope(
+      onWillPop: () async {
+        // Prevent back button from exiting the app when on home screen
+        return _currentIndex != 0;
+      },
+      child: ScreenWrapper(
+        currentIndex: _currentIndex,
+        onIndexChanged: setIndex,
+        child: _screens[_currentIndex],
+      ),
+    );
   }
 }

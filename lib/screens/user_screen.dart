@@ -72,9 +72,9 @@ class _UserScreenState extends State<UserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenWrapper(
-      currentIndex: 3,
-      child: isLoading
+    return Scaffold(
+      backgroundColor: const Color(0xFF4F245A),
+      body: isLoading
           ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),

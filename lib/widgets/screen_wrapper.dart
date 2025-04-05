@@ -14,11 +14,13 @@ import 'package:flutter/foundation.dart';
 class ScreenWrapper extends StatefulWidget {
   final Widget child;
   final int currentIndex;
+  final Function(int) onIndexChanged;
 
   const ScreenWrapper({
     super.key,
     required this.child,
     required this.currentIndex,
+    required this.onIndexChanged,
   });
 
   @override
@@ -71,10 +73,7 @@ class _ScreenWrapperState extends State<ScreenWrapper> {
                   _scaffoldKey.currentState?.openDrawer();
                 },
                 onProfilePressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const UserScreen()),
-                  );
+                  widget.onIndexChanged(3); // Navigate to user screen
                 },
                 profileImage: profileImage,
               ),
@@ -83,39 +82,7 @@ class _ScreenWrapperState extends State<ScreenWrapper> {
           currentIndex: widget.currentIndex,
           onTap: (index) {
             if (index != widget.currentIndex) {
-              // Navigate to the selected screen
-              switch (index) {
-                case 0:
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  );
-                  break;
-                case 1:
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const NotificationsScreen()),
-                  );
-                  break;
-                case 2:
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PostScreen()),
-                  );
-                  break;
-                case 3:
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const UserScreen()),
-                  );
-                  break;
-                case 4:
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SearchScreen()),
-                  );
-                  break;
-              }
+              widget.onIndexChanged(index);
             }
           },
         ),
