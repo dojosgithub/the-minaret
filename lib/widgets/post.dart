@@ -619,34 +619,39 @@ class _PostState extends State<Post> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      IconButton(
-                        icon: _isLoading
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                                ),
-                              )
-                            : Icon(
-                                _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                color: const Color(0xFFFDCC87),
-                              ),
-                        onPressed: _toggleSave,
-                      ),
-                      Text(
-                        getTimeAgo(DateTime.parse(widget.createdAt)),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 12,
-                        ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            getTimeAgo(DateTime.parse(widget.createdAt)),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 12,
+                            ),
+                          ),
+                          IconButton(
+                            icon: _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                    ),
+                                  )
+                                : Icon(
+                                    _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                    color: const Color(0xFFFDCC87),
+                                  ),
+                            onPressed: _toggleSave,
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 5),
+              const SizedBox(height: 1),
               Text(
                 widget.title,
                 style: const TextStyle(
