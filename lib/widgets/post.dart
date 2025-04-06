@@ -548,7 +548,6 @@ class _PostState extends State<Post> {
                       link['title'] ?? link['url'],
                       style: const TextStyle(
                         color: Color(0xFFFDCC87),
-                        decoration: TextDecoration.underline,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

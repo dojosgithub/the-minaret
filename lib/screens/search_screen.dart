@@ -290,10 +290,17 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.close, color: Colors.grey),
-            onPressed: () {
-              setState(() {
-                _recentSearches.remove(text);
-              });
+            onPressed: () async {
+              try {
+                await ApiService.deleteRecentSearch(text);
+                await _loadRecentSearches();
+              } catch (e) {
+                debugPrint('Error deleting recent search: $e');
+                setState(() {
+                  _hasError = e.toString().contains('Failed to connect to server');
+                  _error = e.toString();
+                });
+              }
             },
           ),
         ],

@@ -582,6 +582,23 @@ class ApiService {
     }
   }
 
+  static Future<void> deleteRecentSearch(String query) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/users/recent-searches/${Uri.encodeComponent(query)}'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to delete recent search');
+      }
+    } catch (e) {
+      debugPrint('Error deleting recent search: $e');
+      rethrow;
+    }
+  }
+
   static Future<Map<String, dynamic>> getUserById(String userId) async {
     try {
       final response = await http.get(
