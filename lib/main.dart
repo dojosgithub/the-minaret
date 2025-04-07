@@ -53,14 +53,19 @@ class MainScreen extends StatefulWidget {
 
 class MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
+  late final List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const NotificationsScreen(),
-    const PostScreen(),
-    const UserScreen(),
-    const SearchScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      const HomeScreen(),
+      const NotificationsScreen(),
+      const PostScreen(),
+      const UserScreen(),
+      SearchScreen(onIndexChanged: setIndex),
+    ];
+  }
 
   void setIndex(int index) {
     setState(() {

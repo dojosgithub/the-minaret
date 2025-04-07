@@ -42,8 +42,8 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
             children: [
               Positioned.fill(
                 child: Image.asset(
-                  'assets/top_bar_pattern.png', // Updated with the new pattern image
-                  fit: BoxFit.cover, // Covers entire top bar
+                  'assets/top_bar_pattern.png', 
+                  fit: BoxFit.cover, 
                 ),
               ),
               AppBar(

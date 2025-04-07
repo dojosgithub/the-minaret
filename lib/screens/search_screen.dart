@@ -6,7 +6,12 @@ import '../widgets/connection_error_widget.dart';
 import 'home_screen.dart';
 
 class SearchScreen extends StatefulWidget {
-  const SearchScreen({super.key});
+  final Function(int) onIndexChanged;
+
+  const SearchScreen({
+    super.key,
+    required this.onIndexChanged,
+  });
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -107,10 +112,7 @@ class _SearchScreenState extends State<SearchScreen> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
+            widget.onIndexChanged(0);
           },
         ),
         title: Padding(
