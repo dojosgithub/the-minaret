@@ -15,10 +15,14 @@ class MenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(20)),
+      ),
       child: Material(
-        color: const Color(0xFF4F245A),
+        color: const Color(0xFF9D3267),
         child: SafeArea(
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Section 1: Home
@@ -140,12 +144,15 @@ class MenuScreen extends StatelessWidget {
   Widget _buildMenuItem(BuildContext context, String title, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
-      child: Text(
-        title,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: Color(0xFFFDCC87),
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
     );
