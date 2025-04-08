@@ -3,6 +3,7 @@ import 'about_screen.dart';
 import 'settings_screen.dart';
 import 'home_screen.dart';
 import 'user_screen.dart';
+import '../utils/post_type.dart';
 
 class MenuScreen extends StatelessWidget {
   final Function(int) onIndexChanged;
@@ -32,6 +33,7 @@ class MenuScreen extends StatelessWidget {
                   context,
                   'Home',
                   onTap: () {
+                    PostType.setType(PostType.all);
                     Navigator.pop(context); // Close drawer
                     onIndexChanged(0); // Navigate to home screen
                   },
@@ -46,21 +48,43 @@ class MenuScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildMenuItem(context, 'All'),
-                    const SizedBox(height: 15),
                     _buildMenuItem(
                       context, 
-                      'Islamic Knowledge',
+                      'All',
                       onTap: () {
-                        Navigator.pop(context); // Close drawer before navigation
+                        PostType.setType(PostType.all);
+                        Navigator.pop(context);
+                        onIndexChanged(0);
                       },
                     ),
                     const SizedBox(height: 15),
                     _buildMenuItem(
                       context, 
-                      'Teachings of the Quran',
+                      'Reporters',
                       onTap: () {
+                        PostType.setType(PostType.reporters);
                         Navigator.pop(context);
+                        onIndexChanged(0);
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Discussion',
+                      onTap: () {
+                        PostType.setType(PostType.discussion);
+                        Navigator.pop(context);
+                        onIndexChanged(0);
+                      },
+                    ),
+                    const SizedBox(height: 15),
+                    _buildMenuItem(
+                      context, 
+                      'Teaching Quran',
+                      onTap: () {
+                        PostType.setType(PostType.teachingQuran);
+                        Navigator.pop(context);
+                        onIndexChanged(0);
                       },
                     ),
                     const SizedBox(height: 15),
@@ -68,7 +92,9 @@ class MenuScreen extends StatelessWidget {
                       context, 
                       'Tafsir',
                       onTap: () {
+                        PostType.setType(PostType.tafsir);
                         Navigator.pop(context);
+                        onIndexChanged(0);
                       },
                     ),
                     const SizedBox(height: 15),
@@ -76,7 +102,9 @@ class MenuScreen extends StatelessWidget {
                       context, 
                       'Sunnah',
                       onTap: () {
+                        PostType.setType(PostType.sunnah);
                         Navigator.pop(context);
+                        onIndexChanged(0);
                       },
                     ),
                     const SizedBox(height: 15),
@@ -84,7 +112,9 @@ class MenuScreen extends StatelessWidget {
                       context, 
                       'Hadith',
                       onTap: () {
+                        PostType.setType(PostType.hadith);
                         Navigator.pop(context);
+                        onIndexChanged(0);
                       },
                     ),
                   ],

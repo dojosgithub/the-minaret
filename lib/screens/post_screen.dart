@@ -7,7 +7,12 @@ import 'dart:io';
 import '../screens/home_screen.dart';
 
 class PostScreen extends StatefulWidget {
-  const PostScreen({super.key});
+  final Function(int) onIndexChanged;
+
+  const PostScreen({
+    super.key,
+    required this.onIndexChanged,
+  });
 
   @override
   State<PostScreen> createState() => _PostPageState();
@@ -160,16 +165,13 @@ class _PostPageState extends State<PostScreen> {
       );
 
       if (success && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const HomeScreen(),
-          ),
-        );
-        
+        // First show the success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post created successfully')),
         );
+        
+        // Then navigate to home screen
+        widget.onIndexChanged(0);
       }
     } catch (e) {
       if (mounted) {

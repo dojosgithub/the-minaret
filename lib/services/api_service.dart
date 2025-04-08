@@ -60,10 +60,14 @@ class ApiService {
   }
 
   // Get all posts
-  static Future<List<Map<String, dynamic>>> getPosts() async {
+  static Future<List<Map<String, dynamic>>> getPosts({String? type}) async {
     try {
+      final url = type != null && type != 'all' 
+          ? '$baseUrl/posts/type/$type'
+          : '$baseUrl/posts';
+          
       final response = await http.get(
-        Uri.parse('$baseUrl/posts'),
+        Uri.parse(url),
         headers: await _getHeaders(),
       );
 

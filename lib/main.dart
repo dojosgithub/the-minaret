@@ -61,7 +61,7 @@ class MainScreenState extends State<MainScreen> {
     _screens = [
       const HomeScreen(),
       const NotificationsScreen(),
-      const PostScreen(),
+      PostScreen(onIndexChanged: setIndex),
       const UserScreen(),
       SearchScreen(onIndexChanged: setIndex),
     ];
