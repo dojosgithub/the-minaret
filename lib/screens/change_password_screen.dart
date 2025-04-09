@@ -66,10 +66,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const UserScreen()),
-        );
+        Navigator.pop(context); // Go back to previous screen
       }
     } catch (e) {
       if (!mounted) return;

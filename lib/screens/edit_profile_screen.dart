@@ -127,10 +127,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const UserScreen()),
-        );
+        Navigator.pop(context); // Go back to previous screen
       }
     } catch (e) {
       debugPrint('Error updating profile: $e');
