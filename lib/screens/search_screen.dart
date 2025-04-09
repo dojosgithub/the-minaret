@@ -73,16 +73,21 @@ class _SearchScreenState extends State<SearchScreen> {
       await ApiService.addRecentSearch(_searchController.text);
       await _loadRecentSearches();
 
-      setState(() {
-        _searchResults = results;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _searchResults = results;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _hasError = e.toString().contains('Failed to connect to server');
-        _error = e.toString();
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+          _hasError = e.toString().contains('Failed to connect to server');
+          _error = e.toString();
+          _searchResults = []; // Clear search results on error
+        });
+      }
     }
   }
 
@@ -220,19 +225,22 @@ class _SearchScreenState extends State<SearchScreen> {
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
                         final post = _searchResults[index];
-                        debugPrint('Post author data: ${post['author']}');
                         return Post(
                           id: post['_id'] ?? '',
-                          name: '${post['author']['firstName'] ?? ''} ${post['author']['lastName'] ?? ''}',
+                          name: post['author']['firstName'] != null && post['author']['lastName'] != null
+                              ? '${post['author']['firstName']} ${post['author']['lastName']}'
+                              : post['author']['username'] ?? 'Unknown User',
                           username: post['author']['username'] ?? '',
-                          profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+                          profilePic: post['author']['profileImage'] != null && post['author']['profileImage'].isNotEmpty
+                              ? post['author']['profileImage']
+                              : 'assets/default_profile.png',
                           title: post['title'] ?? '',
                           text: post['body'] ?? '',
                           media: List<Map<String, dynamic>>.from(post['media'] ?? []),
                           links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                          upvoteCount: post['upvotes'] ?? 0,
-                          downvoteCount: post['downvotes'] ?? 0,
-                          repostCount: post['reposts'] ?? 0,
+                          upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
+                          downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
+                          repostCount: (post['reposts'] as List?)?.length ?? 0,
                           createdAt: post['createdAt'] ?? '',
                           authorId: post['author']['_id'] ?? '',
                         );
@@ -243,6 +251,20 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (_searchController.text.isNotEmpty)
+                            const Center(
+                              child: Padding(
+                                padding: EdgeInsets.only(bottom: 20.0),
+                                child: Text(
+                                  "No results found",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
@@ -284,10 +306,16 @@ class _SearchScreenState extends State<SearchScreen> {
           const Icon(Icons.history, color: Color(0xFFFDCC87)),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-              overflow: TextOverflow.ellipsis,
+            child: GestureDetector(
+              onTap: () {
+                _searchController.text = text;
+                _performSearch();
+              },
+              child: Text(
+                text,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
           IconButton(
