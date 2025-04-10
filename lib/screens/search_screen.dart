@@ -4,6 +4,8 @@ import '../services/api_service.dart';
 import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import 'home_screen.dart';
+import 'user_screen.dart';
+import 'profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   final Function(int) onIndexChanged;
@@ -19,14 +21,15 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> _searchResults = [];
-  List<String> _recentSearches = [];
   bool _isLoading = false;
-  bool _hasError = false;
-  String? _error;
+  List<Map<String, dynamic>> _posts = [];
+  List<Map<String, dynamic>> _users = [];
   String? _selectedSortBy;
   String? _selectedDatePosted;
   String? _selectedPostedBy;
+  bool _hasError = false;
+  String? _error;
+  List<String> _recentSearches = [];
 
   @override
   void initState() {
@@ -36,30 +39,36 @@ class _SearchScreenState extends State<SearchScreen> {
 
   Future<void> _loadRecentSearches() async {
     try {
-      debugPrint('Loading recent searches...');
       final searches = await ApiService.getRecentSearches();
-      debugPrint('Loaded recent searches: $searches');
       setState(() {
         _recentSearches = searches;
-        _hasError = false;
-        _error = null;
       });
     } catch (e) {
       debugPrint('Error loading recent searches: $e');
-      setState(() {
-        _hasError = e.toString().contains('Failed to connect to server');
-        _error = e.toString();
-      });
     }
   }
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   Future<void> _performSearch() async {
-    if (_searchController.text.isEmpty) return;
+    if (_searchController.text.isEmpty) {
+      setState(() {
+        _posts = [];
+        _users = [];
+      });
+      return;
+    }
 
     setState(() {
       _isLoading = true;
       _hasError = false;
       _error = null;
+      _posts = [];
+      _users = [];
     });
 
     try {
@@ -70,40 +79,20 @@ class _SearchScreenState extends State<SearchScreen> {
         postedBy: _selectedPostedBy,
       );
 
+      // Add to recent searches
       await ApiService.addRecentSearch(_searchController.text);
       await _loadRecentSearches();
 
-      if (mounted) {
-        setState(() {
-          _searchResults = results;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-          _hasError = e.toString().contains('Failed to connect to server');
-          _error = e.toString();
-          _searchResults = []; // Clear search results on error
-        });
-      }
-    }
-  }
-
-  Future<void> _clearRecentSearches() async {
-    try {
-      await ApiService.clearRecentSearches();
       setState(() {
-        _recentSearches = [];
-        _hasError = false;
-        _error = null;
+        _posts = results['posts'] ?? [];
+        _users = results['users'] ?? [];
+        _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error clearing recent searches: $e');
       setState(() {
-        _hasError = e.toString().contains('Failed to connect to server');
-        _error = e.toString();
+        _isLoading = false;
+        _hasError = true;
+        _error = 'Failed to perform search';
       });
     }
   }
@@ -130,7 +119,7 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
-                hintText: 'Search...',
+                hintText: 'Search posts and users...',
                 hintStyle: const TextStyle(color: Colors.grey),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
@@ -215,36 +204,53 @@ class _SearchScreenState extends State<SearchScreen> {
                   onRetry: () {
                     if (_searchController.text.isNotEmpty) {
                       _performSearch();
-                    } else {
-                      _loadRecentSearches();
                     }
                   },
                 )
-              : _searchResults.isNotEmpty
-                  ? ListView.builder(
-                      itemCount: _searchResults.length,
-                      itemBuilder: (context, index) {
-                        final post = _searchResults[index];
-                        return Post(
-                          id: post['_id'] ?? '',
-                          name: post['author']['firstName'] != null && post['author']['lastName'] != null
-                              ? '${post['author']['firstName']} ${post['author']['lastName']}'
-                              : post['author']['username'] ?? 'Unknown User',
-                          username: post['author']['username'] ?? '',
-                          profilePic: post['author']['profileImage'] != null && post['author']['profileImage'].isNotEmpty
-                              ? post['author']['profileImage']
-                              : 'assets/default_profile.png',
-                          title: post['title'] ?? '',
-                          text: post['body'] ?? '',
-                          media: List<Map<String, dynamic>>.from(post['media'] ?? []),
-                          links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                          upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
-                          downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
-                          repostCount: (post['reposts'] as List?)?.length ?? 0,
-                          createdAt: post['createdAt'] ?? '',
-                          authorId: post['author']['_id'] ?? '',
-                        );
-                      },
+              : _posts.isNotEmpty || _users.isNotEmpty
+                  ? ListView(
+                      children: [
+                        ..._posts.map((post) => Post(
+                              id: post['_id'] ?? '',
+                              title: post['title'] ?? '',
+                              text: post['body'] ?? '',
+                              authorId: post['author']['_id'] ?? '',
+                              name: post['author']['firstName'] != null && post['author']['lastName'] != null
+                                  ? '${post['author']['firstName']} ${post['author']['lastName']}'
+                                  : post['author']['username'] ?? 'Unknown User',
+                              username: post['author']['username'] ?? '',
+                              profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+                              media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+                              links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+                              upvoteCount: (post['upvotes'] is int) ? post['upvotes'] : 0,
+                              downvoteCount: (post['downvotes'] is int) ? post['downvotes'] : 0,
+                              repostCount: (post['reposts'] is int) ? post['reposts'] : 0,
+                              createdAt: post['createdAt'] ?? '',
+                            )),
+                        ..._users.map((user) => ListTile(
+                              leading: CircleAvatar(
+                                backgroundImage: NetworkImage(user['profileImage'] ?? 'assets/default_profile.png'),
+                              ),
+                              title: Text(
+                                user['firstName'] != null && user['lastName'] != null
+                                    ? '${user['firstName']} ${user['lastName']}'
+                                    : user['username'] ?? 'Unknown User',
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              subtitle: Text(
+                                '@${user['username'] ?? ''}',
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProfileScreen(userId: user['_id']),
+                                  ),
+                                );
+                              },
+                            )),
+                      ],
                     )
                   : Padding(
                       padding: const EdgeInsets.all(16.0),
@@ -265,76 +271,38 @@ class _SearchScreenState extends State<SearchScreen> {
                                 ),
                               ),
                             ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              const Text(
-                                "Recently Searched",
-                                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                          if (_recentSearches.isNotEmpty) ...[
+                            const Text(
+                              "Recent Searches",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
                               ),
-                              if (_recentSearches.isNotEmpty)
-                                TextButton(
-                                  onPressed: _clearRecentSearches,
-                                  child: const Text(
-                                    "Clear All",
-                                    style: TextStyle(color: Color(0xFFFDCC87)),
+                            ),
+                            const SizedBox(height: 10),
+                            ..._recentSearches.map((search) => ListTile(
+                                  leading: const Icon(Icons.history, color: Color(0xFFFDCC87)),
+                                  title: Text(
+                                    search,
+                                    style: const TextStyle(color: Colors.white),
                                   ),
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 10),
-                          if (_recentSearches.isEmpty)
-                            const Center(
-                              child: Text(
-                                "No recent searches",
-                                style: TextStyle(color: Colors.white70),
-                              ),
-                            )
-                          else
-                            ..._recentSearches.map((search) => _buildRecentlySearchedOption(search)),
+                                  trailing: IconButton(
+                                    icon: const Icon(Icons.close, color: Color(0xFFFDCC87)),
+                                    onPressed: () async {
+                                      await ApiService.deleteRecentSearch(search);
+                                      await _loadRecentSearches();
+                                    },
+                                  ),
+                                  onTap: () {
+                                    _searchController.text = search;
+                                    _performSearch();
+                                  },
+                                )),
+                          ],
                         ],
                       ),
                     ),
-    );
-  }
-
-  Widget _buildRecentlySearchedOption(String text) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        children: [
-          const Icon(Icons.history, color: Color(0xFFFDCC87)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: GestureDetector(
-              onTap: () {
-                _searchController.text = text;
-                _performSearch();
-              },
-              child: Text(
-                text,
-                style: const TextStyle(color: Colors.white, fontSize: 16),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.grey),
-            onPressed: () async {
-              try {
-                await ApiService.deleteRecentSearch(text);
-                await _loadRecentSearches();
-              } catch (e) {
-                debugPrint('Error deleting recent search: $e');
-                setState(() {
-                  _hasError = e.toString().contains('Failed to connect to server');
-                  _error = e.toString();
-                });
-              }
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -369,11 +337,5 @@ class _SearchScreenState extends State<SearchScreen> {
             .toList(),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
   }
 }

@@ -166,61 +166,59 @@ router.get('/:id/save', auth, async (req, res) => {
   }
 });
 
-// Search posts
+// Search posts and users
 router.get('/search', auth, async (req, res) => {
   try {
     const { query, sortBy, datePosted, postedBy } = req.query;
     
-    // Build the search query
-    let searchQuery = {};
+    // Build the search query for posts
+    let postQuery = {};
     
-    // Add text search
+    // Add text search for posts
     if (query) {
-      searchQuery.$or = [
+      postQuery.$or = [
         { title: { $regex: query, $options: 'i' } },
         { body: { $regex: query, $options: 'i' } }
       ];
     }
 
-    // Add date filter
+    // Add date filter for posts
     if (datePosted) {
       const now = new Date();
       switch (datePosted) {
         case 'Last 24 Hours':
-          searchQuery.createdAt = { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
+          postQuery.createdAt = { $gte: new Date(now.getTime() - 24 * 60 * 60 * 1000) };
           break;
         case 'This Week':
-          searchQuery.createdAt = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
+          postQuery.createdAt = { $gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000) };
           break;
         case 'This Month':
-          searchQuery.createdAt = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
+          postQuery.createdAt = { $gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000) };
           break;
         case '2024':
-          searchQuery.createdAt = { $gte: new Date('2024-01-01') };
+          postQuery.createdAt = { $gte: new Date('2024-01-01') };
           break;
       }
     }
 
-    // Add posted by filter
+    // Add posted by filter for posts
     if (postedBy) {
       switch (postedBy) {
         case 'Me':
-          searchQuery.author = req.user.id;
+          postQuery.author = req.user.id;
           break;
         case 'Followings':
           const user = await User.findById(req.user.id);
-          searchQuery.author = { $in: user.following };
+          postQuery.author = { $in: user.following };
           break;
-        // 'Anyone' doesn't need any additional filter
       }
     }
 
-    // Build sort options
+    // Build sort options for posts
     let sortOptions = { createdAt: -1 }; // Default sort by newest
     if (sortBy) {
       switch (sortBy) {
         case 'Most Relevant':
-          // For text search, MongoDB's text score is already considered
           break;
         case 'Recent':
           sortOptions = { createdAt: -1 };
@@ -231,13 +229,28 @@ router.get('/search', auth, async (req, res) => {
       }
     }
 
-    // Execute the search
-    const posts = await Post.find(searchQuery)
-      .sort(sortOptions)
-      .populate('author', 'firstName lastName username profileImage')
-      .lean();
+    // Build the search query for users
+    let userQuery = {};
+    if (query) {
+      userQuery.$or = [
+        { username: { $regex: query, $options: 'i' } },
+        { firstName: { $regex: query, $options: 'i' } },
+        { lastName: { $regex: query, $options: 'i' } }
+      ];
+    }
 
-    res.json(posts);
+    // Execute both searches in parallel
+    const [posts, users] = await Promise.all([
+      Post.find(postQuery)
+        .sort(sortOptions)
+        .populate('author', 'firstName lastName username profileImage')
+        .lean(),
+      User.find(userQuery)
+        .select('firstName lastName username profileImage')
+        .lean()
+    ]);
+
+    res.json({ posts, users });
   } catch (err) {
     console.error('Search error:', err);
     res.status(500).json({ message: 'Server error during search' });

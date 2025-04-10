@@ -484,17 +484,19 @@ class ApiService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> searchPosts({
+  static Future<Map<String, List<Map<String, dynamic>>>> searchPosts({
     required String query,
     String? sortBy,
     String? datePosted,
     String? postedBy,
+    int? page,
   }) async {
     try {
       final Map<String, String> queryParams = {'query': query};
       if (sortBy != null) queryParams['sortBy'] = sortBy;
       if (datePosted != null) queryParams['datePosted'] = datePosted;
       if (postedBy != null) queryParams['postedBy'] = postedBy;
+      if (page != null) queryParams['page'] = page.toString();
 
       final response = await http.get(
         Uri.parse('$baseUrl/posts/search').replace(queryParameters: queryParams),
@@ -502,13 +504,16 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data);
+        final Map<String, dynamic> data = json.decode(response.body);
+        return {
+          'posts': List<Map<String, dynamic>>.from(data['posts'] ?? []),
+          'users': List<Map<String, dynamic>>.from(data['users'] ?? []),
+        };
       } else {
-        throw Exception('Failed to search posts');
+        throw Exception('Failed to search posts and users');
       }
     } catch (e) {
-      debugPrint('Error searching posts: $e');
+      debugPrint('Error searching posts and users: $e');
       rethrow;
     }
   }
@@ -687,6 +692,44 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('Error unfollowing user: $e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> upvotePost(String postId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/upvote'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to upvote post');
+      }
+    } catch (e) {
+      debugPrint('Error upvoting post: $e');
+      rethrow;
+    }
+  }
+
+  static Future<bool> downvotePost(String postId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/downvote'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to downvote post');
+      }
+    } catch (e) {
+      debugPrint('Error downvoting post: $e');
       rethrow;
     }
   }
