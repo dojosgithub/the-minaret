@@ -30,6 +30,7 @@ class _SearchScreenState extends State<SearchScreen> {
   bool _hasError = false;
   String? _error;
   List<String> _recentSearches = [];
+  int _selectedTab = 0; // 0 for posts, 1 for users
 
   @override
   void initState() {
@@ -83,9 +84,15 @@ class _SearchScreenState extends State<SearchScreen> {
       await ApiService.addRecentSearch(_searchController.text);
       await _loadRecentSearches();
 
+      // Check follow status for each user
+      final users = results['users'] ?? [];
+      for (var user in users) {
+        user['isFollowing'] = await ApiService.isFollowing(user['_id']);
+      }
+
       setState(() {
         _posts = results['posts'] ?? [];
-        _users = results['users'] ?? [];
+        _users = users;
         _isLoading = false;
       });
     } catch (e) {
@@ -94,6 +101,146 @@ class _SearchScreenState extends State<SearchScreen> {
         _hasError = true;
         _error = 'Failed to perform search';
       });
+    }
+  }
+
+  Widget _buildTabs() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildTabButton(0, 'Posts'),
+          _buildTabButton(1, 'Users'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTabButton(int index, String title) {
+    return GestureDetector(
+      onTap: () => setState(() => _selectedTab = index),
+      child: Column(
+        children: [
+          Text(
+            title,
+            style: TextStyle(
+              color: _selectedTab == index ? const Color(0xFFFDCC87) : Colors.grey,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          if (_selectedTab == index)
+            Container(
+              margin: const EdgeInsets.only(top: 2),
+              height: 2,
+              width: 40,
+              color: const Color(0xFFFDCC87),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    if (_selectedTab == 0) {
+      if (_posts.isEmpty) {
+        return const Center(
+          child: Text(
+            'No posts found',
+            style: TextStyle(color: Colors.grey, fontSize: 16),
+          ),
+        );
+      }
+      return ListView(
+        children: _posts.map((post) => Post(
+          id: post['_id'] ?? '',
+          title: post['title'] ?? '',
+          text: post['body'] ?? '',
+          authorId: post['author']['_id'] ?? '',
+          name: post['author']['firstName'] != null && post['author']['lastName'] != null
+              ? '${post['author']['firstName']} ${post['author']['lastName']}'
+              : post['author']['username'] ?? 'Unknown User',
+          username: post['author']['username'] ?? '',
+          profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+          media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+          links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+          upvoteCount: (post['upvotes'] is int) ? post['upvotes'] : 0,
+          downvoteCount: (post['downvotes'] is int) ? post['downvotes'] : 0,
+          repostCount: (post['reposts'] is int) ? post['reposts'] : 0,
+          createdAt: post['createdAt'] ?? '',
+        )).toList(),
+      );
+    } else {
+      if (_users.isEmpty) {
+        return const Center(
+          child: Text(
+            'No users found',
+            style: TextStyle(color: Colors.grey, fontSize: 16),
+          ),
+        );
+      }
+      return ListView(
+        children: _users.map((user) {
+          final isFollowing = user['isFollowing'] ?? false;
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundImage: NetworkImage(user['profileImage'] ?? 'assets/default_profile.png'),
+            ),
+            title: Text(
+              user['firstName'] != null && user['lastName'] != null
+                  ? '${user['firstName']} ${user['lastName']}'
+                  : user['username'] ?? 'Unknown User',
+              style: const TextStyle(color: Colors.white),
+            ),
+            subtitle: Text(
+              '@${user['username'] ?? ''}',
+              style: const TextStyle(color: Colors.grey),
+            ),
+            trailing: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isFollowing ? Colors.grey : const Color(0xFFFDCC87),
+                padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              onPressed: () async {
+                try {
+                  if (isFollowing) {
+                    await ApiService.unfollowUser(user['_id']);
+                  } else {
+                    await ApiService.followUser(user['_id']);
+                  }
+                  setState(() {
+                    user['isFollowing'] = !isFollowing;
+                  });
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to ${isFollowing ? 'unfollow' : 'follow'} user')),
+                  );
+                }
+              },
+              child: Text(
+                isFollowing ? 'Following' : 'Follow',
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(userId: user['_id']),
+                ),
+              );
+            },
+          );
+        }).toList(),
+      );
     }
   }
 
@@ -208,48 +355,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                 )
               : _posts.isNotEmpty || _users.isNotEmpty
-                  ? ListView(
+                  ? Column(
                       children: [
-                        ..._posts.map((post) => Post(
-                              id: post['_id'] ?? '',
-                              title: post['title'] ?? '',
-                              text: post['body'] ?? '',
-                              authorId: post['author']['_id'] ?? '',
-                              name: post['author']['firstName'] != null && post['author']['lastName'] != null
-                                  ? '${post['author']['firstName']} ${post['author']['lastName']}'
-                                  : post['author']['username'] ?? 'Unknown User',
-                              username: post['author']['username'] ?? '',
-                              profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
-                              media: List<Map<String, dynamic>>.from(post['media'] ?? []),
-                              links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                              upvoteCount: (post['upvotes'] is int) ? post['upvotes'] : 0,
-                              downvoteCount: (post['downvotes'] is int) ? post['downvotes'] : 0,
-                              repostCount: (post['reposts'] is int) ? post['reposts'] : 0,
-                              createdAt: post['createdAt'] ?? '',
-                            )),
-                        ..._users.map((user) => ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage: NetworkImage(user['profileImage'] ?? 'assets/default_profile.png'),
-                              ),
-                              title: Text(
-                                user['firstName'] != null && user['lastName'] != null
-                                    ? '${user['firstName']} ${user['lastName']}'
-                                    : user['username'] ?? 'Unknown User',
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              subtitle: Text(
-                                '@${user['username'] ?? ''}',
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProfileScreen(userId: user['_id']),
-                                  ),
-                                );
-                              },
-                            )),
+                        const SizedBox(height: 10),
+                        _buildTabs(),
+                        const SizedBox(height: 10),
+                        Expanded(
+                          child: _buildSearchResults(),
+                        ),
                       ],
                     )
                   : Padding(
