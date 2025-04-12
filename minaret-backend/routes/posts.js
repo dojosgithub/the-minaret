@@ -272,4 +272,82 @@ router.get('/user/:userId', auth, async (req, res) => {
   }
 });
 
+// Add a comment to a post
+router.post('/:postId/comments', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const newComment = {
+      author: req.user.id,
+      text: req.body.text
+    };
+
+    post.comments.unshift(newComment);
+    await post.save();
+
+    // Populate the new comment with author details
+    const populatedPost = await Post.findById(post._id)
+      .populate('comments.author', 'username firstName lastName profileImage')
+      .populate('comments.replies.author', 'username firstName lastName profileImage');
+
+    res.json(populatedPost.comments[0]);
+  } catch (err) {
+    console.error('Error adding comment:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Add a reply to a comment
+router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const comment = post.comments.id(req.params.commentId);
+    if (!comment) {
+      return res.status(404).json({ message: 'Comment not found' });
+    }
+
+    const newReply = {
+      author: req.user.id,
+      text: req.body.text
+    };
+
+    comment.replies.unshift(newReply);
+    await post.save();
+
+    const populatedPost = await Post.findById(post._id)
+      .populate('comments.replies.author', 'username firstName lastName profileImage');
+
+    res.json(comment.replies[0]);
+  } catch (err) {
+    console.error('Error adding reply:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get comments for a post
+router.get('/:postId/comments', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId)
+      .populate('comments.author', 'username firstName lastName profileImage')
+      .populate('comments.replies.author', 'username firstName lastName profileImage')
+      .select('comments');
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json(post.comments);
+  } catch (err) {
+    console.error('Error getting comments:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 

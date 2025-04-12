@@ -168,6 +168,7 @@ class _SearchScreenState extends State<SearchScreen> {
           upvoteCount: (post['upvotes'] is int) ? post['upvotes'] : 0,
           downvoteCount: (post['downvotes'] is int) ? post['downvotes'] : 0,
           repostCount: (post['reposts'] is int) ? post['reposts'] : 0,
+          commentCount: (post['comments'] as List?)?.length ?? 0,
           createdAt: post['createdAt'] ?? '',
         )).toList(),
       );

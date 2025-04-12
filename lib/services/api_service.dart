@@ -733,4 +733,62 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<List<Map<String, dynamic>>> getPostComments(String postId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/$postId/comments'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load comments');
+      }
+    } catch (e) {
+      debugPrint('Error getting comments: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> addComment(String postId, String text) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/comments'),
+        headers: await _getHeaders(),
+        body: json.encode({'text': text}),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to add comment');
+      }
+    } catch (e) {
+      debugPrint('Error adding comment: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> addReply(
+      String postId, String commentId, String text) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/comments/$commentId/replies'),
+        headers: await _getHeaders(),
+        body: json.encode({'text': text}),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to add reply');
+      }
+    } catch (e) {
+      debugPrint('Error adding reply: $e');
+      rethrow;
+    }
+  }
 } 

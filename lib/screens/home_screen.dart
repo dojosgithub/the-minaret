@@ -106,6 +106,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   upvoteCount: (post['likes'] as List?)?.length ?? 0,
                   downvoteCount: 0,
                   repostCount: 0,
+                  commentCount: (post['comments'] as List?)?.length ?? 0,
                   createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
                   authorId: post['author']['_id'] ?? '',
                 )).toList(),

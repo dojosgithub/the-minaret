@@ -5,6 +5,7 @@ import '../utils/time_utils.dart';
 import '../services/api_service.dart';
 import '../screens/profile_screen.dart';
 import '../screens/user_screen.dart';
+import 'comment.dart';
 
 class Post extends StatefulWidget {
   final String id;
@@ -18,6 +19,7 @@ class Post extends StatefulWidget {
   final int upvoteCount;
   final int downvoteCount;
   final int repostCount;
+  final int commentCount;
   final String createdAt;
   final String authorId;
 
@@ -34,6 +36,7 @@ class Post extends StatefulWidget {
     required this.upvoteCount,
     required this.downvoteCount,
     required this.repostCount,
+    required this.commentCount,
     required this.createdAt,
     required this.authorId,
   });
@@ -45,11 +48,24 @@ class Post extends StatefulWidget {
 class _PostState extends State<Post> {
   bool _isBookmarked = false;
   bool _isLoading = false;
+  bool _showComments = false;
+  List<Map<String, dynamic>> _comments = [];
+  bool _loadingComments = false;
+  final TextEditingController _commentController = TextEditingController();
+  final TextEditingController _replyController = TextEditingController();
+  String? _replyingToCommentId;
 
   @override
   void initState() {
     super.initState();
     _checkIfSaved();
+  }
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    _replyController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkIfSaved() async {
@@ -352,6 +368,66 @@ class _PostState extends State<Post> {
     );
     overlay.insert(overlayEntry);
     Future.delayed(const Duration(seconds: 2), () => overlayEntry.remove());
+  }
+
+  Future<void> _loadComments() async {
+    if (_loadingComments) return;
+    
+    setState(() {
+      _loadingComments = true;
+    });
+
+    try {
+      final comments = await ApiService.getPostComments(widget.id);
+      setState(() {
+        _comments = comments;
+        _loadingComments = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading comments: $e');
+      setState(() {
+        _loadingComments = false;
+      });
+    }
+  }
+
+  Future<void> _addComment() async {
+    if (_commentController.text.trim().isEmpty) return;
+    
+    try {
+      final newComment = await ApiService.addComment(
+        widget.id,
+        _commentController.text,
+      );
+      setState(() {
+        _comments.insert(0, newComment);
+        _commentController.clear();
+      });
+    } catch (e) {
+      debugPrint('Error adding comment: $e');
+    }
+  }
+
+  Future<void> _addReply(String commentId) async {
+    if (_replyController.text.trim().isEmpty) return;
+    
+    try {
+      final newReply = await ApiService.addReply(
+        widget.id,
+        commentId,
+        _replyController.text,
+      );
+      setState(() {
+        final commentIndex = _comments.indexWhere((c) => c['_id'] == commentId);
+        if (commentIndex != -1) {
+          _comments[commentIndex]['replies'].insert(0, newReply);
+        }
+        _replyController.clear();
+        _replyingToCommentId = null;
+      });
+    } catch (e) {
+      debugPrint('Error adding reply: $e');
+    }
   }
 
   Widget _buildMediaGrid() {
@@ -710,9 +786,8 @@ class _PostState extends State<Post> {
                   ),
                   Text(
                     widget.upvoteCount.toString(),
-                    style: const TextStyle(color: Color(0xFFFDCC87), // Yellow color for upvote count
+                    style: const TextStyle(color: Color(0xFFFDCC87)),
                   ),
-                  )
                 ],
               ),
               Row(
@@ -723,7 +798,7 @@ class _PostState extends State<Post> {
                   ),
                   Text(
                     widget.downvoteCount.toString(),
-                    style: const TextStyle(color: Colors.white), // White color for downvote count
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ],
               ),
@@ -731,12 +806,19 @@ class _PostState extends State<Post> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.comment, color: Colors.white),
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        _showComments = !_showComments;
+                        if (_showComments) {
+                          _loadComments();
+                        }
+                      });
+                    },
                   ),
-                  // Text(
-                  //   "0", // Placeholder for comment count (if needed)
-                  //   style: const TextStyle(color: Colors.white),
-                  // ),
+                  Text(
+                    widget.commentCount.toString(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ],
               ),
               Row(
@@ -747,7 +829,7 @@ class _PostState extends State<Post> {
                   ),
                   Text(
                     widget.repostCount.toString(),
-                    style: const TextStyle(color: Colors.white), // White color for repost count
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ],
               ),
@@ -757,6 +839,77 @@ class _PostState extends State<Post> {
               ),
             ],
           ),
+          if (_showComments) ...[
+            const Divider(color: Color(0xFFFDCC87)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commentController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            hintText: 'Add a comment...',
+                            hintStyle: TextStyle(color: Colors.white54),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send, color: Color(0xFFFDCC87)),
+                        onPressed: _addComment,
+                      ),
+                    ],
+                  ),
+                  if (_loadingComments)
+                    const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                      ),
+                    )
+                  else
+                    ..._comments.map((comment) => Comment(
+                      authorName: '${comment['author']['firstName']} ${comment['author']['lastName']}',
+                      authorUsername: comment['author']['username'],
+                      authorProfilePic: comment['author']['profileImage'],
+                      text: comment['text'],
+                      createdAt: comment['createdAt'],
+                      replies: List<Map<String, dynamic>>.from(comment['replies'] ?? []),
+                      onReply: () {
+                        setState(() {
+                          _replyingToCommentId = comment['_id'];
+                        });
+                      },
+                    )).toList(),
+                  if (_replyingToCommentId != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _replyController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: 'Add a reply...',
+                              hintStyle: TextStyle(color: Colors.white54),
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.send, color: Color(0xFFFDCC87)),
+                          onPressed: () => _addReply(_replyingToCommentId!),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

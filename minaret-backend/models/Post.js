@@ -42,15 +42,42 @@ const postSchema = new mongoose.Schema({
     ref: 'User',
   }],
   comments: [{
-    user: {
+    author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
+      required: true
     },
-    text: String,
+    text: {
+      type: String,
+      required: true
+    },
+    likes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    replies: [{
+      author: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      text: {
+        type: String,
+        required: true
+      },
+      likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }],
+      createdAt: {
+        type: Date,
+        default: Date.now
+      }
+    }],
     createdAt: {
       type: Date,
-      default: Date.now,
-    },
+      default: Date.now
+    }
   }],
   createdAt: {
     type: Date,

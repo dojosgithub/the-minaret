@@ -267,6 +267,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           upvoteCount: (post['likes'] as List?)?.length ?? 0,
           downvoteCount: 0,
           repostCount: 0,
+          commentCount: (post['comments'] as List?)?.length ?? 0,
           createdAt: post['createdAt'],
           authorId: post['author']['_id'] ?? '',
         );
