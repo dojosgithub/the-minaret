@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar.dart';
+import '../screens/messages_screen.dart';
 
 class NotificationsMenuScreen extends StatefulWidget {
   const NotificationsMenuScreen({super.key});
@@ -24,9 +25,15 @@ class _NotificationsScreenState extends State<NotificationsMenuScreen> {
 
       // Top App Bar with Logo & Menu Button
       appBar: TopBar(
-        onMenuPressed: () => Navigator.pop(context),
-        onProfilePressed: () {},
-        profileImage: 'assets/default_profile.png',
+        onMenuPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+        onMessagesPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MessagesScreen()),
+          );
+        },
       ),
 
       body: Padding(

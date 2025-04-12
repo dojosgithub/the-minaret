@@ -195,7 +195,7 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             subtitle: Text(
               '@${user['username'] ?? ''}',
-              style: const TextStyle(color: Colors.grey),
+              style: const TextStyle(color: const Color(0xFFFDCC87)),
             ),
             trailing: ElevatedButton(
               style: ElevatedButton.styleFrom(

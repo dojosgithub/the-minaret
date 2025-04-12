@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar.dart';
+import '../screens/messages_screen.dart';
 
 class FeedbackScreen extends StatefulWidget {
   const FeedbackScreen({super.key});
@@ -20,9 +21,15 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
 
       // Top App Bar with Logo & Menu Button
       appBar: TopBar(
-        onMenuPressed: () => Navigator.pop(context),
-        onProfilePressed: () {},
-        profileImage: 'assets/default_profile.png',
+        onMenuPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+        onMessagesPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MessagesScreen()),
+          );
+        },
       ),
 
       body: Padding(

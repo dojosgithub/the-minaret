@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar.dart';
+import '../screens/messages_screen.dart';
 
 class CommunityGuidelinesScreen extends StatefulWidget {
   const CommunityGuidelinesScreen({super.key});
@@ -34,9 +35,15 @@ class _CommunityGuidelinesScreenState extends State<CommunityGuidelinesScreen> {
 
       // Top Bar with Menu & Profile
       appBar: TopBar(
-        onMenuPressed: () => Navigator.pop(context),
-        onProfilePressed: () {},
-        profileImage: 'assets/default_profile.png',
+        onMenuPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+        onMessagesPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MessagesScreen()),
+          );
+        },
       ),
 
       body: Padding(

@@ -4,14 +4,12 @@ import '../screens/user_screen.dart';
 
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onMenuPressed; // Callback for menu icon
-  final VoidCallback onProfilePressed; // Callback for profile picture
-  final String? profileImage; // Path to the profile picture, now nullable
+  final VoidCallback onMessagesPressed; // Callback for messages icon
 
   const TopBar({
     super.key,
     required this.onMenuPressed,
-    required this.onProfilePressed,
-    this.profileImage, // Made optional
+    required this.onMessagesPressed,
   });
 
   @override
@@ -61,18 +59,10 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                   onPressed: onMenuPressed,
                 ),
                 actions: [
-                  // Profile picture on the right
-                  GestureDetector(
-                    onTap: onProfilePressed,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        backgroundImage: profileImage != null
-                            ? NetworkImage(profileImage!)
-                            : const AssetImage('assets/default_profile.png') as ImageProvider,
-                        radius: 18, // Slightly bigger profile image
-                      ),
-                    ),
+                  // Messages icon on the right
+                  IconButton(
+                    icon: const Icon(Icons.message, color: Color(0xFFFDCC87)),
+                    onPressed: onMessagesPressed,
                   ),
                 ],
               ),

@@ -10,6 +10,7 @@ import '../screens/search_screen.dart';
 import '../widgets/top_bar_settings.dart';
 import '../services/api_service.dart';
 import 'package:flutter/foundation.dart';
+import '../screens/messages_screen.dart';
 
 class ScreenWrapper extends StatefulWidget {
   final Widget child;
@@ -76,10 +77,12 @@ class _ScreenWrapperState extends State<ScreenWrapper> {
                 onMenuPressed: () {
                   _scaffoldKey.currentState?.openDrawer();
                 },
-                onProfilePressed: () {
-                  widget.onIndexChanged(3); // Navigate to user screen
+                onMessagesPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const MessagesScreen()),
+                  );
                 },
-                profileImage: profileImage,
               ),
         body: widget.child,
         bottomNavigationBar: BottomNavBar(

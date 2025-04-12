@@ -8,6 +8,7 @@ import 'about_screen.dart';
 import '../widgets/top_bar.dart';
 import '../services/api_service.dart';
 import 'welcome_screen.dart';
+import '../screens/messages_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -78,9 +79,15 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A), // Background color of all pages
       appBar: TopBar(
-        onMenuPressed: () {},
-        onProfilePressed: () {},
-        profileImage: 'assets/default_profile.png',
+        onMenuPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+        onMessagesPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const MessagesScreen()),
+          );
+        },
       ),
       body: Column(
         children: [
@@ -168,11 +175,11 @@ class SettingsScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: ListTile(
-        leading: Icon(icon, color: Colors.white), // Icons moved to the left
+        leading: Icon(icon, color: Colors.white), 
         title: Text(
           title,
           style: const TextStyle(
-            color: Colors.white, // White text for readability
+            color: Colors.white, 
             fontSize: 18,
           ),
         ),
