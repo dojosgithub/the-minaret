@@ -350,4 +350,78 @@ router.get('/:postId/comments', auth, async (req, res) => {
   }
 });
 
+// Upvote a post
+router.post('/:postId/upvote', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if user has already upvoted
+    const hasUpvoted = post.upvotes.includes(req.user.id);
+    const hasDownvoted = post.downvotes.includes(req.user.id);
+
+    if (hasUpvoted) {
+      // Remove upvote
+      post.upvotes = post.upvotes.filter(id => id.toString() !== req.user.id.toString());
+    } else {
+      // Add upvote
+      post.upvotes.push(req.user.id);
+      // Remove downvote if exists
+      if (hasDownvoted) {
+        post.downvotes = post.downvotes.filter(id => id.toString() !== req.user.id.toString());
+      }
+    }
+
+    await post.save();
+    res.json({ 
+      upvotes: post.upvotes.length,
+      downvotes: post.downvotes.length,
+      isUpvoted: post.upvotes.includes(req.user.id),
+      isDownvoted: post.downvotes.includes(req.user.id)
+    });
+  } catch (error) {
+    console.error('Error upvoting post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Downvote a post
+router.post('/:postId/downvote', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if user has already downvoted
+    const hasDownvoted = post.downvotes.includes(req.user.id);
+    const hasUpvoted = post.upvotes.includes(req.user.id);
+
+    if (hasDownvoted) {
+      // Remove downvote
+      post.downvotes = post.downvotes.filter(id => id.toString() !== req.user.id.toString());
+    } else {
+      // Add downvote
+      post.downvotes.push(req.user.id);
+      // Remove upvote if exists
+      if (hasUpvoted) {
+        post.upvotes = post.upvotes.filter(id => id.toString() !== req.user.id.toString());
+      }
+    }
+
+    await post.save();
+    res.json({ 
+      upvotes: post.upvotes.length,
+      downvotes: post.downvotes.length,
+      isUpvoted: post.upvotes.includes(req.user.id),
+      isDownvoted: post.downvotes.includes(req.user.id)
+    });
+  } catch (error) {
+    console.error('Error downvoting post:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 

@@ -154,22 +154,38 @@ class _SearchScreenState extends State<SearchScreen> {
       }
       return ListView(
         children: _posts.map((post) => Post(
-          id: post['_id'] ?? '',
-          title: post['title'] ?? '',
-          text: post['body'] ?? '',
-          authorId: post['author']['_id'] ?? '',
+          id: post['_id'],
           name: post['author']['firstName'] != null && post['author']['lastName'] != null
               ? '${post['author']['firstName']} ${post['author']['lastName']}'
               : post['author']['username'] ?? 'Unknown User',
-          username: post['author']['username'] ?? '',
+          username: post['author']['username'] ?? 'unknown',
           profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+          title: post['title'] ?? '',
+          text: post['body'] ?? '',
           media: List<Map<String, dynamic>>.from(post['media'] ?? []),
           links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-          upvoteCount: (post['upvotes'] is int) ? post['upvotes'] : 0,
-          downvoteCount: (post['downvotes'] is int) ? post['downvotes'] : 0,
-          repostCount: (post['reposts'] is int) ? post['reposts'] : 0,
+          upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
+          downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
+          repostCount: 0,
           commentCount: (post['comments'] as List?)?.length ?? 0,
-          createdAt: post['createdAt'] ?? '',
+          createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
+          authorId: post['author']['_id'] ?? '',
+          isUpvoted: false,
+          isDownvoted: false,
+          onUpvote: (postId) async {
+            try {
+              await ApiService.upvotePost(postId);
+            } catch (e) {
+              debugPrint('Error upvoting post: $e');
+            }
+          },
+          onDownvote: (postId) async {
+            try {
+              await ApiService.downvotePost(postId);
+            } catch (e) {
+              debugPrint('Error downvoting post: $e');
+            }
+          },
         )).toList(),
       );
     } else {

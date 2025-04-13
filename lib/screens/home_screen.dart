@@ -14,6 +14,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   late Future<List<Map<String, dynamic>>> _postsFuture;
+  final Map<String, bool> _upvotedPosts = {};
+  final Map<String, bool> _downvotedPosts = {};
 
   @override
   void initState() {
@@ -44,6 +46,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _refreshPosts() {
     _initializePosts();
+  }
+
+  Future<void> _handleUpvote(String postId) async {
+    try {
+      await ApiService.upvotePost(postId);
+      setState(() {
+        _upvotedPosts[postId] = !(_upvotedPosts[postId] ?? false);
+        if (_upvotedPosts[postId] == true) {
+          _downvotedPosts[postId] = false;
+        }
+      });
+    } catch (e) {
+      debugPrint('Error upvoting post: $e');
+    }
+  }
+
+  Future<void> _handleDownvote(String postId) async {
+    try {
+      await ApiService.downvotePost(postId);
+      setState(() {
+        _downvotedPosts[postId] = !(_downvotedPosts[postId] ?? false);
+        if (_downvotedPosts[postId] == true) {
+          _upvotedPosts[postId] = false;
+        }
+      });
+    } catch (e) {
+      debugPrint('Error downvoting post: $e');
+    }
   }
 
   @override
@@ -103,12 +133,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   text: post['body'] ?? '',
                   media: List<Map<String, dynamic>>.from(post['media'] ?? []),
                   links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                  upvoteCount: (post['likes'] as List?)?.length ?? 0,
-                  downvoteCount: 0,
+                  upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
+                  downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
                   repostCount: 0,
                   commentCount: (post['comments'] as List?)?.length ?? 0,
                   createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
                   authorId: post['author']['_id'] ?? '',
+                  isUpvoted: _upvotedPosts[post['_id']] ?? false,
+                  isDownvoted: _downvotedPosts[post['_id']] ?? false,
+                  onUpvote: _handleUpvote,
+                  onDownvote: _handleDownvote,
                 )).toList(),
               ),
             );

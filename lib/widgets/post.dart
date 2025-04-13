@@ -22,6 +22,10 @@ class Post extends StatefulWidget {
   final int commentCount;
   final String createdAt;
   final String authorId;
+  final bool isUpvoted;
+  final bool isDownvoted;
+  final Function(String) onUpvote;
+  final Function(String) onDownvote;
 
   const Post({
     super.key,
@@ -39,6 +43,10 @@ class Post extends StatefulWidget {
     required this.commentCount,
     required this.createdAt,
     required this.authorId,
+    this.isUpvoted = false,
+    this.isDownvoted = false,
+    required this.onUpvote,
+    required this.onDownvote,
   });
 
   @override
@@ -54,11 +62,19 @@ class _PostState extends State<Post> {
   final TextEditingController _commentController = TextEditingController();
   final TextEditingController _replyController = TextEditingController();
   String? _replyingToCommentId;
+  bool _isUpvoted = false;
+  bool _isDownvoted = false;
+  int _upvoteCount = 0;
+  int _downvoteCount = 0;
 
   @override
   void initState() {
     super.initState();
     _checkIfSaved();
+    _isUpvoted = widget.isUpvoted;
+    _isDownvoted = widget.isDownvoted;
+    _upvoteCount = widget.upvoteCount;
+    _downvoteCount = widget.downvoteCount;
   }
 
   @override
@@ -442,6 +458,48 @@ class _PostState extends State<Post> {
     }
   }
 
+  Future<void> _handleUpvote() async {
+    try {
+      await widget.onUpvote(widget.id);
+      setState(() {
+        if (_isUpvoted) {
+          _upvoteCount--;
+          _isUpvoted = false;
+        } else {
+          _upvoteCount++;
+          _isUpvoted = true;
+          if (_isDownvoted) {
+            _downvoteCount--;
+            _isDownvoted = false;
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error upvoting: $e');
+    }
+  }
+
+  Future<void> _handleDownvote() async {
+    try {
+      await widget.onDownvote(widget.id);
+      setState(() {
+        if (_isDownvoted) {
+          _downvoteCount--;
+          _isDownvoted = false;
+        } else {
+          _downvoteCount++;
+          _isDownvoted = true;
+          if (_isUpvoted) {
+            _upvoteCount--;
+            _isUpvoted = false;
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error downvoting: $e');
+    }
+  }
+
   Widget _buildMediaGrid() {
     if (widget.media.isEmpty) return const SizedBox.shrink();
 
@@ -793,24 +851,34 @@ class _PostState extends State<Post> {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_upward, color: Color(0xFFFDCC87)),
-                    onPressed: () {},
+                    icon: Icon(
+                      Icons.arrow_upward,
+                      color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                    onPressed: _handleUpvote,
                   ),
                   Text(
-                    widget.upvoteCount.toString(),
-                    style: const TextStyle(color: Color(0xFFFDCC87)),
+                    _upvoteCount.toString(),
+                    style: TextStyle(
+                      color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
                   ),
                 ],
               ),
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_downward, color: Colors.grey),
-                    onPressed: () {},
+                    icon: Icon(
+                      Icons.arrow_downward,
+                      color: _isDownvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                    onPressed: _handleDownvote,
                   ),
                   Text(
-                    widget.downvoteCount.toString(),
-                    style: const TextStyle(color: Colors.white),
+                    _downvoteCount.toString(),
+                    style: TextStyle(
+                      color: _isDownvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
                   ),
                 ],
               ),
