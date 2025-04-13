@@ -420,13 +420,25 @@ class _PostState extends State<Post> {
       setState(() {
         final commentIndex = _comments.indexWhere((c) => c['_id'] == commentId);
         if (commentIndex != -1) {
-          _comments[commentIndex]['replies'].insert(0, newReply);
+          // Ensure replies array exists and is properly typed
+          if (_comments[commentIndex]['replies'] == null) {
+            _comments[commentIndex]['replies'] = [];
+          }
+          // Cast to List<Map<String, dynamic>> and insert the new reply
+          final replies = List<Map<String, dynamic>>.from(_comments[commentIndex]['replies']);
+          replies.insert(0, newReply);
+          _comments[commentIndex]['replies'] = replies;
         }
         _replyController.clear();
         _replyingToCommentId = null;
       });
     } catch (e) {
       debugPrint('Error adding reply: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to add reply')),
+        );
+      }
     }
   }
 
