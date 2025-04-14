@@ -791,4 +791,36 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<void> markNotificationAsRead(String notificationId) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/notifications/$notificationId/read'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to mark notification as read');
+      }
+    } catch (e) {
+      debugPrint('Error marking notification as read: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> markAllNotificationsAsRead() async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/notifications/read-all'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to mark all notifications as read');
+      }
+    } catch (e) {
+      debugPrint('Error marking all notifications as read: $e');
+      rethrow;
+    }
+  }
 } 

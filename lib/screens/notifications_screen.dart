@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../widgets/notification.dart';
+import '../services/api_service.dart';
 import '../widgets/screen_wrapper.dart';
 import '../widgets/connection_error_widget.dart';
-import '../services/api_service.dart';
+import '../utils/time_utils.dart';
+import '../widgets/notification.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -12,76 +13,123 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  late Future<List<Map<String, dynamic>>> _notificationsFuture;
+  List<Map<String, dynamic>> _notifications = [];
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _notificationsFuture = ApiService.getNotifications();
+    _loadNotifications();
   }
 
-  void _refreshNotifications() {
+  Future<void> _loadNotifications() async {
     setState(() {
-      _notificationsFuture = ApiService.getNotifications();
+      _isLoading = true;
+      _error = null;
     });
+
+    try {
+      final notifications = await ApiService.getNotifications();
+      setState(() {
+        _notifications = notifications;
+        _isLoading = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading notifications: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _getNotificationText(Map<String, dynamic> notification) {
+    final senderName = notification['sender']['username'] ?? 'Minaret User';
+    
+    switch (notification['type']) {
+      case 'follow':
+        return '$senderName started following you';
+      case 'upvote':
+        return '$senderName upvoted your post';
+      case 'downvote':
+        return '$senderName downvoted your post';
+      case 'comment':
+        return '$senderName commented on your post';
+      case 'reply':
+        return '$senderName replied to your comment';
+      case 'repost':
+        return '$senderName reposted your post';
+      default:
+        return 'New notification';
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _notificationsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
+      appBar: AppBar(
+        title: const Text('Notifications'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          TextButton(
+            onPressed: () async {
+              try {
+                await ApiService.markAllNotificationsAsRead();
+                _loadNotifications();
+              } catch (e) {
+                debugPrint('Error marking all notifications as read: $e');
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Failed to mark all as read')),
+                  );
+                }
+              }
+            },
+            child: const Text(
+              'Mark all as read',
+              style: TextStyle(color: Color(0xFFFDCC87)),
+            ),
+          ),
+        ],
+      ),
+      body: _isLoading
+          ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
               ),
-            );
-          }
-
-          if (snapshot.hasError) {
-            return ConnectionErrorWidget(
-              onRetry: _refreshNotifications,
-            );
-          }
-
-          final notifications = snapshot.data!;
-
-          if (notifications.isEmpty) {
-            return const Center(
-              child: Text(
-                'No notifications yet',
-                style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              _refreshNotifications();
-            },
-            color: const Color(0xFFFDCC87),
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: notifications.map((notification) {
-                  final dateTime = DateTime.parse(notification['createdAt']);
-                  
-                  return NotificationWidget(
-                    name: notification['sender']['username'],
-                    dateTime: dateTime,
-                    profilePic: notification['sender']['profileImage'] ?? 'assets/default_profile.png',
-                    text: notification['message'],
-                    senderId: notification['sender']['_id'],
-                  );
-                }).toList(),
-              ),
-            ),
-          );
-        },
-      ),
+            )
+          : _error != null
+              ? ConnectionErrorWidget(
+                  onRetry: _loadNotifications,
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadNotifications,
+                  color: const Color(0xFFFDCC87),
+                  child: _notifications.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No notifications yet',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _notifications.length,
+                          itemBuilder: (context, index) {
+                            final notification = _notifications[index];
+                            return NotificationWidget(
+                              name: notification['sender']['username'] ?? 'Minaret User',
+                              profilePic: notification['sender']['profileImage'] ?? 'assets/default_profile.png',
+                              text: _getNotificationText(notification),
+                              dateTime: DateTime.parse(notification['createdAt']),
+                              senderId: notification['sender']['_id'],
+                            );
+                          },
+                        ),
+                ),
     );
   }
 }
