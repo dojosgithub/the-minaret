@@ -71,6 +71,7 @@ class _PostState extends State<Post> {
   void initState() {
     super.initState();
     _checkIfSaved();
+    _checkVoteStatus();
     _isUpvoted = widget.isUpvoted;
     _isDownvoted = widget.isDownvoted;
     _upvoteCount = widget.upvoteCount;
@@ -82,6 +83,20 @@ class _PostState extends State<Post> {
     _commentController.dispose();
     _replyController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkVoteStatus() async {
+    try {
+      final status = await ApiService.getPostVoteStatus(widget.id);
+      if (mounted) {
+        setState(() {
+          _isUpvoted = status['isUpvoted'] ?? false;
+          _isDownvoted = status['isDownvoted'] ?? false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking vote status: $e');
+    }
   }
 
   Future<void> _checkIfSaved() async {

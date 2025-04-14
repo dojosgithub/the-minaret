@@ -35,9 +35,17 @@ class _HomeScreenState extends State<HomeScreen> {
     _initializePosts();
   }
 
-  void _initializePosts() {
+  Future<void> _initializePosts() async {
     setState(() {
-      _postsFuture = ApiService.getPosts(type: PostType.selectedType).catchError((error) {
+      _postsFuture = ApiService.getPosts(type: PostType.selectedType).then((posts) async {
+        // Check vote status for each post
+        for (var post in posts) {
+          final status = await ApiService.getPostVoteStatus(post['_id']);
+          post['isUpvoted'] = status['isUpvoted'] ?? false;
+          post['isDownvoted'] = status['isDownvoted'] ?? false;
+        }
+        return posts;
+      }).catchError((error) {
         debugPrint('Error fetching posts: $error');
         throw error;
       });

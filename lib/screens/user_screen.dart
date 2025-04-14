@@ -50,6 +50,24 @@ class _UserScreenState extends State<UserScreen> {
       // Load saved posts
       final saved = await ApiService.getSavedPosts();
       debugPrint('Saved posts received: ${saved.length}');
+
+      // Check vote and save status for all posts
+      for (var post in posts) {
+        final status = await ApiService.getPostVoteStatus(post['_id']);
+        final isSaved = await ApiService.isPostSaved(post['_id']);
+        post['isUpvoted'] = status['isUpvoted'] ?? false;
+        post['isDownvoted'] = status['isDownvoted'] ?? false;
+        post['isSaved'] = isSaved;
+      }
+
+      // Check vote and save status for saved posts
+      for (var post in saved) {
+        final status = await ApiService.getPostVoteStatus(post['_id']);
+        final isSaved = await ApiService.isPostSaved(post['_id']);
+        post['isUpvoted'] = status['isUpvoted'] ?? false;
+        post['isDownvoted'] = status['isDownvoted'] ?? false;
+        post['isSaved'] = isSaved;
+      }
       
       if (mounted) {
         setState(() {
@@ -67,6 +85,87 @@ class _UserScreenState extends State<UserScreen> {
           isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _handleUpvote(String postId) async {
+    try {
+      await ApiService.upvotePost(postId);
+      setState(() {
+        // Update vote status in both lists
+        for (var p in userPosts) {
+          if (p['_id'] == postId) {
+            p['isUpvoted'] = !(p['isUpvoted'] ?? false);
+            if (p['isUpvoted'] == true) {
+              p['isDownvoted'] = false;
+            }
+          }
+        }
+        for (var p in savedPosts) {
+          if (p['_id'] == postId) {
+            p['isUpvoted'] = !(p['isUpvoted'] ?? false);
+            if (p['isUpvoted'] == true) {
+              p['isDownvoted'] = false;
+            }
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error upvoting post: $e');
+    }
+  }
+
+  Future<void> _handleDownvote(String postId) async {
+    try {
+      await ApiService.downvotePost(postId);
+      setState(() {
+        // Update vote status in both lists
+        for (var p in userPosts) {
+          if (p['_id'] == postId) {
+            p['isDownvoted'] = !(p['isDownvoted'] ?? false);
+            if (p['isDownvoted'] == true) {
+              p['isUpvoted'] = false;
+            }
+          }
+        }
+        for (var p in savedPosts) {
+          if (p['_id'] == postId) {
+            p['isDownvoted'] = !(p['isDownvoted'] ?? false);
+            if (p['isDownvoted'] == true) {
+              p['isUpvoted'] = false;
+            }
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error downvoting post: $e');
+    }
+  }
+
+  Future<void> _handleSave(String postId) async {
+    try {
+      final isCurrentlySaved = await ApiService.isPostSaved(postId);
+      if (isCurrentlySaved) {
+        await ApiService.unsavePost(postId);
+      } else {
+        await ApiService.savePost(postId);
+      }
+      
+      setState(() {
+        // Update save status in both lists
+        for (var p in userPosts) {
+          if (p['_id'] == postId) {
+            p['isSaved'] = !(p['isSaved'] ?? false);
+          }
+        }
+        for (var p in savedPosts) {
+          if (p['_id'] == postId) {
+            p['isSaved'] = !(p['isSaved'] ?? false);
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error toggling save: $e');
     }
   }
 
@@ -238,6 +337,7 @@ class _UserScreenState extends State<UserScreen> {
       itemCount: posts.length,
       itemBuilder: (context, index) {
         final post = posts[index];
+        
         return Post(
           id: post['_id'],
           name: post['author']['firstName'] != null && post['author']['lastName'] != null
@@ -255,22 +355,10 @@ class _UserScreenState extends State<UserScreen> {
           commentCount: (post['comments'] as List?)?.length ?? 0,
           createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
           authorId: post['author']['_id'] ?? '',
-          isUpvoted: false,
-          isDownvoted: false,
-          onUpvote: (postId) async {
-            try {
-              await ApiService.upvotePost(postId);
-            } catch (e) {
-              debugPrint('Error upvoting post: $e');
-            }
-          },
-          onDownvote: (postId) async {
-            try {
-              await ApiService.downvotePost(postId);
-            } catch (e) {
-              debugPrint('Error downvoting post: $e');
-            }
-          },
+          isUpvoted: post['isUpvoted'] ?? false,
+          isDownvoted: post['isDownvoted'] ?? false,
+          onUpvote: _handleUpvote,
+          onDownvote: _handleDownvote,
         );
       },
     );

@@ -823,4 +823,22 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<Map<String, dynamic>> getPostVoteStatus(String postId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/$postId/vote-status'),
+        headers: await _getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to get post vote status');
+      }
+    } catch (e) {
+      debugPrint('Error getting post vote status: $e');
+      rethrow;
+    }
+  }
 } 

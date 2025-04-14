@@ -47,6 +47,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final posts = await ApiService.getUserPostsById(widget.userId);
       debugPrint('User posts received: ${posts.length}');
 
+      // Check vote status for each post
+      for (var post in posts) {
+        final status = await ApiService.getPostVoteStatus(post['_id']);
+        post['isUpvoted'] = status['isUpvoted'] ?? false;
+        post['isDownvoted'] = status['isDownvoted'] ?? false;
+      }
+
       // Check if current user is following this user
       final isFollowingUser = await ApiService.isFollowing(widget.userId);
       
@@ -270,8 +277,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           commentCount: (post['comments'] as List?)?.length ?? 0,
           createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
           authorId: post['author']['_id'] ?? '',
-          isUpvoted: false,
-          isDownvoted: false,
+          isUpvoted: post['isUpvoted'] ?? false,
+          isDownvoted: post['isDownvoted'] ?? false,
           onUpvote: (postId) async {
             try {
               await ApiService.upvotePost(postId);

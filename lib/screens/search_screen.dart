@@ -84,6 +84,14 @@ class _SearchScreenState extends State<SearchScreen> {
       await ApiService.addRecentSearch(_searchController.text);
       await _loadRecentSearches();
 
+      // Check vote status for each post
+      final posts = results['posts'] ?? [];
+      for (var post in posts) {
+        final status = await ApiService.getPostVoteStatus(post['_id']);
+        post['isUpvoted'] = status['isUpvoted'] ?? false;
+        post['isDownvoted'] = status['isDownvoted'] ?? false;
+      }
+
       // Check follow status for each user
       final users = results['users'] ?? [];
       for (var user in users) {
@@ -91,7 +99,7 @@ class _SearchScreenState extends State<SearchScreen> {
       }
 
       setState(() {
-        _posts = results['posts'] ?? [];
+        _posts = posts;
         _users = users;
         _isLoading = false;
       });
@@ -170,8 +178,8 @@ class _SearchScreenState extends State<SearchScreen> {
           commentCount: (post['comments'] as List?)?.length ?? 0,
           createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
           authorId: post['author']['_id'] ?? '',
-          isUpvoted: false,
-          isDownvoted: false,
+          isUpvoted: post['isUpvoted'] ?? false,
+          isDownvoted: post['isDownvoted'] ?? false,
           onUpvote: (postId) async {
             try {
               await ApiService.upvotePost(postId);

@@ -423,4 +423,25 @@ router.post('/:postId/downvote', auth, async (req, res) => {
   }
 });
 
+// Get post vote status
+router.get('/:postId/vote-status', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.postId);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    const isUpvoted = post.upvotes.includes(req.user.id);
+    const isDownvoted = post.downvotes.includes(req.user.id);
+
+    res.json({
+      isUpvoted,
+      isDownvoted
+    });
+  } catch (error) {
+    console.error('Error getting post vote status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 
