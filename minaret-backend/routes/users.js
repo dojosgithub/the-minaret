@@ -208,6 +208,32 @@ router.delete('/recent-searches/:query', auth, async (req, res) => {
   }
 });
 
+// Search users
+router.get('/search', auth, async (req, res) => {
+  try {
+    const { query } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+
+    const users = await User.find({
+      $or: [
+        { username: { $regex: query, $options: 'i' } },
+        { firstName: { $regex: query, $options: 'i' } },
+        { lastName: { $regex: query, $options: 'i' } }
+      ]
+    })
+    .select('firstName lastName username profileImage')
+    .limit(10);
+
+    res.json(users);
+  } catch (err) {
+    console.error('Error searching users:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
 // Get user by ID
 router.get('/:userId', auth, async (req, res) => {
   try {

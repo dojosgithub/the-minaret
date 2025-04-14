@@ -34,15 +34,11 @@ app.get('/api/test', (req, res) => {
 });
 
 // Routes
-app.use('/api/posts', require('./routes/posts'));
-app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/users', require('./routes/users'));
 app.use('/api/auth', require('./routes/auth'));
-
-// Add this near your other routes
-app.get('/test', (req, res) => {
-  res.send('Server is running');
-});
+app.use('/api/posts', require('./routes/posts'));
+app.use('/api/users', require('./routes/users'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/messages', require('./routes/messages'));
 
 // Create uploads directory if it doesn't exist
 const uploadsDir = path.join(__dirname, 'uploads');

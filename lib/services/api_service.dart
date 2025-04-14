@@ -51,7 +51,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, String>> _getHeaders() async {
+  static Future<Map<String, String>> getHeaders() async {
     final token = await getToken();
     return {
       'Content-Type': 'application/json',
@@ -68,7 +68,7 @@ class ApiService {
           
       final response = await http.get(
         Uri.parse(url),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -88,7 +88,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/notifications'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -178,7 +178,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/register'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
         body: json.encode(userData),
       );
 
@@ -214,7 +214,7 @@ class ApiService {
       var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/posts'));
       
       // Add auth token to headers
-      request.headers.addAll(await _getHeaders());
+      request.headers.addAll(await getHeaders());
 
       // Add text fields
       request.fields['type'] = type;
@@ -271,7 +271,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/profile'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
       return response.statusCode == 200;
     } catch (e) {
@@ -284,7 +284,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/profile'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -302,7 +302,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/posts'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -321,7 +321,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/saved-posts'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -343,7 +343,7 @@ class ApiService {
         Uri.parse('$baseUrl/users/upload-profile-image'),
       );
 
-      request.headers.addAll(await _getHeaders());
+      request.headers.addAll(await getHeaders());
 
       // Get the file extension
       String extension = image.path.split('.').last.toLowerCase();
@@ -391,7 +391,7 @@ class ApiService {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/users/profile'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
         body: json.encode(updateData),
       );
 
@@ -408,7 +408,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/change-password'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
         body: json.encode({
           'currentPassword': currentPassword,
           'newPassword': newPassword,
@@ -431,7 +431,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/save'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -450,7 +450,7 @@ class ApiService {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/posts/$postId/save'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -469,7 +469,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/posts/$postId/save'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -500,7 +500,7 @@ class ApiService {
 
       final response = await http.get(
         Uri.parse('$baseUrl/posts/search').replace(queryParameters: queryParams),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -523,7 +523,7 @@ class ApiService {
       debugPrint('Sending request to get recent searches...');
       final response = await http.get(
         Uri.parse('$baseUrl/users/recent-searches'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       debugPrint('Recent searches response status: ${response.statusCode}');
@@ -560,7 +560,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/users/recent-searches'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
         body: json.encode({'query': query}),
       );
 
@@ -578,7 +578,7 @@ class ApiService {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/users/recent-searches'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -595,7 +595,7 @@ class ApiService {
     try {
       final response = await http.delete(
         Uri.parse('$baseUrl/users/recent-searches/${Uri.encodeComponent(query)}'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -612,7 +612,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/$userId'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -630,7 +630,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/posts/user/$userId'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -649,7 +649,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/is-following/$userId'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -668,7 +668,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/users/follow/$userId'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -684,7 +684,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/users/unfollow/$userId'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -700,7 +700,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/upvote'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -719,7 +719,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/downvote'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -738,7 +738,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/posts/$postId/comments'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -757,7 +757,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/comments'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
         body: json.encode({'text': text}),
       );
 
@@ -777,7 +777,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/comments/$commentId/replies'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
         body: json.encode({'text': text}),
       );
 
@@ -796,7 +796,7 @@ class ApiService {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/notifications/$notificationId/read'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -812,7 +812,7 @@ class ApiService {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/notifications/read-all'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -828,7 +828,7 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/posts/$postId/vote-status'),
-        headers: await _getHeaders(),
+        headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -838,6 +838,121 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('Error getting post vote status: $e');
+      rethrow;
+    }
+  }
+
+  static String? get currentUserId {
+    try {
+      final prefs = SharedPreferences.getInstance();
+      final user = prefs.then((prefs) => prefs.getString('user'));
+      if (user != null) {
+        final userData = json.decode(user as String);
+        return userData['_id'];
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error getting current user ID: $e');
+      return null;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/search?query=$query'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to search users');
+      }
+    } catch (e) {
+      debugPrint('Error searching users: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getConversations() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/messages'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load conversations');
+      }
+    } catch (e) {
+      debugPrint('Error getting conversations: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getMessages(String conversationId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/messages/$conversationId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load messages');
+      }
+    } catch (e) {
+      debugPrint('Error getting messages: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> sendMessage(
+    String recipientId,
+    String content, [
+    List<Map<String, dynamic>>? media,
+  ]) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/messages'),
+        headers: await getHeaders(),
+        body: json.encode({
+          'recipient': recipientId,
+          'content': content,
+          'media': media,
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to send message');
+      }
+    } catch (e) {
+      debugPrint('Error sending message: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> markMessageAsRead(String messageId) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/messages/$messageId/read'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to mark message as read');
+      }
+    } catch (e) {
+      debugPrint('Error marking message as read: $e');
       rethrow;
     }
   }
