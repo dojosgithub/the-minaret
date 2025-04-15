@@ -55,13 +55,44 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 backgroundColor: Colors.transparent, // Transparent background
                 elevation: 0, // Remove default elevation
                 leading: IconButton(
-                  icon: const Icon(Icons.menu, color: Color(0xFFFDCC87)), // Menu icon (three bars)
+                  icon: const Icon(
+                    Icons.menu,
+                    color: Color(0xFFFDCC87),
+                    size: 32, // Increased size
+                  ),
                   onPressed: onMenuPressed,
                 ),
                 actions: [
-                  // Messages icon on the right
+                  // Custom message bubble icon with dots
                   IconButton(
-                    icon: const Icon(Icons.message, color: Color(0xFFFDCC87)),
+                    icon: Stack(
+                      children: [
+                        const Icon(
+                          Icons.chat_bubble_outline,
+                          color: Color(0xFFFDCC87),
+                          size: 32,
+                        ),
+                        Positioned(
+                          right: 8,
+                          top: 12, // Adjusted to center vertically
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: List.generate(
+                              3,
+                              (index) => Container(
+                                width: 3,
+                                height: 3,
+                                margin: const EdgeInsets.symmetric(horizontal: 1),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFFDCC87),
+                                  shape: BoxShape.circle,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     onPressed: onMessagesPressed,
                   ),
                 ],

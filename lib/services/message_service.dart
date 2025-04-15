@@ -41,25 +41,6 @@ class MessageService {
     }
   }
 
-  static Future<void> sendMessage(String conversationId, String content) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/messages'),
-        headers: await ApiService.getHeaders(),
-        body: json.encode({
-          'conversationId': conversationId,
-          'content': content,
-        }),
-      );
-
-      if (response.statusCode != 201) {
-        throw Exception('Failed to send message');
-      }
-    } catch (e) {
-      rethrow;
-    }
-  }
-
   static Future<void> markMessageAsRead(String messageId) async {
     try {
       final response = await http.put(

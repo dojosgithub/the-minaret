@@ -105,6 +105,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             final otherUser = conversation
                                 .getOtherParticipant(ApiService.currentUserId ?? '');
                             final lastMessage = conversation.lastMessage;
+                            final isLastMessageFromMe = lastMessage?.senderId == ApiService.currentUserId;
 
                             return ListTile(
                               leading: CircleAvatar(
@@ -135,7 +136,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                       fontSize: 12,
                                     ),
                                   ),
-                                  if (conversation.unreadCount > 0)
+                                  if (conversation.unreadCount > 0 && !isLastMessageFromMe)
                                     Container(
                                       padding: const EdgeInsets.all(6),
                                       decoration: const BoxDecoration(
@@ -158,7 +159,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => ConversationScreen(
-                                      conversationId: otherUser['_id'],
+                                      conversationId: conversation.id,
                                       otherUser: otherUser,
                                     ),
                                   ),

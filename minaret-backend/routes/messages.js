@@ -8,7 +8,7 @@ const auth = require('../middleware/auth');
 router.get('/', auth, async (req, res) => {
   try {
     const conversations = await Conversation.find({
-      participants: req.user._id
+      participants: req.user.id
     })
     .populate('participants', 'username firstName lastName profileImage')
     .populate('lastMessage')
@@ -26,8 +26,8 @@ router.get('/:conversationId', auth, async (req, res) => {
   try {
     const messages = await Message.find({
       $or: [
-        { sender: req.user._id, recipient: req.params.conversationId },
-        { sender: req.params.conversationId, recipient: req.user._id }
+        { sender: req.user.id, recipient: req.params.conversationId },
+        { sender: req.params.conversationId, recipient: req.user.id }
       ]
     })
     .sort({ createdAt: 1 })
@@ -47,7 +47,7 @@ router.post('/', auth, async (req, res) => {
 
     // Create new message
     const message = new Message({
-      sender: req.user._id,
+      sender: req.user.id,
       recipient,
       content,
       media
@@ -57,12 +57,12 @@ router.post('/', auth, async (req, res) => {
 
     // Update or create conversation
     let conversation = await Conversation.findOne({
-      participants: { $all: [req.user._id, recipient] }
+      participants: { $all: [req.user.id, recipient] }
     });
 
     if (!conversation) {
       conversation = new Conversation({
-        participants: [req.user._id, recipient],
+        participants: [req.user.id, recipient],
         lastMessage: message._id,
         lastMessageAt: message.createdAt,
         unreadCount: 1
@@ -94,7 +94,7 @@ router.put('/:messageId/read', auth, async (req, res) => {
       return res.status(404).json({ message: 'Message not found' });
     }
 
-    if (message.recipient.toString() !== req.user._id.toString()) {
+    if (message.recipient.toString() !== req.user.id.toString()) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 

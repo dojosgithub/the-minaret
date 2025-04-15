@@ -63,7 +63,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
     _messageController.clear();
 
     try {
-      await MessageService.sendMessage(widget.conversationId, message);
+      await ApiService.sendMessage(
+        widget.otherUser['_id'],
+        message,
+      );
       await _loadMessages();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -80,9 +83,46 @@ class _ConversationScreenState extends State<ConversationScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
       appBar: AppBar(
-        title: Text(
-          '${widget.otherUser['firstName']} ${widget.otherUser['lastName']}',
-          style: const TextStyle(color: Colors.white),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: const Color(0xFFFDCC87),
+                  width: 2,
+                ),
+              ),
+              child: CircleAvatar(
+                backgroundImage: widget.otherUser['profileImage'] != null
+                    ? NetworkImage(widget.otherUser['profileImage'])
+                    : const AssetImage('assets/default_profile.png') as ImageProvider,
+                radius: 24,
+              ),
+            ),
+            const SizedBox(width: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${widget.otherUser['firstName']} ${widget.otherUser['lastName']}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  '@${widget.otherUser['username']}',
+                  style: TextStyle(
+                    color: const Color(0xFFFDCC87),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -145,11 +185,25 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                       : Colors.grey[800],
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: Text(
-                                  message.content,
-                                  style: TextStyle(
-                                    color: isMe ? Colors.black : Colors.white,
-                                  ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (!isMe)
+                                      Text(
+                                        '${widget.otherUser['firstName']} ${widget.otherUser['lastName']}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    Text(
+                                      message.content,
+                                      style: TextStyle(
+                                        color: isMe ? Colors.black : Colors.white,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
@@ -158,16 +212,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       ),
           ),
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 35),
             decoration: BoxDecoration(
-              color: Colors.grey[900],
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: const Offset(0, -2),
-                ),
-              ],
+              color: const Color(0xFF4F245A),
             ),
             child: Row(
               children: [
@@ -183,7 +230,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: Colors.grey[800],
+                      fillColor: const Color(0xFF3A1E47),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16,
                         vertical: 8,
