@@ -3,8 +3,6 @@ import '../widgets/screen_wrapper.dart';
 import '../services/api_service.dart';
 import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
-import 'home_screen.dart';
-import 'user_screen.dart';
 import 'profile_screen.dart';
 
 class SearchScreen extends StatefulWidget {

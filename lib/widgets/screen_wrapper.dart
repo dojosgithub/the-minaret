@@ -2,14 +2,8 @@ import 'package:flutter/material.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/top_bar.dart';
 import '../screens/menu_screen.dart';
-import '../screens/home_screen.dart';
-import '../screens/notifications_screen.dart';
-import '../screens/post_screen.dart';
-import '../screens/user_screen.dart';
-import '../screens/search_screen.dart';
 import '../widgets/top_bar_settings.dart';
 import '../services/api_service.dart';
-import 'package:flutter/foundation.dart';
 import '../screens/messages_screen.dart';
 
 class ScreenWrapper extends StatefulWidget {

@@ -173,10 +173,7 @@ class _PostState extends State<Post> {
 
       // Navigate to appropriate screen based on whether it's the current user
       if (widget.authorId == currentUserId) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const UserScreen()),
-        );
+        // navigate to profile screen
       } else {
         Navigator.push(
           context,

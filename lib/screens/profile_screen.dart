@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/screen_wrapper.dart';
+import '../widgets/top_bar_without_menu.dart';
 import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
@@ -111,12 +111,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ScreenWrapper(
-      currentIndex: 3,
-      onIndexChanged: (index) {
-        // Navigation is handled by MainScreen
-      },
-      child: isLoading
+    return Scaffold(
+      backgroundColor: const Color(0xFF4F245A),
+      appBar: const TopBarWithoutMenu(),
+      body: isLoading
           ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),

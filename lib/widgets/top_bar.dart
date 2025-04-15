@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../screens/user_screen.dart';
 
 class TopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback onMenuPressed; // Callback for menu icon

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/post.dart';
-import '../widgets/screen_wrapper.dart';
 import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 import '../utils/post_type.dart';

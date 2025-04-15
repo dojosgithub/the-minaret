@@ -4,7 +4,6 @@ import 'dart:io';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import 'change_password_screen.dart';
-import 'user_screen.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
