@@ -283,17 +283,17 @@ class _SearchScreenState extends State<SearchScreen> {
           padding: const EdgeInsets.only(top: 8.0),
           child: SizedBox(
             height: 50,
-            child: TextField(
+          child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.black),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
+            style: const TextStyle(color: Colors.black),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
                 hintText: 'Search posts and users...',
-                hintStyle: const TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(
+              hintStyle: const TextStyle(color: Colors.grey),
+              border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
+                borderSide: BorderSide.none,
                 ),
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.search, color: Colors.grey),
@@ -312,16 +312,16 @@ class _SearchScreenState extends State<SearchScreen> {
               builder: (BuildContext context) {
                 return StatefulBuilder(
                   builder: (context, setState) {
-                    return AlertDialog(
-                      backgroundColor: const Color(0xFF3D1B45),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      content: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
+                return AlertDialog(
+                  backgroundColor: const Color(0xFF3D1B45),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                      children: [
                             _buildExpansionTile(
                               context,
                               'Sort by',
@@ -343,22 +343,22 @@ class _SearchScreenState extends State<SearchScreen> {
                               _selectedPostedBy,
                               (value) => setState(() => _selectedPostedBy = value),
                             ),
-                            const SizedBox(height: 20),
-                            ElevatedButton(
+                        const SizedBox(height: 20),
+                        ElevatedButton(
                               onPressed: () {
                                 Navigator.pop(context);
                                 _performSearch();
                               },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFDCC87),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                minimumSize: const Size(double.infinity, 50),
-                              ),
-                              child: const Text('Show Results', style: TextStyle(color: Colors.black)),
-                            ),
-                          ],
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFDCC87),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            minimumSize: const Size(double.infinity, 50),
+                          ),
+                          child: const Text('Show Results', style: TextStyle(color: Colors.black)),
                         ),
-                      ),
+                      ],
+                    ),
+                  ),
                     );
                   },
                 );
@@ -438,7 +438,7 @@ class _SearchScreenState extends State<SearchScreen> {
                           ],
                         ],
                       ),
-                    ),
+      ),
     );
   }
 
@@ -452,9 +452,9 @@ class _SearchScreenState extends State<SearchScreen> {
     return Padding(
       padding: const EdgeInsets.only(left: 10.0),
       child: ExpansionTile(
-        title: Text(title, style: const TextStyle(color: Color(0xFFFDCC87))),
-        children: options
-            .map(
+      title: Text(title, style: const TextStyle(color: Color(0xFFFDCC87))),
+      children: options
+          .map(
               (option) => Padding(
                 padding: const EdgeInsets.only(left: 20.0),
                 child: ListTile(
@@ -468,9 +468,9 @@ class _SearchScreenState extends State<SearchScreen> {
                     onSelect(option);
                   },
                 ),
-              ),
-            )
-            .toList(),
+            ),
+          )
+          .toList(),
       ),
     );
   }

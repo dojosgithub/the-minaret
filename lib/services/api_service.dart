@@ -956,4 +956,23 @@ class ApiService {
       rethrow;
     }
   }
+
+  static Future<Map<String, dynamic>> repostPost(String postId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/repost'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 201) {
+        return json.decode(response.body);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to repost');
+      }
+    } catch (e) {
+      debugPrint('Error reposting: $e');
+      rethrow;
+    }
+  }
 } 

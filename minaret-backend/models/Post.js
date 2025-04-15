@@ -45,6 +45,17 @@ const postSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   }],
+  isRepost: {
+    type: Boolean,
+    default: false
+  },
+  originalPost: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Post',
+    required: function() {
+      return this.isRepost;
+    }
+  },
   comments: [{
     author: {
       type: mongoose.Schema.Types.ObjectId,

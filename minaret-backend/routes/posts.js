@@ -5,6 +5,7 @@ const Post = require('../models/Post');
 const multer = require('multer');
 const path = require('path');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 // Configure multer for media uploads
 const storage = multer.diskStorage({
@@ -84,7 +85,14 @@ router.get('/', auth, async (req, res) => {
     // Get posts from all users except the current user
     const posts = await Post.find({ author: { $ne: req.user.id } })
       .sort({ createdAt: -1 })
-      .populate('author', 'firstName lastName username profileImage');
+      .populate('author', 'firstName lastName username profileImage')
+      .populate({
+        path: 'originalPost',
+        populate: {
+          path: 'author',
+          select: 'firstName lastName username profileImage'
+        }
+      });
     res.json(posts);
   } catch (err) {
     console.error(err.message);
@@ -97,7 +105,14 @@ router.get('/type/:type', async (req, res) => {
   try {
     const posts = await Post.find({ type: req.params.type })
       .sort({ createdAt: -1 })
-      .populate('author', 'username profileImage');
+      .populate('author', 'firstName lastName username profileImage')
+      .populate({
+        path: 'originalPost',
+        populate: {
+          path: 'author',
+          select: 'firstName lastName username profileImage'
+        }
+      });
     res.json(posts);
   } catch (err) {
     console.error(err.message);
@@ -244,6 +259,13 @@ router.get('/search', auth, async (req, res) => {
       Post.find(postQuery)
         .sort(sortOptions)
         .populate('author', 'firstName lastName username profileImage')
+        .populate({
+          path: 'originalPost',
+          populate: {
+            path: 'author',
+            select: 'firstName lastName username profileImage'
+          }
+        })
         .lean(),
       User.find(userQuery)
         .select('firstName lastName username profileImage')
@@ -263,6 +285,13 @@ router.get('/user/:userId', auth, async (req, res) => {
     const posts = await Post.find({ author: req.params.userId })
       .sort({ createdAt: -1 })
       .populate('author', 'firstName lastName username profileImage')
+      .populate({
+        path: 'originalPost',
+        populate: {
+          path: 'author',
+          select: 'firstName lastName username profileImage'
+        }
+      });
 
     res.json(posts);
   } catch (err) {
@@ -440,6 +469,62 @@ router.get('/:postId/vote-status', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Error getting post vote status:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Repost a post
+router.post('/:postId/repost', auth, async (req, res) => {
+  try {
+    const originalPost = await Post.findById(req.params.postId);
+    if (!originalPost) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Check if user has already reposted this post
+    const existingRepost = await Post.findOne({
+      author: req.user.id,
+      isRepost: true,
+      originalPost: req.params.postId
+    });
+
+    if (existingRepost) {
+      return res.status(400).json({ message: 'You have already reposted this post' });
+    }
+
+    // Create repost
+    const repost = new Post({
+      author: req.user.id,
+      type: originalPost.type,
+      title: originalPost.title,
+      body: originalPost.body,
+      media: originalPost.media,
+      links: originalPost.links,
+      isRepost: true,
+      originalPost: originalPost._id
+    });
+
+    await repost.save();
+
+    // Create notification for original post author
+    const notification = new Notification({
+      type: 'repost',
+      sender: req.user.id,
+      recipient: originalPost.author,
+      post: originalPost._id,
+      read: false
+    });
+    await notification.save();
+
+    // Return populated repost
+    const populatedRepost = await Post.findById(repost._id)
+      .populate('author', 'firstName lastName username profileImage')
+      .populate('originalPost')
+      .populate('originalPost.author', 'firstName lastName username profileImage');
+
+    res.status(201).json(populatedRepost);
+  } catch (error) {
+    console.error('Error reposting:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

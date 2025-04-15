@@ -16,14 +16,16 @@ class Post extends StatefulWidget {
   final String text;
   final List<Map<String, dynamic>> media;
   final List<Map<String, dynamic>> links;
-  final int upvoteCount;
-  final int downvoteCount;
-  final int repostCount;
+  final int upvoteCount; 
+  final int downvoteCount; 
+  final int repostCount; 
   final int commentCount;
   final String createdAt;
   final String authorId;
   final bool isUpvoted;
   final bool isDownvoted;
+  final bool isRepost;
+  final Map<String, dynamic>? originalPost;
   final Function(String) onUpvote;
   final Function(String) onDownvote;
 
@@ -45,6 +47,8 @@ class Post extends StatefulWidget {
     required this.authorId,
     this.isUpvoted = false,
     this.isDownvoted = false,
+    this.isRepost = false,
+    this.originalPost,
     required this.onUpvote,
     required this.onDownvote,
   });
@@ -208,42 +212,10 @@ class _PostState extends State<Post> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    "Send To",
+                    "Share",
                     style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                   const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    alignment: WrapAlignment.center,
-                    children: List.generate(6, (index) {
-                      return Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(3),
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Color(0xFFFDCC87),
-                            ),
-                            child: const CircleAvatar(
-                              backgroundColor: Colors.grey,
-                              radius: 20,
-                            ),
-                          ),
-                          const SizedBox(height: 5),
-                          const Text(
-                            "User Name",
-                            style: TextStyle(color: Colors.white, fontSize: 12),
-                          ),
-                        ],
-                      );
-                    }),
-                  ),
-                  const Divider(
-                    color: Color(0xFFFDCC87),
-                    thickness: 1,
-                    height: 20,
-                  ),
                   Wrap(
                     spacing: 10,
                     runSpacing: 10,
@@ -256,9 +228,13 @@ class _PostState extends State<Post> {
                       }),
                       _buildShareOption(context, Icons.heart_broken, "Not Interested", () {}),
                       _buildShareOption(context, Icons.flag, "Report", () {
+                        Navigator.pop(context);
                         _showReportPopup(context);
                       }),
-                      _buildShareOption(context, Icons.repeat, "Repost", () {}),
+                      _buildShareOption(context, Icons.repeat, "Repost", () {
+                        Navigator.pop(context);
+                        _handleRepost();
+                      }),
                       _buildShareOptionWithImage(context, "assets/whatsapp.png", "WhatsApp", () {}),
                       _buildShareOptionWithImage(context, "assets/telegram.png", "Telegram", () {}),
                     ],
@@ -342,12 +318,12 @@ class _PostState extends State<Post> {
     return Column(
       children: [
         Container(
-          width: 50, // Match user circle size
-          height: 50, // Match user circle size
+          width: 50,
+          height: 50,
           padding: const EdgeInsets.all(8),
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(0xFFFDCC87), // Yellow circle
+            color: Color(0xFFFDCC87),
           ),
           child: IconButton(icon: Icon(icon, color: Colors.black), onPressed: onTap),
         ),
@@ -510,6 +486,95 @@ class _PostState extends State<Post> {
     } catch (e) {
       debugPrint('Error downvoting: $e');
     }
+  }
+
+  Future<void> _handleRepost() async {
+    try {
+      await ApiService.repostPost(widget.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Post reposted successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString())),
+        );
+      }
+    }
+  }
+
+  Widget _buildRepostedContent() {
+    if (!widget.isRepost || widget.originalPost == null) {
+      return const SizedBox.shrink();
+    }
+
+    final originalAuthor = widget.originalPost!['author'];
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFFDCC87)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(2),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFFDCC87),
+                ),
+                child: CircleAvatar(
+                  backgroundImage: AssetImage(originalAuthor['profileImage']),
+                  radius: 15,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${originalAuthor['firstName']} ${originalAuthor['lastName']}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    '@${originalAuthor['username']}',
+                    style: const TextStyle(
+                      color: Color(0xFFFDCC87),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            widget.originalPost!['title'],
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            widget.originalPost!['body'],
+            style: const TextStyle(
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildMediaGrid() {
@@ -728,51 +793,51 @@ class _PostState extends State<Post> {
           onTap: () => _navigateToProfile(context),
           child: Container(
             padding: const EdgeInsets.all(3),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFFDCC87),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFFDCC87),
+                ),
+                child: CircleAvatar(
+                  backgroundImage: AssetImage(widget.profilePic),
+                  radius: 25,
             ),
-            child: CircleAvatar(
-              backgroundImage: AssetImage(widget.profilePic),
-              radius: 25,
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      GestureDetector(
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
                         onTap: () => _navigateToProfile(context),
-                        child: Text(
-                          widget.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.white,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                      GestureDetector(
+                              child: Text(
+                                widget.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
                         onTap: () => _navigateToProfile(context),
-                        child: Text(
-                          '@${widget.username}',
-                          style: const TextStyle(
-                            color: Color(0xFFFDCC87),
-                            fontSize: 14,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ],
+                              child: Text(
+                                '@${widget.username}',
+                                style: const TextStyle(
+                                  color: Color(0xFFFDCC87),
+                                  fontSize: 14,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
                   ),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
@@ -786,8 +851,8 @@ class _PostState extends State<Post> {
                               color: Colors.white.withValues(alpha: 0.6),
                               fontSize: 12,
                             ),
-                          ),
-                          IconButton(
+                        ),
+                        IconButton(
                             icon: _isLoading
                                 ? const SizedBox(
                                     width: 24,
@@ -798,17 +863,17 @@ class _PostState extends State<Post> {
                                     ),
                                   )
                                 : Icon(
-                                    _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                                    color: const Color(0xFFFDCC87),
+                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                            color: const Color(0xFFFDCC87),
                                   ),
                             onPressed: _toggleSave,
                           ),
                         ],
                       ),
                     ],
-                  ),
-                ],
-              ),
+                        ),
+                      ],
+                    ),
               const SizedBox(height: 1),
               Text(
                 widget.title,
@@ -818,18 +883,18 @@ class _PostState extends State<Post> {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 5),
-              Text(
-                widget.text,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.white,
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.text,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -857,6 +922,7 @@ class _PostState extends State<Post> {
           _buildLinks(),
           const SizedBox(height: 5),
           _buildMediaGrid(),
+          _buildRepostedContent(),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -917,7 +983,7 @@ class _PostState extends State<Post> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.repeat, color: Colors.white),
-                    onPressed: () {},
+                    onPressed: _handleRepost,
                   ),
                   Text(
                     widget.repostCount.toString(),
