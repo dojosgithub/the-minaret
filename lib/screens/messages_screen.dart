@@ -17,19 +17,32 @@ class _MessagesScreenState extends State<MessagesScreen> {
   List<Conversation> _conversations = [];
   bool _isLoading = true;
   String? _error;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _loadConversations();
+    _loadData();
   }
 
-  Future<void> _loadConversations() async {
+  Future<void> _loadData() async {  
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
+    try {
+      _currentUserId = await ApiService.currentUserId;
+      await _loadConversations();
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadConversations() async {
     try {
       final conversations = await MessageService.getConversations();
       setState(() {
@@ -79,7 +92,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadConversations,
+                        onPressed: _loadData,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFDCC87),
                         ),
@@ -89,7 +102,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   ),
                 )
               : RefreshIndicator(
-                  onRefresh: _loadConversations,
+                  onRefresh: _loadData,
                   color: const Color(0xFFFDCC87),
                   child: _conversations.isEmpty
                       ? const Center(
@@ -103,9 +116,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           itemBuilder: (context, index) {
                             final conversation = _conversations[index];
                             final otherUser = conversation
-                                .getOtherParticipant(ApiService.currentUserId ?? '');
+                                .getOtherParticipant(_currentUserId ?? '');
                             final lastMessage = conversation.lastMessage;
-                            final isLastMessageFromMe = lastMessage?.senderId == ApiService.currentUserId;
+                            final isLastMessageFromMe = lastMessage?.senderId == _currentUserId;
 
                             return ListTile(
                               leading: CircleAvatar(

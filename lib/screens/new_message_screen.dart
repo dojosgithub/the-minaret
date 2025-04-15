@@ -41,7 +41,11 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
 
     try {
       final conversations = await MessageService.getConversations();
-      final users = conversations.map((conv) => conv.getOtherParticipant(ApiService.currentUserId ?? '')).toList();
+      final currentUserId = await ApiService.currentUserId;
+      final users = conversations
+          .map((conv) => conv.getOtherParticipant(currentUserId ?? ''))
+          .where((user) => user['_id'] != currentUserId)
+          .toList();
       
       setState(() {
         _users = users;
@@ -90,8 +94,11 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
 
       try {
         final searchResults = await ApiService.searchUsers(query);
+        final currentUserId = await ApiService.currentUserId;
+        // Filter out current user from API results as well
+        final filteredResults = searchResults.where((user) => user['_id'] != currentUserId).toList();
         setState(() {
-          _filteredUsers = searchResults;
+          _filteredUsers = filteredResults;
           _isLoading = false;
         });
       } catch (e) {
@@ -120,9 +127,9 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
                 hintStyle: const TextStyle(color: Colors.grey),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 filled: true,
-                fillColor: Colors.grey[900],
+                fillColor: const Color(0xFF3A1E47),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,
                 ),
               ),

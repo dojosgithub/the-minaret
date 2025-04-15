@@ -218,10 +218,15 @@ router.get('/search', auth, async (req, res) => {
     }
 
     const users = await User.find({
-      $or: [
-        { username: { $regex: query, $options: 'i' } },
-        { firstName: { $regex: query, $options: 'i' } },
-        { lastName: { $regex: query, $options: 'i' } }
+      $and: [
+        {
+          $or: [
+            { username: { $regex: query, $options: 'i' } },
+            { firstName: { $regex: query, $options: 'i' } },
+            { lastName: { $regex: query, $options: 'i' } }
+          ]
+        },
+        { _id: { $ne: req.user.id } } // Exclude current user
       ]
     })
     .select('firstName lastName username profileImage')

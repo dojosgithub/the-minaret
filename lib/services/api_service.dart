@@ -842,12 +842,12 @@ class ApiService {
     }
   }
 
-  static String? get currentUserId {
+  static Future<String?> get currentUserId async {
     try {
-      final prefs = SharedPreferences.getInstance();
-      final user = prefs.then((prefs) => prefs.getString('user'));
+      final prefs = await SharedPreferences.getInstance();
+      final user = prefs.getString('user');
       if (user != null) {
-        final userData = json.decode(user as String);
+        final userData = json.decode(user);
         return userData['_id'];
       }
       return null;
