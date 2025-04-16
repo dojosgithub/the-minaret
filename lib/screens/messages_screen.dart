@@ -33,10 +33,23 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
     try {
       _currentUserId = await ApiService.currentUserId;
+      if (_currentUserId == null) {
+        // Try to get the user data again after a short delay
+        await Future.delayed(const Duration(milliseconds: 500));
+        _currentUserId = await ApiService.currentUserId;
+        
+        if (_currentUserId == null) {
+          setState(() {
+            _error = 'Please log in to view messages';
+            _isLoading = false;
+          });
+          return;
+        }
+      }
       await _loadConversations();
     } catch (e) {
       setState(() {
-        _error = e.toString();
+        _error = 'Error loading messages. Please try again.';
         _isLoading = false;
       });
     }
@@ -62,7 +75,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
       appBar: const TopBarWithoutMenu(),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: _currentUserId != null ? FloatingActionButton(
         onPressed: () {
           Navigator.push(
             context,
@@ -73,7 +86,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         },
         backgroundColor: const Color(0xFFFDCC87),
         child: const Icon(Icons.message, color: Color(0xFF4F245A)),
-      ),
+      ) : null,
       
       body: _isLoading
           ? const Center(
@@ -89,10 +102,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       Text(
                         _error!,
                         style: const TextStyle(color: Colors.white),
+                        textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadData,
+                        onPressed: () {
+                          // Clear any potentially corrupted data
+                          ApiService.logout();
+                          _loadData();
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFFDCC87),
                         ),
@@ -115,8 +133,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
                           itemCount: _conversations.length,
                           itemBuilder: (context, index) {
                             final conversation = _conversations[index];
-                            final otherUser = conversation
-                                .getOtherParticipant(_currentUserId ?? '');
+                            if (_currentUserId == null) return const SizedBox.shrink();
+                            
+                            final otherUser = conversation.getOtherParticipant(_currentUserId!);
                             final lastMessage = conversation.lastMessage;
                             final isLastMessageFromMe = lastMessage?.senderId == _currentUserId;
 

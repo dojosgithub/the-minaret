@@ -145,14 +145,32 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final token = data['token'];
-        final user = data['user'];
         
-        // Store token and user data
+        if (token == null) {
+          throw Exception('Invalid login response format: missing token');
+        }
+        
+        // Store token
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', token);
-        await prefs.setString('user', jsonEncode(user));
         _authToken = token;
-        return true;
+        
+        // Fetch user data using the token
+        final userResponse = await http.get(
+          Uri.parse('$baseUrl/users/profile'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+        
+        if (userResponse.statusCode == 200) {
+          final userData = jsonDecode(userResponse.body);
+          await prefs.setString('user', jsonEncode(userData));
+          return true;
+        } else {
+          throw Exception('Failed to fetch user data');
+        }
       } else {
         throw Exception('Failed to login: ${response.body}');
       }
@@ -845,12 +863,31 @@ class ApiService {
   static Future<String?> get currentUserId async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final user = prefs.getString('user');
-      if (user != null) {
-        final userData = json.decode(user);
-        return userData['_id'];
+      final userJson = prefs.getString('user');
+      
+      if (userJson == null) {
+        debugPrint('No user data found in SharedPreferences');
+        return null;
       }
-      return null;
+      
+      try {
+        final userData = json.decode(userJson);
+        if (userData is! Map<String, dynamic>) {
+          debugPrint('Invalid user data format: not a map');
+          return null;
+        }
+        
+        final userId = userData['_id'];
+        if (userId == null) {
+          debugPrint('No _id field found in user data');
+          return null;
+        }
+        
+        return userId.toString();
+      } catch (e) {
+        debugPrint('Error parsing user data: $e');
+        return null;
+      }
     } catch (e) {
       debugPrint('Error getting current user ID: $e');
       return null;
