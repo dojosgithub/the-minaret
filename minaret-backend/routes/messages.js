@@ -24,10 +24,24 @@ router.get('/', auth, async (req, res) => {
 // Get messages for a specific conversation
 router.get('/:conversationId', auth, async (req, res) => {
   try {
+    // First get the conversation to get the participants
+    const conversation = await Conversation.findById(req.params.conversationId);
+    
+    if (!conversation) {
+      return res.status(404).json({ message: 'Conversation not found' });
+    }
+
+    // Get messages between the participants
     const messages = await Message.find({
       $or: [
-        { sender: req.user.id, recipient: req.params.conversationId },
-        { sender: req.params.conversationId, recipient: req.user.id }
+        { 
+          sender: conversation.participants[0],
+          recipient: conversation.participants[1]
+        },
+        { 
+          sender: conversation.participants[1],
+          recipient: conversation.participants[0]
+        }
       ]
     })
     .sort({ createdAt: 1 })

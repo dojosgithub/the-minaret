@@ -51,7 +51,13 @@ class MessageService {
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         debugPrint('Decoded messages data: $data');
+        if (data.isEmpty) {
+          debugPrint('No messages found for conversation: $conversationId');
+        }
         return data.map((json) => Message.fromJson(json)).toList();
+      } else if (response.statusCode == 404) {
+        debugPrint('Conversation not found: $conversationId');
+        return [];
       } else {
         throw Exception('Failed to load messages: ${response.body}');
       }
