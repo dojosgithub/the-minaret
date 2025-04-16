@@ -15,6 +15,7 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   List<Conversation> _conversations = [];
+  List<Map<String, dynamic>> _userDetails = [];
   bool _isLoading = true;
   String? _error;
   String? _currentUserId;
@@ -34,20 +35,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
     try {
       _currentUserId = await ApiService.currentUserId;
       if (_currentUserId == null) {
-        // Try to get the user data again after a short delay
-        await Future.delayed(const Duration(milliseconds: 500));
-        _currentUserId = await ApiService.currentUserId;
-        
-        if (_currentUserId == null) {
-          setState(() {
-            _error = 'Please log in to view messages';
-            _isLoading = false;
-          });
-          return;
-        }
+        setState(() {
+          _error = 'Please log in to view messages';
+          _isLoading = false;
+        });
+        return;
       }
       await _loadConversations();
     } catch (e) {
+      debugPrint('Error loading data: $e');
       setState(() {
         _error = 'Error loading messages. Please try again.';
         _isLoading = false;
@@ -58,15 +54,37 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Future<void> _loadConversations() async {
     try {
       final conversations = await MessageService.getConversations();
+      if (_currentUserId == null) {
+        setState(() {
+          _error = 'Please log in to view messages';
+          _isLoading = false;
+        });
+        return;
+      }
+
+      final userDetails = await Future.wait(
+        conversations.map((conv) => ApiService.getUserById(conv.getOtherParticipant(_currentUserId!)))
+      );
+      
       setState(() {
         _conversations = conversations;
+        _userDetails = userDetails;
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      debugPrint('Error loading conversations: $e');
+      if (e.toString().contains('Token is not valid')) {
+        await ApiService.logout();
+        setState(() {
+          _error = 'Session expired. Please log in again.';
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _error = e.toString();
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -135,20 +153,31 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             final conversation = _conversations[index];
                             if (_currentUserId == null) return const SizedBox.shrink();
                             
-                            final otherUser = conversation.getOtherParticipant(_currentUserId!);
+                            final otherUser = _userDetails[index];
                             final lastMessage = conversation.lastMessage;
                             final isLastMessageFromMe = lastMessage?.senderId == _currentUserId;
 
                             return ListTile(
                               leading: CircleAvatar(
                                 backgroundImage: otherUser['profileImage'] != null
-                                    ? NetworkImage(otherUser['profileImage'])
-                                    : const AssetImage('assets/default_profile.png')
-                                        as ImageProvider,
+                                    ? NetworkImage(otherUser['profileImage'] as String)
+                                    : null,
+                                child: otherUser['profileImage'] == null
+                                    ? Text(
+                                        '${otherUser['firstName']?[0] ?? ''}${otherUser['lastName']?[0] ?? ''}',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
                               ),
                               title: Text(
-                                '${otherUser['firstName']} ${otherUser['lastName']}',
-                                style: const TextStyle(color: Colors.white),
+                                '${otherUser['firstName'] ?? ''} ${otherUser['lastName'] ?? ''}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                               subtitle: Text(
                                 lastMessage?.content ?? 'No messages yet',
@@ -162,7 +191,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    _formatTime(conversation.lastMessageAt),
+                                    _formatTime(conversation.lastMessageTimestamp),
                                     style: TextStyle(
                                       color: Colors.grey[400],
                                       fontSize: 12,

@@ -28,6 +28,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   void initState() {
     super.initState();
     _loadMessages();
+    _loadUserDetails();
   }
 
   @override
@@ -43,16 +44,31 @@ class _ConversationScreenState extends State<ConversationScreen> {
     });
 
     try {
+      debugPrint('Loading messages for conversation: ${widget.conversationId}');
       final messages = await MessageService.getMessages(widget.conversationId);
+      debugPrint('Loaded ${messages.length} messages');
+      
       setState(() {
         _messages = messages;
         _isLoading = false;
       });
     } catch (e) {
+      debugPrint('Error loading messages: $e');
       setState(() {
         _error = e.toString();
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadUserDetails() async {
+    try {
+      final userDetails = await ApiService.getUserById(widget.otherUser['_id']);
+      setState(() {
+        widget.otherUser.updateAll((key, value) => userDetails[key] ?? value);
+      });
+    } catch (e) {
+      debugPrint('Error loading user details: $e');
     }
   }
 
@@ -159,56 +175,70 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     : RefreshIndicator(
                         onRefresh: _loadMessages,
                         color: const Color(0xFFFDCC87),
-                        child: ListView.builder(
-                          reverse: true,
-                          itemCount: _messages.length,
-                          itemBuilder: (context, index) {
-                            final message = _messages[index];
-                            final isMe = message.senderId == ApiService.currentUserId;
+                        child: _messages.isEmpty
+                            ? const Center(
+                                child: Text(
+                                  'No messages yet',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              )
+                            : ListView.builder(
+                                reverse: true,
+                                itemCount: _messages.length,
+                                itemBuilder: (context, index) {
+                                  final message = _messages[index];
+                                  final isMe = message.senderId == ApiService.currentUserId;
 
-                            return Align(
-                              alignment: isMe
-                                  ? Alignment.centerRight
-                                  : Alignment.centerLeft,
-                              child: Container(
-                                margin: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 4,
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isMe
-                                      ? const Color(0xFFFDCC87)
-                                      : Colors.grey[800],
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (!isMe)
-                                      Text(
-                                        '${widget.otherUser['firstName']} ${widget.otherUser['lastName']}',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                  return Align(
+                                    alignment: isMe
+                                        ? Alignment.centerRight
+                                        : Alignment.centerLeft,
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 4,
                                       ),
-                                    Text(
-                                      message.content,
-                                      style: TextStyle(
-                                        color: isMe ? Colors.black : Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isMe
+                                            ? const Color(0xFFFDCC87)
+                                            : Colors.grey[800],
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          if (!isMe)
+                                            Text(
+                                              '${widget.otherUser['firstName']} ${widget.otherUser['lastName']}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          Text(
+                                            message.content,
+                                            style: TextStyle(
+                                              color: isMe ? Colors.black : Colors.white,
+                                            ),
+                                          ),
+                                          Text(
+                                            _formatTime(message.createdAt),
+                                            style: TextStyle(
+                                              color: isMe ? Colors.black54 : Colors.grey[400],
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
                       ),
           ),
           Container(
@@ -250,5 +280,22 @@ class _ConversationScreenState extends State<ConversationScreen> {
         ],
       ),
     );
+  }
+
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    final difference = now.difference(time);
+
+    if (difference.inDays > 7) {
+      return '${time.day}/${time.month}/${time.year}';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays}d ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}h ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return 'Just now';
+    }
   }
 } 

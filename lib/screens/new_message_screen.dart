@@ -44,12 +44,17 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
       final currentUserId = await ApiService.currentUserId;
       final users = conversations
           .map((conv) => conv.getOtherParticipant(currentUserId ?? ''))
-          .where((user) => user['_id'] != currentUserId)
+          .where((userId) => userId != currentUserId)
           .toList();
       
+      // Fetch user details for each user ID
+      final userDetails = await Future.wait(
+        users.map((userId) => ApiService.getUserById(userId))
+      );
+      
       setState(() {
-        _users = users;
-        _filteredUsers = users;
+        _users = userDetails;
+        _filteredUsers = List.from(_users);
         _isLoading = false;
       });
     } catch (e) {

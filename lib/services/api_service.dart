@@ -291,7 +291,17 @@ class ApiService {
         Uri.parse('$baseUrl/users/profile'),
         headers: await getHeaders(),
       );
-      return response.statusCode == 200;
+      
+      if (response.statusCode == 200) {
+        // Update user data in case it changed
+        final userData = json.decode(response.body);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', json.encode(userData));
+        return true;
+      } else {
+        debugPrint('Token verification failed with status: ${response.statusCode}');
+        return false;
+      }
     } catch (e) {
       debugPrint('Token verification failed: $e');
       return false;
@@ -864,9 +874,11 @@ class ApiService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final userJson = prefs.getString('user');
+      final token = prefs.getString('token');
       
-      if (userJson == null) {
-        debugPrint('No user data found in SharedPreferences');
+      if (userJson == null || token == null) {
+        debugPrint('No user data or token found in SharedPreferences');
+        await logout(); // Clear any invalid data
         return null;
       }
       
@@ -874,22 +886,34 @@ class ApiService {
         final userData = json.decode(userJson);
         if (userData is! Map<String, dynamic>) {
           debugPrint('Invalid user data format: not a map');
+          await logout();
           return null;
         }
         
         final userId = userData['_id'];
         if (userId == null) {
           debugPrint('No _id field found in user data');
+          await logout();
+          return null;
+        }
+        
+        // Verify token is still valid
+        final isValid = await verifyToken();
+        if (!isValid) {
+          debugPrint('Token is invalid');
+          await logout();
           return null;
         }
         
         return userId.toString();
       } catch (e) {
         debugPrint('Error parsing user data: $e');
+        await logout();
         return null;
       }
     } catch (e) {
       debugPrint('Error getting current user ID: $e');
+      await logout();
       return null;
     }
   }
