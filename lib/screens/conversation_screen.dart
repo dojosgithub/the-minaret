@@ -23,12 +23,12 @@ class _ConversationScreenState extends State<ConversationScreen> {
   List<Message> _messages = [];
   bool _isLoading = true;
   String? _error;
+  String? _currentUserId;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
-    _loadUserDetails();
+    _loadData();
   }
 
   @override
@@ -37,12 +37,33 @@ class _ConversationScreenState extends State<ConversationScreen> {
     super.dispose();
   }
 
-  Future<void> _loadMessages() async {
+  Future<void> _loadData() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
+    try {
+      _currentUserId = await ApiService.currentUserId;
+      if (_currentUserId == null) {
+        setState(() {
+          _error = 'Please log in to view messages';
+          _isLoading = false;
+        });
+        return;
+      }
+      await _loadMessages();
+      await _loadUserDetails();
+    } catch (e) {
+      debugPrint('Error loading data: $e');
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _loadMessages() async {
     try {
       debugPrint('Loading messages for conversation: ${widget.conversationId}');
       final messages = await MessageService.getMessages(widget.conversationId);
@@ -163,7 +184,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton(
-                              onPressed: _loadMessages,
+                              onPressed: _loadData,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFFDCC87),
                               ),
@@ -173,7 +194,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         ),
                       )
                     : RefreshIndicator(
-                        onRefresh: _loadMessages,
+                        onRefresh: _loadData,
                         color: const Color(0xFFFDCC87),
                         child: _messages.isEmpty
                             ? const Center(
@@ -183,11 +204,11 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 ),
                               )
                             : ListView.builder(
-                                reverse: true,
+                                reverse: false,
                                 itemCount: _messages.length,
                                 itemBuilder: (context, index) {
                                   final message = _messages[index];
-                                  final isMe = message.senderId == ApiService.currentUserId;
+                                  final isMe = _currentUserId != null && message.senderId == _currentUserId;
 
                                   return Align(
                                     alignment: isMe
@@ -205,7 +226,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                       decoration: BoxDecoration(
                                         color: isMe
                                             ? const Color(0xFFFDCC87)
-                                            : Colors.grey[800],
+                                            : const Color(0xFF9D3267),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Column(
@@ -229,7 +250,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                           Text(
                                             _formatTime(message.createdAt),
                                             style: TextStyle(
-                                              color: isMe ? Colors.black54 : Colors.grey[400],
+                                              color: isMe ? Colors.black54 : Colors.grey[200],
                                               fontSize: 10,
                                             ),
                                           ),
