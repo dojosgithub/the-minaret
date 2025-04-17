@@ -139,4 +139,52 @@ router.put('/:messageId/read', auth, async (req, res) => {
   }
 });
 
+// Send a post to a user
+router.post('/send-post', auth, async (req, res) => {
+  try {
+    const { recipientId, postId } = req.body;
+    
+    // Find or create conversation
+    let conversation = await Conversation.findOne({
+      participants: { $all: [req.user.id, recipientId] }
+    });
+
+    if (!conversation) {
+      conversation = new Conversation({
+        participants: [req.user.id, recipientId],
+        lastMessage: null,
+        lastMessageAt: new Date(),
+        unreadCount: 1
+      });
+      await conversation.save();
+    }
+
+    // Create the message
+    const message = new Message({
+      sender: req.user.id,
+      recipient: recipientId,
+      content: `Check out this post: ${req.body.content}`,
+      post: postId,
+      conversation: conversation._id
+    });
+    await message.save();
+
+    // Update conversation
+    conversation.lastMessage = message._id;
+    conversation.lastMessageAt = message.createdAt;
+    conversation.unreadCount += 1;
+    await conversation.save();
+
+    // Populate the message with sender and post details
+    const populatedMessage = await Message.findById(message._id)
+      .populate('sender', 'username firstName lastName profilePicture')
+      .populate('post', 'title body media');
+
+    res.json(populatedMessage);
+  } catch (error) {
+    console.error('Error sending post:', error);
+    res.status(500).json({ error: 'Failed to send post' });
+  }
+});
+
 module.exports = router; 

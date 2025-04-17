@@ -6,7 +6,14 @@ import '../widgets/top_bar_without_menu.dart';
 import 'dart:async';
 
 class NewMessageScreen extends StatefulWidget {
-  const NewMessageScreen({super.key});
+  final Map<String, dynamic>? initialPost;
+  final Map<String, dynamic>? initialRecipient;
+
+  const NewMessageScreen({
+    super.key,
+    this.initialPost,
+    this.initialRecipient,
+  });
 
   @override
   State<NewMessageScreen> createState() => _NewMessageScreenState();

@@ -979,6 +979,7 @@ class ApiService {
     String recipientId,
     String content, [
     List<Map<String, dynamic>>? media,
+    String? postId,
   ]) async {
     try {
       final response = await http.post(
@@ -988,6 +989,7 @@ class ApiService {
           'recipient': recipientId,
           'content': content,
           'media': media,
+          'postId': postId,
         }),
       );
 
@@ -1034,6 +1036,18 @@ class ApiService {
     } catch (e) {
       debugPrint('Error reposting: $e');
       rethrow;
+    }
+  }
+
+  static Future<http.Response> getFollowedUsers() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/following'),
+        headers: await getHeaders(),
+      );
+      return response;
+    } catch (e) {
+      throw Exception('Failed to get followed users: $e');
     }
   }
 } 

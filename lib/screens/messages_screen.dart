@@ -155,7 +155,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             
                             final otherUser = _userDetails[index];
                             final lastMessage = conversation.lastMessage;
-                            final isLastMessageFromMe = lastMessage?.senderId == _currentUserId;
+                            final isLastMessageFromMe = lastMessage?['sender']?['_id'] == _currentUserId;
 
                             return ListTile(
                               leading: CircleAvatar(
@@ -180,7 +180,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 ),
                               ),
                               subtitle: Text(
-                                lastMessage?.content ?? 'No messages yet',
+                                lastMessage?['content'] ?? 'No messages yet',
                                 style: TextStyle(
                                   color: Colors.grey[400],
                                   overflow: TextOverflow.ellipsis,
@@ -192,7 +192,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.end,
                                 children: [
                                   Text(
-                                    _formatTime(conversation.lastMessageTimestamp),
+                                    _formatTime(conversation.lastMessageAt),
                                     style: TextStyle(
                                       color: Colors.grey[400],
                                       fontSize: 12,

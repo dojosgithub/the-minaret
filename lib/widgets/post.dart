@@ -6,6 +6,9 @@ import '../services/api_service.dart';
 import '../screens/profile_screen.dart';
 import '../screens/user_screen.dart';
 import 'comment.dart';
+import 'dart:convert';
+import '../screens/new_message_screen.dart';
+import '../services/message_service.dart';
 
 class Post extends StatefulWidget {
   final String id;
@@ -192,59 +195,231 @@ class _PostState extends State<Post> {
   }
 
   void _showSharePopup(BuildContext context) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: SingleChildScrollView(
-            child: Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: const Color(0xFF3D1B45),
-                borderRadius: BorderRadius.circular(15),
-              ),
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.9,
-                maxHeight: MediaQuery.of(context).size.height * 0.7,
-              ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Container(
+              padding: EdgeInsets.all(16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    "Share",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  Text(
+                    'Share Post',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  const SizedBox(height: 10),
-                  Wrap(
-                    spacing: 10,
-                    runSpacing: 10,
-                    alignment: WrapAlignment.center,
+                  SizedBox(height: 16),
+                  // First row: Share options
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      _buildShareOption(context, Icons.link, "Copy Link", () {
-                        Clipboard.setData(const ClipboardData(text: "Post Link"));
-                        Navigator.pop(context);
-                        _showCopiedMessage(context);
-                      }),
-                      _buildShareOption(context, Icons.heart_broken, "Not Interested", () {}),
-                      _buildShareOption(context, Icons.flag, "Report", () {
-                        Navigator.pop(context);
-                        _showReportPopup(context);
-                      }),
-                      _buildShareOption(context, Icons.repeat, "Repost", () {
-                        Navigator.pop(context);
-                        _handleRepost();
-                      }),
-                      _buildShareOptionWithImage(context, "assets/whatsapp.png", "WhatsApp", () {}),
-                      _buildShareOptionWithImage(context, "assets/telegram.png", "Telegram", () {}),
+                      _buildShareOption(
+                        icon: Icons.message,
+                        label: 'Message',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => NewMessageScreen(
+                                initialPost: {
+                                  '_id': widget.id,
+                                  'title': widget.title,
+                                  'body': widget.text,
+                                  'media': widget.media,
+                                  'author': {
+                                    'username': widget.username,
+                                    'firstName': widget.name.split(' ')[0],
+                                    'lastName': widget.name.split(' ').length > 1 ? widget.name.split(' ')[1] : '',
+                                    'profileImage': widget.profilePic,
+                                  }
+                                },
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      _buildShareOption(
+                        icon: Icons.copy,
+                        label: 'Copy Link',
+                        onTap: () {
+                          Clipboard.setData(ClipboardData(
+                            text: 'https://minaret.com/posts/${widget.id}',
+                          ));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Link copied to clipboard')),
+                          );
+                          Navigator.pop(context);
+                        },
+                      ),
+                      _buildShareOption(
+                        icon: Icons.share,
+                        label: 'More',
+                        onTap: () {
+                          // Implement native share functionality
+                          Navigator.pop(context);
+                        },
+                      ),
                     ],
+                  ),
+                  SizedBox(height: 16),
+                  // Second row: Recent users
+                  FutureBuilder<List<dynamic>>(
+                    future: _loadRecentUsers(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Center(child: CircularProgressIndicator());
+                      }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error loading recent users'));
+                      }
+                      final users = snapshot.data ?? [];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Recent',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Container(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: users.length,
+                              itemBuilder: (context, index) {
+                                final user = users[index];
+                                return GestureDetector(
+                                  onTap: () async {
+                                    Navigator.pop(context);
+                                    try {
+                                      await ApiService.sendMessage(
+                                        user['id'],
+                                        'Check out this post: ${widget.title}',
+                                        null,
+                                        widget.id,
+                                      );
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Post shared successfully')),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Failed to share post: $e')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    margin: EdgeInsets.only(right: 16),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          width: 60,
+                                          height: 60,
+                                          decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.yellow,
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: ClipOval(
+                                            child: Image.network(
+                                              user['profilePicture'] ?? '',
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Icon(Icons.person, size: 30);
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(height: 8),
+                                        Text(
+                                          user['username'] ?? '',
+                                          style: TextStyle(fontSize: 12),
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
               ),
-            ),
-          ),
+            );
+          },
         );
       },
+    );
+  }
+
+  Future<List<dynamic>> _loadRecentUsers() async {
+    try {
+      // First try to get recent conversations
+      final conversations = await MessageService.getConversations();
+      if (conversations.isNotEmpty) {
+        return conversations.map((conv) => {
+          'id': conv.id,
+          'username': conv.participants[0]['username'],
+          'firstName': conv.participants[0]['firstName'],
+          'lastName': conv.participants[0]['lastName'],
+          'profilePicture': conv.participants[0]['profileImage'],
+        }).toList();
+      }
+      
+      // If no conversations, get followed users
+      final response = await ApiService.getFollowedUsers();
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['users'] ?? [];
+      }
+      return [];
+    } catch (e) {
+      print('Error loading recent users: $e');
+      return [];
+    }
+  }
+
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: Colors.grey[200],
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon),
+          ),
+          SizedBox(height: 8),
+          Text(label),
+        ],
+      ),
     );
   }
 
@@ -253,7 +428,7 @@ class _PostState extends State<Post> {
       context: context,
       builder: (context) {
         return Dialog(
-          backgroundColor: Colors.transparent,
+          backgroundColor: const Color(0xFF4F245A),
           child: Container(
             padding: const EdgeInsets.all(15),
             decoration: BoxDecoration(
@@ -314,136 +489,504 @@ class _PostState extends State<Post> {
     );
   }
 
-  Widget _buildShareOption(BuildContext context, IconData icon, String label, VoidCallback onTap) {
-    return Column(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          padding: const EdgeInsets.all(8),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color(0xFFFDCC87),
-          ),
-          child: IconButton(icon: Icon(icon, color: Colors.black), onPressed: onTap),
-        ),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
-      ],
-    );
-  }
+  Widget _buildMediaGrid() {
+    if (widget.media.isEmpty) return const SizedBox.shrink();
 
-  Widget _buildShareOptionWithImage(BuildContext context, String assetPath, String label, VoidCallback onTap) {
-    return Column(
-      children: [
-        Container(
-          width: 50, // Match user circle size
-          height: 50, // Match user circle size
-          padding: const EdgeInsets.all(3),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color(0xFFFDCC87), // Yellow circle
-          ),
-          child: IconButton(
-            icon: Image.asset(assetPath, fit: BoxFit.cover),
-            onPressed: onTap,
-          ),
-        ),
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 12)),
-      ],
-    );
-  }
-
-  void _showCopiedMessage(BuildContext context) {
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
-      builder: (context) => Center(
-        child: Material(
-          color: Colors.transparent,
+    if (widget.media.length == 1) {
+      return GestureDetector(
+        onTap: () => _showGalleryView(0),
+        child: AspectRatio(
+          aspectRatio: 1,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            margin: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF3D1B45),
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: const Text("Link Copied", style: TextStyle(color: Colors.white)),
+            clipBehavior: Clip.hardEdge,
+            child: Image.network(
+              widget.media[0]['url'],
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Center(
+                  child: CircularProgressIndicator(
+                    value: loadingProgress.expectedTotalBytes != null
+                        ? loadingProgress.cumulativeBytesLoaded /
+                            loadingProgress.expectedTotalBytes!
+                        : null,
+                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  color: Colors.grey[300],
+                  child: const Icon(Icons.error),
+                );
+              },
+            ),
           ),
+        ),
+      );
+    }
+
+    // For multiple images, show 2 or 4 with +N overlay
+    final int displayCount = widget.media.length == 3 ? 2 : (widget.media.length <= 2 ? 2 : 4);
+    final int remainingCount = widget.media.length - displayCount;
+    
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: displayCount == 2 ? 2 : 2,
+        crossAxisSpacing: 4,
+        mainAxisSpacing: 4,
+        childAspectRatio: 1,
+      ),
+      itemCount: displayCount,
+      itemBuilder: (context, index) {
+        final bool isLastItem = index == displayCount - 1 && remainingCount > 0;
+        
+        return GestureDetector(
+          onTap: () => _showGalleryView(index),
+          child: Stack(
+            fit: StackFit.expand,
+      children: [
+        Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                clipBehavior: Clip.hardEdge,
+                child: Image.network(
+                  widget.media[index]['url'],
+                  fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                            : null,
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                      ),
+                    );
+                  },
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.error),
+                    );
+                  },
+                ),
+              ),
+              if (isLastItem)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '+$remainingCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showGalleryView(int initialIndex) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.black,
+        child: Stack(
+          children: [
+            PageView.builder(
+              controller: PageController(initialPage: initialIndex),
+              itemCount: widget.media.length,
+              itemBuilder: (context, index) {
+                return InteractiveViewer(
+                  child: Center(
+                    child: Image.network(
+                      widget.media[index]['url'],
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            value: loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                                : null,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          color: Colors.grey[300],
+                          child: const Icon(Icons.error),
+                        );
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+          ],
         ),
       ),
     );
-    overlay.insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 2), () => overlayEntry.remove());
   }
 
-  Future<void> _loadComments() async {
-    if (_loadingComments) return;
-    
-    setState(() {
-      _loadingComments = true;
-    });
+  Widget _buildLinks() {
+    if (widget.links.isEmpty) return const SizedBox.shrink();
 
-    try {
-      final comments = await ApiService.getPostComments(widget.id);
-      setState(() {
-        _comments = comments;
-        _loadingComments = false;
-      });
-    } catch (e) {
-      debugPrint('Error loading comments: $e');
-      setState(() {
-        _loadingComments = false;
-      });
-    }
-  }
-
-  Future<void> _addComment() async {
-    if (_commentController.text.trim().isEmpty) return;
-    
-    try {
-      final newComment = await ApiService.addComment(
-        widget.id,
-        _commentController.text,
-      );
-      setState(() {
-        _comments.insert(0, newComment);
-        _commentController.clear();
-      });
-    } catch (e) {
-      debugPrint('Error adding comment: $e');
-    }
-  }
-
-  Future<void> _addReply(String commentId) async {
-    if (_replyController.text.trim().isEmpty) return;
-    
-    try {
-      final newReply = await ApiService.addReply(
-        widget.id,
-        commentId,
-        _replyController.text,
-      );
-      setState(() {
-        final commentIndex = _comments.indexWhere((c) => c['_id'] == commentId);
-        if (commentIndex != -1) {
-          // Ensure replies array exists and is properly typed
-          if (_comments[commentIndex]['replies'] == null) {
-            _comments[commentIndex]['replies'] = [];
-          }
-          // Cast to List<Map<String, dynamic>> and insert the new reply
-          final replies = List<Map<String, dynamic>>.from(_comments[commentIndex]['replies']);
-          replies.insert(0, newReply);
-          _comments[commentIndex]['replies'] = replies;
-        }
-        _replyController.clear();
-        _replyingToCommentId = null;
-      });
-    } catch (e) {
-      debugPrint('Error adding reply: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add reply')),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: widget.links.map((link) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: InkWell(
+            onTap: () => _launchURL(link['url']),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+                color: const Color(0xFF4F245A),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFDCC87), width: 1),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.link, color: Color(0xFFFDCC87)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      link['title'] ?? link['url'],
+                      style: const TextStyle(
+                        color: Color(0xFFFDCC87),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+          ),
+        ],
+      ),
+            ),
+          ),
         );
-      }
-    }
+      }).toList(),
+    );
+  }
+
+  Widget _buildUserInfo() {
+    return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+        GestureDetector(
+          onTap: () => _navigateToProfile(context),
+          child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Color(0xFFFDCC87),
+                ),
+                child: CircleAvatar(
+                  backgroundImage: AssetImage(widget.profilePic),
+                  radius: 25,
+            ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                        onTap: () => _navigateToProfile(context),
+                              child: Text(
+                                widget.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                        onTap: () => _navigateToProfile(context),
+                              child: Text(
+                                '@${widget.username}',
+                                style: const TextStyle(
+                                  color: Color(0xFFFDCC87),
+                                  fontSize: 14,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                          ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            getTimeAgo(DateTime.parse(widget.createdAt)),
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.6),
+                              fontSize: 12,
+                            ),
+                        ),
+                        IconButton(
+                            icon: _isLoading
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                    ),
+                                  )
+                                : Icon(
+                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                            color: const Color(0xFFFDCC87),
+                                  ),
+                            onPressed: _toggleSave,
+                          ),
+                        ],
+                      ),
+                    ],
+                        ),
+                      ],
+                    ),
+              const SizedBox(height: 1),
+              Text(
+                widget.title,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.text,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF3D1B45),
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(52),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildUserInfo(),
+          const SizedBox(height: 5),
+          _buildLinks(),
+          const SizedBox(height: 5),
+          _buildMediaGrid(),
+          _buildRepostedContent(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_upward,
+                      color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                    onPressed: () {
+                      _handleUpvote();
+                    },
+                  ),
+                  Text(
+                    _upvoteCount.toString(),
+                    style: TextStyle(
+                      color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.arrow_downward,
+                      color: _isDownvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                    onPressed: () {
+                      _handleDownvote();
+                    },
+                  ),
+                  Text(
+                    _downvoteCount.toString(),
+                    style: TextStyle(
+                      color: _isDownvoted ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.comment, color: Colors.white),
+                    onPressed: () {
+                      setState(() {
+                        _showComments = !_showComments;
+                        if (_showComments) {
+                          _loadComments();
+                        }
+                      });
+                    },
+                  ),
+                  Text(
+                    widget.commentCount.toString(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.repeat, color: Colors.white),
+                    onPressed: _handleRepost,
+                  ),
+                  Text(
+                    widget.repostCount.toString(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.share, color: Colors.white),
+                onPressed: () => _showSharePopup(context),
+              ),
+            ],
+          ),
+          if (_showComments) ...[
+            const Divider(color: Color(0xFFFDCC87)),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _commentController,
+                          style: const TextStyle(color: Colors.white),
+                          decoration: const InputDecoration(
+                            hintText: 'Add a comment...',
+                            hintStyle: TextStyle(color: Colors.white54),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.send, color: Color(0xFFFDCC87)),
+                        onPressed: _addComment,
+                      ),
+                    ],
+                  ),
+                  if (_loadingComments)
+                    const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                      ),
+                    )
+                  else
+                    ..._comments.map((comment) => Comment(
+                      authorName: '${comment['author']['firstName']} ${comment['author']['lastName']}',
+                      authorUsername: comment['author']['username'],
+                      authorProfilePic: comment['author']['profileImage'],
+                      text: comment['text'],
+                      createdAt: comment['createdAt'],
+                      replies: List<Map<String, dynamic>>.from(comment['replies'] ?? []),
+                      onReply: () {
+                        setState(() {
+                          _replyingToCommentId = comment['_id'];
+                        });
+                      },
+                    )).toList(),
+                  if (_replyingToCommentId != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _replyController,
+                            style: const TextStyle(color: Colors.white),
+                            decoration: const InputDecoration(
+                              hintText: 'Add a reply...',
+                              hintStyle: TextStyle(color: Colors.white54),
+                              border: InputBorder.none,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.send, color: Color(0xFFFDCC87)),
+                          onPressed: () => _addReply(_replyingToCommentId!),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   Future<void> _handleUpvote() async {
@@ -577,499 +1120,75 @@ class _PostState extends State<Post> {
     );
   }
 
-  Widget _buildMediaGrid() {
-    if (widget.media.isEmpty) return const SizedBox.shrink();
-
-    if (widget.media.length == 1) {
-      return GestureDetector(
-        onTap: () => _showGalleryView(0),
-        child: AspectRatio(
-          aspectRatio: 1,
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            clipBehavior: Clip.hardEdge,
-            child: Image.network(
-              widget.media[0]['url'],
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.error),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-    }
-
-    // For multiple images, show 2 or 4 with +N overlay
-    final int displayCount = widget.media.length == 3 ? 2 : (widget.media.length <= 2 ? 2 : 4);
-    final int remainingCount = widget.media.length - displayCount;
+  Future<void> _addComment() async {
+    if (_commentController.text.trim().isEmpty) return;
     
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: displayCount == 2 ? 2 : 2,
-        crossAxisSpacing: 4,
-        mainAxisSpacing: 4,
-        childAspectRatio: 1,
-      ),
-      itemCount: displayCount,
-      itemBuilder: (context, index) {
-        final bool isLastItem = index == displayCount - 1 && remainingCount > 0;
-        
-        return GestureDetector(
-          onTap: () => _showGalleryView(index),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: Image.network(
-                  widget.media[index]['url'],
-                  fit: BoxFit.cover,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.error),
-                    );
-                  },
-                ),
-              ),
-              if (isLastItem)
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Center(
-                    child: Text(
-                      '+$remainingCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
+    try {
+      final newComment = await ApiService.addComment(
+        widget.id,
+        _commentController.text,
+      );
+      setState(() {
+        _comments.insert(0, newComment);
+        _commentController.clear();
+      });
+    } catch (e) {
+      debugPrint('Error adding comment: $e');
+    }
+  }
+
+  Future<void> _addReply(String commentId) async {
+    if (_replyController.text.trim().isEmpty) return;
+    
+    try {
+      final newReply = await ApiService.addReply(
+        widget.id,
+        commentId,
+        _replyController.text,
+      );
+      setState(() {
+        final commentIndex = _comments.indexWhere((c) => c['_id'] == commentId);
+        if (commentIndex != -1) {
+          // Ensure replies array exists and is properly typed
+          if (_comments[commentIndex]['replies'] == null) {
+            _comments[commentIndex]['replies'] = [];
+          }
+          // Cast to List<Map<String, dynamic>> and insert the new reply
+          final replies = List<Map<String, dynamic>>.from(_comments[commentIndex]['replies']);
+          replies.insert(0, newReply);
+          _comments[commentIndex]['replies'] = replies;
+        }
+        _replyController.clear();
+        _replyingToCommentId = null;
+      });
+    } catch (e) {
+      debugPrint('Error adding reply: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to add reply')),
         );
-      },
-    );
+      }
+    }
   }
 
-  void _showGalleryView(int initialIndex) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.black,
-        child: Stack(
-          children: [
-            PageView.builder(
-              controller: PageController(initialPage: initialIndex),
-              itemCount: widget.media.length,
-              itemBuilder: (context, index) {
-                return InteractiveViewer(
-                  child: Center(
-                    child: Image.network(
-                      widget.media[index]['url'],
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.error),
-                        );
-                      },
-                    ),
-                  ),
-                );
-              },
-            ),
-            Positioned(
-              top: 0,
-              right: 0,
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Future<void> _loadComments() async {
+    if (_loadingComments) return;
+    
+    setState(() {
+      _loadingComments = true;
+    });
 
-  Widget _buildLinks() {
-    if (widget.links.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: widget.links.map((link) {
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: InkWell(
-            onTap: () => _launchURL(link['url']),
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4F245A),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: const Color(0xFFFDCC87), width: 1),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.link, color: Color(0xFFFDCC87)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      link['title'] ?? link['url'],
-                      style: const TextStyle(
-                        color: Color(0xFFFDCC87),
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildUserInfo() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GestureDetector(
-          onTap: () => _navigateToProfile(context),
-          child: Container(
-            padding: const EdgeInsets.all(3),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFFDCC87),
-                ),
-                child: CircleAvatar(
-                  backgroundImage: AssetImage(widget.profilePic),
-                  radius: 25,
-            ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                        onTap: () => _navigateToProfile(context),
-                              child: Text(
-                                widget.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                        onTap: () => _navigateToProfile(context),
-                              child: Text(
-                                '@${widget.username}',
-                                style: const TextStyle(
-                                  color: Color(0xFFFDCC87),
-                                  fontSize: 14,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            getTimeAgo(DateTime.parse(widget.createdAt)),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 12,
-                            ),
-                        ),
-                        IconButton(
-                            icon: _isLoading
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                                    ),
-                                  )
-                                : Icon(
-                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                            color: const Color(0xFFFDCC87),
-                                  ),
-                            onPressed: _toggleSave,
-                          ),
-                        ],
-                      ),
-                    ],
-                        ),
-                      ],
-                    ),
-              const SizedBox(height: 1),
-              Text(
-                widget.title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.text,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF3D1B45),
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withAlpha(52),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildUserInfo(),
-          const SizedBox(height: 5),
-          _buildLinks(),
-          const SizedBox(height: 5),
-          _buildMediaGrid(),
-          _buildRepostedContent(),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_upward,
-                      color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
-                    ),
-                    onPressed: _handleUpvote,
-                  ),
-                  Text(
-                    _upvoteCount.toString(),
-                    style: TextStyle(
-                      color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(
-                      Icons.arrow_downward,
-                      color: _isDownvoted ? const Color(0xFFFDCC87) : Colors.white,
-                    ),
-                    onPressed: _handleDownvote,
-                  ),
-                  Text(
-                    _downvoteCount.toString(),
-                    style: TextStyle(
-                      color: _isDownvoted ? const Color(0xFFFDCC87) : Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.comment, color: Colors.white),
-                    onPressed: () {
-                      setState(() {
-                        _showComments = !_showComments;
-                        if (_showComments) {
-                          _loadComments();
-                        }
-                      });
-                    },
-                  ),
-                  Text(
-                    widget.commentCount.toString(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.repeat, color: Colors.white),
-                    onPressed: _handleRepost,
-                  ),
-                  Text(
-                    widget.repostCount.toString(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-              IconButton(
-                icon: const Icon(Icons.share, color: Colors.white),
-                onPressed: () => _showSharePopup(context),
-              ),
-            ],
-          ),
-          if (_showComments) ...[
-            const Divider(color: Color(0xFFFDCC87)),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _commentController,
-                          style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            hintText: 'Add a comment...',
-                            hintStyle: TextStyle(color: Colors.white54),
-                            border: InputBorder.none,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.send, color: Color(0xFFFDCC87)),
-                        onPressed: _addComment,
-                      ),
-                    ],
-                  ),
-                  if (_loadingComments)
-                    const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                      ),
-                    )
-                  else
-                    ..._comments.map((comment) => Comment(
-                      authorName: '${comment['author']['firstName']} ${comment['author']['lastName']}',
-                      authorUsername: comment['author']['username'],
-                      authorProfilePic: comment['author']['profileImage'],
-                      text: comment['text'],
-                      createdAt: comment['createdAt'],
-                      replies: List<Map<String, dynamic>>.from(comment['replies'] ?? []),
-                      onReply: () {
-                        setState(() {
-                          _replyingToCommentId = comment['_id'];
-                        });
-                      },
-                    )).toList(),
-                  if (_replyingToCommentId != null) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _replyController,
-                            style: const TextStyle(color: Colors.white),
-                            decoration: const InputDecoration(
-                              hintText: 'Add a reply...',
-                              hintStyle: TextStyle(color: Colors.white54),
-                              border: InputBorder.none,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.send, color: Color(0xFFFDCC87)),
-                          onPressed: () => _addReply(_replyingToCommentId!),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
+    try {
+      final comments = await ApiService.getPostComments(widget.id);
+      setState(() {
+        _comments = comments;
+        _loadingComments = false;
+      });
+    } catch (e) {
+      debugPrint('Error loading comments: $e');
+      setState(() {
+        _loadingComments = false;
+      });
+    }
   }
 }

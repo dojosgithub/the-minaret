@@ -6,6 +6,7 @@ const messageSchema = new Schema({
   recipient: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   content: { type: String, required: true },
   read: { type: Boolean, default: false },
+  post: { type: Schema.Types.ObjectId, ref: 'Post' },
   createdAt: { type: Date, default: Date.now },
   media: [{
     type: { type: String, enum: ['image', 'video'] },

@@ -407,17 +407,22 @@ class _SearchScreenState extends State<SearchScreen> {
                                 ),
                               ),
                             ),
-                          if (_recentSearches.isNotEmpty) ...[
-                            const Text(
-                              "Recent Searches",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                          
+                          const Text(
+                            "Recent Searches",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
-                            const SizedBox(height: 10),
-                            ..._recentSearches.map((search) => ListTile(
+                          ),
+                          const SizedBox(height: 10),
+                          Expanded(
+                            child: ListView.builder(
+                              itemCount: _recentSearches.length,
+                              itemBuilder: (context, index) {
+                                final search = _recentSearches[index];
+                                return ListTile(
                                   leading: const Icon(Icons.history, color: Color(0xFFFDCC87)),
                                   title: Text(
                                     search,
@@ -434,11 +439,13 @@ class _SearchScreenState extends State<SearchScreen> {
                                     _searchController.text = search;
                                     _performSearch();
                                   },
-                                )),
-                          ],
+                                );
+                              },
+                            ),
+                          ),
                         ],
                       ),
-      ),
+                    ),
     );
   }
 
