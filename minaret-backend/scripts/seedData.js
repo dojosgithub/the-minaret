@@ -180,13 +180,6 @@ async function seedData() {
         message: 'Started following you',
         createdAt: new Date(),
       },
-      {
-        recipient: users[0]._id,
-        sender: users[1]._id,
-        type: 'like',
-        message: 'Liked your post about Surah Al-Fatiha',
-        createdAt: new Date(),
-      },
     ]);
 
     console.log('Sample data inserted successfully');

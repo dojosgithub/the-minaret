@@ -11,7 +11,14 @@ router.get('/', auth, async (req, res) => {
       participants: req.user.id
     })
     .populate('participants', 'username firstName lastName profileImage')
-    .populate('lastMessage')
+    .populate({
+      path: 'lastMessage',
+      select: 'content sender recipient createdAt read',
+      populate: {
+        path: 'sender',
+        select: 'username firstName lastName profileImage'
+      }
+    })
     .sort({ lastMessageAt: -1 });
 
     res.json(conversations);

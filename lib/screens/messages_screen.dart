@@ -185,6 +185,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                                   color: Colors.grey[400],
                                   overflow: TextOverflow.ellipsis,
                                 ),
+                                maxLines: 1,
                               ),
                               trailing: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,

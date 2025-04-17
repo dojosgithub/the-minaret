@@ -28,6 +28,29 @@ class Conversation {
         return '';
       }).where((id) => id.isNotEmpty).toList();
 
+      // Handle lastMessage
+      Message? lastMessage;
+      try {
+        if (json['lastMessage'] != null) {
+          if (json['lastMessage'] is Map<String, dynamic>) {
+            lastMessage = Message.fromJson(json['lastMessage']);
+          } else if (json['lastMessage'] is String) {
+            // If lastMessage is just an ID, create a minimal Message object
+            lastMessage = Message(
+              id: json['lastMessage'],
+              senderId: '',
+              recipientId: '',
+              content: '',
+              createdAt: DateTime.now(),
+              isRead: false,
+            );
+          }
+        }
+      } catch (e) {
+        debugPrint('Error parsing lastMessage: $e');
+        lastMessage = null;
+      }
+
       // Handle lastMessageTimestamp
       DateTime lastMessageTimestamp;
       try {
@@ -37,15 +60,6 @@ class Conversation {
       } catch (e) {
         debugPrint('Error parsing lastMessageTimestamp: $e');
         lastMessageTimestamp = DateTime.now();
-      }
-
-      // Handle lastMessage
-      Message? lastMessage;
-      try {
-        lastMessage = json['lastMessage'] != null ? Message.fromJson(json['lastMessage']) : null;
-      } catch (e) {
-        debugPrint('Error parsing lastMessage: $e');
-        lastMessage = null;
       }
 
       // Handle unreadCount

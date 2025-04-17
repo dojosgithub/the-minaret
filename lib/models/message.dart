@@ -21,19 +21,33 @@ class Message {
 
   factory Message.fromJson(Map<String, dynamic> json) {
     debugPrint('Parsing message JSON: $json');
-    return Message(
-      id: json['_id']?.toString() ?? '',
-      senderId: json['sender']?['_id']?.toString() ?? json['sender']?.toString() ?? '',
-      recipientId: json['recipient']?.toString() ?? '',
-      content: json['content']?.toString() ?? '',
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt'].toString())
-          : DateTime.now(),
-      isRead: json['read'] ?? false,
-      media: json['media'] != null 
-          ? (json['media'] as List).map((m) => MessageMedia.fromJson(m)).toList()
-          : null,
-    );
+    try {
+      // Handle sender ID - it could be a string or a populated object
+      String senderId;
+      if (json['sender'] is Map<String, dynamic>) {
+        senderId = json['sender']['_id']?.toString() ?? '';
+      } else {
+        senderId = json['sender']?.toString() ?? '';
+      }
+
+      return Message(
+        id: json['_id']?.toString() ?? '',
+        senderId: senderId,
+        recipientId: json['recipient']?.toString() ?? '',
+        content: json['content']?.toString() ?? '',
+        createdAt: json['createdAt'] != null 
+            ? DateTime.parse(json['createdAt'].toString())
+            : DateTime.now(),
+        isRead: json['read'] ?? false,
+        media: json['media'] != null 
+            ? (json['media'] as List).map((m) => MessageMedia.fromJson(m)).toList()
+            : null,
+      );
+    } catch (e) {
+      debugPrint('Error parsing message: $e');
+      debugPrint('Problematic JSON: $json');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
