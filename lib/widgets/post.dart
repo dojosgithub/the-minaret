@@ -415,7 +415,7 @@ class _PostState extends State<Post> {
                               const SnackBar(content: Text('Could not launch Telegram')),
                             );
                           }
-                          Navigator.pop(context);
+                        Navigator.pop(context);
                         },
                       ),
                     ],

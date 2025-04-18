@@ -1050,4 +1050,44 @@ class ApiService {
       throw Exception('Failed to get followed users: $e');
     }
   }
+
+  static Future<bool> submitFeedback({
+    required String name,
+    required String email,
+    required String feedback,
+  }) async {
+    try {
+      debugPrint('Submitting feedback...');
+      final response = await http.post(
+        Uri.parse('$baseUrl/feedback'),
+        headers: await getHeaders(),
+        body: json.encode({
+          'name': name,
+          'email': email,
+          'feedback': feedback,
+        }),
+      );
+
+      debugPrint('Feedback response status: ${response.statusCode}');
+      debugPrint('Feedback response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        try {
+          final error = json.decode(response.body);
+          throw Exception(error['message'] ?? 'Failed to submit feedback');
+        } catch (e) {
+          // If response is not JSON, throw the raw response
+          throw Exception('Server error: ${response.body}');
+        }
+      }
+    } catch (e) {
+      debugPrint('Error submitting feedback: $e');
+      if (e.toString().contains('SocketException')) {
+        throw Exception('Failed to connect to server. Please check your internet connection.');
+      }
+      rethrow;
+    }
+  }
 } 
