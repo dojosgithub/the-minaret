@@ -197,23 +197,126 @@ class _PostState extends State<Post> {
   void _showSharePopup(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: const Color(0xFF4F245A),
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
             return Container(
-              padding: EdgeInsets.all(16),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF3D1B45),
+                borderRadius: BorderRadius.circular(15),
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                     'Share Post',
                     style: TextStyle(
+                      color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  SizedBox(height: 16),
-                  // First row: Share options
+                  const SizedBox(height: 16),
+                  // Recent users section
+                  FutureBuilder<List<dynamic>>(
+                    future: _loadRecentUsers(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)));
+                      }
+                      if (snapshot.hasError) {
+                        return const Center(child: Text('Error loading recent users', style: TextStyle(color: Colors.white)));
+                      }
+                      final users = snapshot.data ?? [];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Recent',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: users.length,
+                              itemBuilder: (context, index) {
+                                final user = users[index];
+                                return GestureDetector(
+                                  onTap: () async {
+                                    Navigator.pop(context);
+                                    try {
+                                      await ApiService.sendMessage(
+                                        user['id'],
+                                        'Check out this post: ${widget.title}',
+                                        null,
+                                        widget.id,
+                                      );
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Post shared successfully')),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Failed to share post: $e')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    margin: const EdgeInsets.only(right: 16),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          width: 60,
+                                          height: 60,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: const Color(0xFFFDCC87),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: ClipOval(
+                                            child: Image.network(
+                                              user['profilePicture'] ?? '',
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return const Icon(Icons.person, size: 30, color: Color(0xFFFDCC87));
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          user['username'] ?? '',
+                                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  // Share options section
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
@@ -251,7 +354,7 @@ class _PostState extends State<Post> {
                             text: 'https://minaret.com/posts/${widget.id}',
                           ));
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Link copied to clipboard')),
+                            const SnackBar(content: Text('Link copied to clipboard')),
                           );
                           Navigator.pop(context);
                         },
@@ -264,103 +367,58 @@ class _PostState extends State<Post> {
                           Navigator.pop(context);
                         },
                       ),
+                      GestureDetector(
+                        onTap: () async {
+                          final url = 'https://wa.me/?text=Check out this post: https://minaret.com/posts/${widget.id}';
+                          if (await canLaunchUrlString(url)) {
+                            await launchUrlString(url);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Could not launch WhatsApp')),
+                            );
+                          }
+                          Navigator.pop(context);
+                        },
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF4F245A),
+                                shape: BoxShape.circle,
+                                border: Border.all(color: const Color(0xFFFDCC87)),
+                              ),
+                              child: Image.asset(
+                                'assets/whatsapp.png',
+                                width: 30,
+                                height: 30,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'WhatsApp',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _buildShareOption(
+                        icon: Icons.telegram,
+                        label: 'Telegram',
+                        onTap: () async {
+                          final url = 'https://t.me/share/url?url=https://minaret.com/posts/${widget.id}&text=Check out this post: ${widget.title}';
+                          if (await canLaunchUrlString(url)) {
+                            await launchUrlString(url);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Could not launch Telegram')),
+                            );
+                          }
+                          Navigator.pop(context);
+                        },
+                      ),
                     ],
-                  ),
-                  SizedBox(height: 16),
-                  // Second row: Recent users
-                  FutureBuilder<List<dynamic>>(
-                    future: _loadRecentUsers(),
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return Center(child: CircularProgressIndicator());
-                      }
-                      if (snapshot.hasError) {
-                        return Center(child: Text('Error loading recent users'));
-                      }
-                      final users = snapshot.data ?? [];
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Recent',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Container(
-                            height: 100,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: users.length,
-                              itemBuilder: (context, index) {
-                                final user = users[index];
-                                return GestureDetector(
-                                  onTap: () async {
-                                    Navigator.pop(context);
-                                    try {
-                                      await ApiService.sendMessage(
-                                        user['id'],
-                                        'Check out this post: ${widget.title}',
-                                        null,
-                                        widget.id,
-                                      );
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Post shared successfully')),
-                                        );
-                                      }
-                                    } catch (e) {
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Failed to share post: $e')),
-                                        );
-                                      }
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 80,
-                                    margin: EdgeInsets.only(right: 16),
-                                    child: Column(
-                                      children: [
-                                        Container(
-                                          width: 60,
-                                          height: 60,
-                                          decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.yellow,
-                                              width: 2,
-                                            ),
-                                          ),
-                                          child: ClipOval(
-                                            child: Image.network(
-                                              user['profilePicture'] ?? '',
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) {
-                                                return Icon(Icons.person, size: 30);
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 8),
-                                        Text(
-                                          user['username'] ?? '',
-                                          style: TextStyle(fontSize: 12),
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      );
-                    },
                   ),
                 ],
               ),
@@ -368,6 +426,35 @@ class _PostState extends State<Post> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: const Color(0xFF4F245A),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFFDCC87)),
+            ),
+            child: Icon(icon, color: const Color(0xFFFDCC87)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
     );
   }
 
@@ -396,31 +483,6 @@ class _PostState extends State<Post> {
       print('Error loading recent users: $e');
       return [];
     }
-  }
-
-  Widget _buildShareOption({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon),
-          ),
-          SizedBox(height: 8),
-          Text(label),
-        ],
-      ),
-    );
   }
 
   void _showReportPopup(BuildContext context) {
