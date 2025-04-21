@@ -234,7 +234,7 @@ class _PostState extends State<Post> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Recent',
+                            'Send To',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -463,12 +463,24 @@ class _PostState extends State<Post> {
       // First try to get recent conversations
       final conversations = await MessageService.getConversations();
       if (conversations.isNotEmpty) {
-        return conversations.map((conv) => {
-          'id': conv.id,
-          'username': conv.participants[0]['username'],
-          'firstName': conv.participants[0]['firstName'],
-          'lastName': conv.participants[0]['lastName'],
-          'profilePicture': conv.participants[0]['profileImage'],
+        // Get current user's ID
+        final currentUserId = await ApiService.currentUserId;
+        if (currentUserId == null) return [];
+
+        return conversations.map((conv) {
+          // Find the other participant
+          final otherParticipant = conv.participants.firstWhere(
+            (p) => p['_id'] != currentUserId,
+            orElse: () => conv.participants.first,
+          );
+
+          return {
+            'id': otherParticipant['_id'],
+            'username': otherParticipant['username'],
+            'firstName': otherParticipant['firstName'],
+            'lastName': otherParticipant['lastName'],
+            'profilePicture': otherParticipant['profileImage'],
+          };
         }).toList();
       }
       
