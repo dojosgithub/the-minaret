@@ -3,6 +3,7 @@ const router = express.Router();
 const Message = require('../models/Message');
 const Conversation = require('../models/Conversation');
 const auth = require('../middleware/auth');
+const User = require('../models/User');
 
 // Get all conversations for the current user
 router.get('/', auth, async (req, res) => {
@@ -64,45 +65,90 @@ router.get('/:conversationId', auth, async (req, res) => {
 // Send a new message
 router.post('/', auth, async (req, res) => {
   try {
-    const { recipient, content, media } = req.body;
+    const { recipient, content, media, postId } = req.body;
+    console.log('Received recipient:', recipient);
 
-    // Create new message
-    const message = new Message({
-      sender: req.user.id,
-      recipient,
-      content,
-      media
-    });
+    // First check if this is a conversation ID
+    let conversation = await Conversation.findById(recipient);
+    let recipientUser;
 
-    await message.save();
-
-    // Update or create conversation
-    let conversation = await Conversation.findOne({
-      participants: { $all: [req.user.id, recipient] }
-    });
-
-    if (!conversation) {
-      conversation = new Conversation({
-        participants: [req.user.id, recipient],
-        lastMessage: message._id,
-        lastMessageAt: message.createdAt,
-        unreadCount: 1
-      });
+    if (conversation) {
+      console.log('Found conversation by ID:', conversation._id);
+      // Get the other participant from the conversation
+      recipientUser = conversation.participants.find(
+        p => p.toString() !== req.user.id.toString()
+      );
+      console.log('Found recipient from conversation:', recipientUser);
     } else {
-      conversation.lastMessage = message._id;
-      conversation.lastMessageAt = message.createdAt;
-      conversation.unreadCount += 1;
+      // If not a conversation ID, treat as user ID
+      console.log('Treating recipient as user ID');
+      recipientUser = await User.findById(recipient);
     }
 
-    await conversation.save();
+    if (!recipientUser) {
+      console.error('Recipient not found:', recipient);
+      return res.status(404).json({ message: 'Recipient not found' });
+    }
 
-    // Populate the message with sender details
-    await message.populate('sender', 'username firstName lastName profileImage');
+    // Now find the conversation between the two users
+    conversation = await Conversation.findByParticipants(req.user.id, recipientUser);
+    console.log('Found conversation between users:', conversation?._id);
 
-    res.status(201).json(message);
+    try {
+      // Create new message
+      const message = new Message({
+        sender: req.user.id,
+        recipient: recipientUser,
+        content,
+        media,
+        post: postId,
+        conversation: conversation?._id
+      });
+
+      await message.save();
+      console.log('Message saved successfully:', message._id);
+
+      if (!conversation) {
+        console.log('Creating new conversation');
+        // Create new conversation if one doesn't exist
+        conversation = new Conversation({
+          participants: [req.user.id, recipientUser],
+          lastMessage: message._id,
+          lastMessageAt: message.createdAt,
+          unreadCount: 1
+        });
+      } else {
+        console.log('Updating existing conversation');
+        // Update existing conversation
+        conversation.lastMessage = message._id;
+        conversation.lastMessageAt = message.createdAt;
+        conversation.unreadCount += 1;
+      }
+
+      await conversation.save();
+      console.log('Conversation saved successfully:', conversation._id);
+
+      // Populate the message with sender and recipient details
+      await message.populate([
+        { path: 'sender', select: 'username firstName lastName profileImage' },
+        { path: 'recipient', select: 'username firstName lastName profileImage' }
+      ]);
+      
+      if (postId) {
+        await message.populate('post', 'title body media');
+      }
+
+      res.status(201).json(message);
+    } catch (error) {
+      console.error('Error in message/conversation creation:', error);
+      throw error;
+    }
   } catch (error) {
     console.error('Error sending message:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ 
+      message: 'Server error',
+      error: error.message 
+    });
   }
 });
 
