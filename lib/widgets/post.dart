@@ -73,6 +73,11 @@ class _PostState extends State<Post> {
   bool _isDownvoted = false;
   int _upvoteCount = 0;
   int _downvoteCount = 0;
+  Map<String, int> _visibleRepliesCount = {};
+  Map<String, bool> _showReplies = {};
+  int _visibleCommentsCount = 5;
+  static const int _commentsPerPage = 5;
+  static const int _repliesPerPage = 5;
 
   @override
   void initState() {
@@ -1012,26 +1017,7 @@ class _PostState extends State<Post> {
                       ),
                     ],
                   ),
-                  if (_loadingComments)
-                    const Center(
-                      child: CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                      ),
-                    )
-                  else
-                    ..._comments.map((comment) => Comment(
-                      authorName: '${comment['author']['firstName']} ${comment['author']['lastName']}',
-                      authorUsername: comment['author']['username'],
-                      authorProfilePic: comment['author']['profileImage'],
-                      text: comment['text'],
-                      createdAt: comment['createdAt'],
-                      replies: List<Map<String, dynamic>>.from(comment['replies'] ?? []),
-                      onReply: () {
-                        setState(() {
-                          _replyingToCommentId = comment['_id'];
-                        });
-                      },
-                    )).toList(),
+                  _buildCommentsSection(),
                   if (_replyingToCommentId != null) ...[
                     const SizedBox(height: 8),
                     Row(
@@ -1280,5 +1266,125 @@ class _PostState extends State<Post> {
         _loadingComments = false;
       });
     }
+  }
+
+  Widget _buildCommentsSection() {
+    if (_loadingComments) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+        ),
+      );
+    }
+
+    final visibleComments = _comments.take(_visibleCommentsCount).toList();
+    final hasMoreComments = _comments.length > _visibleCommentsCount;
+
+    return Column(
+      children: [
+        ...visibleComments.map((comment) {
+          final replies = List<Map<String, dynamic>>.from(comment['replies'] ?? []);
+          final visibleRepliesCount = _visibleRepliesCount[comment['_id']] ?? _repliesPerPage;
+          final visibleReplies = replies.take(visibleRepliesCount).toList();
+          final hasMoreReplies = replies.length > visibleRepliesCount;
+          final isRepliesExpanded = _showReplies[comment['_id']] ?? false;
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Comment(
+                authorName: '${comment['author']['firstName']} ${comment['author']['lastName']}',
+                authorUsername: comment['author']['username'],
+                authorProfilePic: comment['author']['profileImage'],
+                text: comment['text'],
+                createdAt: comment['createdAt'],
+                replies: isRepliesExpanded ? visibleReplies : [],
+                onReply: () {
+                  setState(() {
+                    _replyingToCommentId = comment['_id'];
+                    _showReplies[comment['_id']] = true;
+                  });
+                },
+              ),
+              if (replies.isNotEmpty) ...[
+                Padding(
+                  padding: const EdgeInsets.only(left: 40.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!isRepliesExpanded)
+                        TextButton(
+                          onPressed: () {
+                            setState(() {
+                              _showReplies[comment['_id']] = true;
+                            });
+                          },
+                          child: Text(
+                            'See Replies',
+                            //'See ${replies.length} ${replies.length == 1 ? 'reply' : 'replies'}',
+                            style: const TextStyle(
+                              color: Color(0xFFFDCC87),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      if (isRepliesExpanded) ...[
+                        if (replies.length > _repliesPerPage && visibleRepliesCount == _repliesPerPage)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _visibleRepliesCount[comment['_id']] = replies.length;
+                              });
+                            },
+                            child: Text(
+                              'See all ${replies.length} replies',
+                              style: const TextStyle(
+                                color: Color(0xFFFDCC87),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                        if (hasMoreReplies)
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                _visibleRepliesCount[comment['_id']] = visibleRepliesCount + _repliesPerPage;
+                              });
+                            },
+                            child: const Text(
+                              'See more replies',
+                              style: TextStyle(
+                                color: Color(0xFFFDCC87),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          );
+        }).toList(),
+        if (hasMoreComments)
+          Center(
+            child: TextButton(
+              onPressed: () {
+                setState(() {
+                  _visibleCommentsCount += _commentsPerPage;
+                });
+              },
+              child: Text(
+                'See ${_commentsPerPage} more comments',
+                style: const TextStyle(
+                  color: Color(0xFFFDCC87),
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
   }
 }
