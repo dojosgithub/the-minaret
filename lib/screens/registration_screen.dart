@@ -52,20 +52,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         'email': _emailController.text,
         'phoneNumber': _phoneController.text.isEmpty ? null : _phoneController.text,
         'password': _passwordController.text,
-        'birthday': '$_selectedDay $_selectedMonth $_selectedYear',
-        'type': _selectedType,
+        'userType': _selectedType,
+        'dateOfBirth': '$_selectedDay $_selectedMonth $_selectedYear',
       });
 
       if (!mounted) return;
 
       if (response['success']) {
+        // Wait a moment to ensure token is stored
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Verify token is valid
+        final isValid = await ApiService.verifyToken();
+        if (!isValid) {
+          throw Exception('Failed to verify token after registration');
+        }
+
+        // Navigate to main screen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(response['message'])),
+          SnackBar(content: Text(response['message'] ?? 'Registration failed')),
         );
       }
     } catch (e) {

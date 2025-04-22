@@ -196,14 +196,38 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/auth/register'),
-        headers: await getHeaders(),
+        headers: {'Content-Type': 'application/json'},
         body: json.encode(userData),
       );
 
       final data = json.decode(response.body);
       if (response.statusCode == 201) {
-        _authToken = data['token'];
-        return {'success': true};
+        // Store token and user data
+        final token = data['token'];
+        if (token == null) {
+          throw Exception('No token received from server');
+        }
+        
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        _authToken = token;
+        
+        // Fetch and store user data
+        final userResponse = await http.get(
+          Uri.parse('$baseUrl/users/profile'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+        
+        if (userResponse.statusCode == 200) {
+          final userData = json.decode(userResponse.body);
+          await prefs.setString('user', json.encode(userData));
+          return {'success': true};
+        } else {
+          throw Exception('Failed to fetch user data after registration');
+        }
       } else {
         return {
           'success': false,
@@ -312,14 +336,16 @@ class ApiService {
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/users/profile'),
-        headers: await getHeaders(),
+        headers: {
+          'Authorization': 'Bearer ${await getToken()}',
+        },
       );
 
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to load user profile');
+      if (response.statusCode != 200) {
+        throw Exception('Failed to get user profile: ${response.body}');
       }
+
+      return jsonDecode(response.body);
     } catch (e) {
       debugPrint('Error getting user profile: $e');
       rethrow;
@@ -415,16 +441,19 @@ class ApiService {
     }
   }
 
-  static Future<void> updateProfile(Map<String, dynamic> updateData) async {
+  static Future<void> updateProfile(Map<String, dynamic> data) async {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/users/profile'),
-        headers: await getHeaders(),
-        body: json.encode(updateData),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${await getToken()}',
+        },
+        body: jsonEncode(data),
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to update profile');
+        throw Exception('Failed to update profile: ${response.body}');
       }
     } catch (e) {
       debugPrint('Error updating profile: $e');

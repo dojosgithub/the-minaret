@@ -66,6 +66,14 @@ const userSchema = new mongoose.Schema({
     type: [String],
     default: [],
   },
+  notificationPreferences: {
+    comments: { type: Boolean, default: true },
+    share: { type: Boolean, default: true },
+    upvote: { type: Boolean, default: true },
+    saved: { type: Boolean, default: true },
+    peopleYouMightLike: { type: Boolean, default: true },
+    peopleYouMightKnow: { type: Boolean, default: true },
+  },
 });
 
 module.exports = mongoose.model('User', userSchema); 

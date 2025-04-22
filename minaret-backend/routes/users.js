@@ -379,7 +379,8 @@ router.put('/profile', auth, async (req, res) => {
       'bio',
       'phoneNumber',
       'dateOfBirth',
-      'profileImage'
+      'profileImage',
+      'notificationPreferences'
     ];
 
     // Filter out any fields that aren't in allowedUpdates
