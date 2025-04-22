@@ -343,16 +343,25 @@ router.post('/:postId/comments/:commentId/replies', auth, async (req, res) => {
 
     const newReply = {
       author: req.user.id,
-      text: req.body.text
+      text: req.body.text,
+      createdAt: new Date()
     };
 
     comment.replies.unshift(newReply);
     await post.save();
 
+    // Get the populated reply
     const populatedPost = await Post.findById(post._id)
-      .populate('comments.replies.author', 'username firstName lastName profileImage');
+      .populate({
+        path: 'comments.replies.author',
+        select: 'username firstName lastName profileImage'
+      });
 
-    res.json(comment.replies[0]);
+    const populatedReply = populatedPost.comments
+      .id(req.params.commentId)
+      .replies[0];
+
+    res.json(populatedReply);
   } catch (err) {
     console.error('Error adding reply:', err);
     res.status(500).json({ message: 'Server error' });

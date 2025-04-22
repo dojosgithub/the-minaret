@@ -625,8 +625,8 @@ class _PostState extends State<Post> {
           onTap: () => _showGalleryView(index),
           child: Stack(
             fit: StackFit.expand,
-      children: [
-        Container(
+            children: [
+              Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -743,7 +743,7 @@ class _PostState extends State<Post> {
             onTap: () => _launchURL(link['url']),
             child: Container(
               padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
+              decoration: BoxDecoration(
                 color: const Color(0xFF4F245A),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: const Color(0xFFFDCC87), width: 1),
@@ -761,9 +761,9 @@ class _PostState extends State<Post> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-          ),
-        ],
-      ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -1220,6 +1220,7 @@ class _PostState extends State<Post> {
         commentId,
         _replyController.text,
       );
+
       setState(() {
         final commentIndex = _comments.indexWhere((c) => c['_id'] == commentId);
         if (commentIndex != -1) {
@@ -1227,9 +1228,24 @@ class _PostState extends State<Post> {
           if (_comments[commentIndex]['replies'] == null) {
             _comments[commentIndex]['replies'] = [];
           }
+          
+          // Convert all fields to proper types
+          final typedReply = {
+            '_id': newReply['_id']?.toString(),
+            'text': newReply['text']?.toString(),
+            'createdAt': newReply['createdAt']?.toString(),
+            'author': {
+              '_id': newReply['author']['_id']?.toString(),
+              'username': newReply['author']['username']?.toString(),
+              'firstName': newReply['author']['firstName']?.toString(),
+              'lastName': newReply['author']['lastName']?.toString(),
+              'profileImage': newReply['author']['profileImage']?.toString(),
+            }
+          };
+
           // Cast to List<Map<String, dynamic>> and insert the new reply
           final replies = List<Map<String, dynamic>>.from(_comments[commentIndex]['replies']);
-          replies.insert(0, newReply);
+          replies.insert(0, typedReply);
           _comments[commentIndex]['replies'] = replies;
         }
         _replyController.clear();
