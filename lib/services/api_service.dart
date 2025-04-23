@@ -10,14 +10,15 @@ class ApiService {
   // Uncomment the correct URL based on your setup:
   
   // For Android Emulator:
-  //static const String baseUrl = 'http://10.0.2.2:5000/api';
+  // static const String baseUrl = 'http://10.0.2.2:5000/api';
   
   // For iOS Simulator:
   // static const String baseUrl = 'http://localhost:5000/api';
   
-  // For physical device:
-  static const String baseUrl = 'http://192.168.100.89:5000/api';
-
+  // For physical device (phone hotspot):
+  //static const String baseUrl = 'http://192.168.100.89:5000/api';
+  static const String baseUrl = 'http://172.20.10.11:5000/api';
+  
   static String? _authToken;  // Store the JWT token
 
   // Initialize auth token from SharedPreferences

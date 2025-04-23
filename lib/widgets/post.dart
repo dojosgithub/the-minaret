@@ -1320,8 +1320,7 @@ class _PostState extends State<Post> {
                             });
                           },
                           child: Text(
-                            'See Replies',
-                            //'See ${replies.length} ${replies.length == 1 ? 'reply' : 'replies'}',
+                            'See ${replies.length} ${replies.length == 1 ? 'reply' : 'replies'}',
                             style: const TextStyle(
                               color: Color(0xFFFDCC87),
                               fontSize: 12,
@@ -1329,21 +1328,39 @@ class _PostState extends State<Post> {
                           ),
                         ),
                       if (isRepliesExpanded) ...[
-                        if (replies.length > _repliesPerPage && visibleRepliesCount == _repliesPerPage)
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _visibleRepliesCount[comment['_id']] = replies.length;
-                              });
-                            },
-                            child: Text(
-                              'See all ${replies.length} replies',
-                              style: const TextStyle(
-                                color: Color(0xFFFDCC87),
-                                fontSize: 12,
+                        Row(
+                          children: [
+                            TextButton(
+                              onPressed: () {
+                                setState(() {
+                                  _showReplies[comment['_id']] = false;
+                                });
+                              },
+                              child: const Text(
+                                'Collapse replies',
+                                style: TextStyle(
+                                  color: Color(0xFFFDCC87),
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
-                          ),
+                            if (replies.length > _repliesPerPage && visibleRepliesCount == _repliesPerPage)
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _visibleRepliesCount[comment['_id']] = replies.length;
+                                  });
+                                },
+                                child: Text(
+                                  'See all ${replies.length} replies',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFDCC87),
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                         if (hasMoreReplies)
                           TextButton(
                             onPressed: () {

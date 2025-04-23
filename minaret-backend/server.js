@@ -9,16 +9,18 @@ const app = express();
 
 // Add more detailed CORS configuration
 app.use(cors({
-  origin: '*',
+  origin: '*',  // Allow all origins for development
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.use(express.json());
 
-// Add request logging
+// Add request logging with more details
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  //console.log(`Request from IP: ${req.ip}`);
+  //console.log(`Request headers: ${JSON.stringify(req.headers)}`);
   next();
 });
 
@@ -55,4 +57,5 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
   console.log(`Test endpoint available at http://localhost:${PORT}/api/test`);
   console.log(`For local network access use http://192.168.100.89:${PORT}/api/test`);
+  console.log(`For phone hotspot access use http://192.168.100.89:${PORT}/api/test`);
 }); 
