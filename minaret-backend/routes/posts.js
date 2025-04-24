@@ -505,15 +505,20 @@ router.post('/:postId/repost', auth, async (req, res) => {
     const repost = new Post({
       author: req.user.id,
       type: originalPost.type,
-      title: originalPost.title,
-      body: originalPost.body,
-      media: originalPost.media,
-      links: originalPost.links,
+      title: req.body.caption || 'Reposted post',
+      body: req.body.caption || 'Reposted post',
+      media: [],
+      links: [],
       isRepost: true,
-      originalPost: originalPost._id
+      originalPost: originalPost._id,
+      repostCaption: req.body.caption || ''
     });
 
     await repost.save();
+
+    // Increment repost count on original post
+    originalPost.repostCount += 1;
+    await originalPost.save();
 
     // Create notification for original post author
     const notification = new Notification({

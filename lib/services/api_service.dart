@@ -1050,22 +1050,24 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> repostPost(String postId) async {
+  static Future<void> repostPost(String postId, String caption) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts/$postId/repost'),
-        headers: await getHeaders(),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${await getToken()}',
+        },
+        body: json.encode({
+          'caption': caption,
+        }),
       );
 
-      if (response.statusCode == 201) {
-        return json.decode(response.body);
-      } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Failed to repost');
+      if (response.statusCode != 201) {
+        throw Exception('Failed to repost: ${response.body}');
       }
     } catch (e) {
-      debugPrint('Error reposting: $e');
-      rethrow;
+      throw Exception('Failed to repost: $e');
     }
   }
 
@@ -1117,6 +1119,24 @@ class ApiService {
       if (e.toString().contains('SocketException')) {
         throw Exception('Failed to connect to server. Please check your internet connection.');
       }
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, dynamic>> getPost(String postId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/$postId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        throw Exception('Failed to load post');
+      }
+    } catch (e) {
+      debugPrint('Error getting post: $e');
       rethrow;
     }
   }

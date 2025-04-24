@@ -29,6 +29,8 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _error;
   List<String> _recentSearches = [];
   int _selectedTab = 0; // 0 for posts, 1 for users
+  Map<String, bool> _upvotedPosts = {};
+  Map<String, bool> _downvotedPosts = {};
 
   @override
   void initState() {
@@ -158,41 +160,35 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         );
       }
-      return ListView(
-        children: _posts.map((post) => Post(
-          id: post['_id'],
-          name: post['author']['firstName'] != null && post['author']['lastName'] != null
-              ? '${post['author']['firstName']} ${post['author']['lastName']}'
-              : post['author']['username'] ?? 'Unknown User',
-          username: post['author']['username'] ?? 'unknown',
-          profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
-          title: post['title'] ?? '',
-          text: post['body'] ?? '',
-          media: List<Map<String, dynamic>>.from(post['media'] ?? []),
-          links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-          upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
-          downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
-          repostCount: 0,
-          commentCount: (post['comments'] as List?)?.length ?? 0,
-          createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
-          authorId: post['author']['_id'] ?? '',
-          isUpvoted: post['isUpvoted'] ?? false,
-          isDownvoted: post['isDownvoted'] ?? false,
-          onUpvote: (postId) async {
-            try {
-              await ApiService.upvotePost(postId);
-            } catch (e) {
-              debugPrint('Error upvoting post: $e');
-            }
-          },
-          onDownvote: (postId) async {
-            try {
-              await ApiService.downvotePost(postId);
-            } catch (e) {
-              debugPrint('Error downvoting post: $e');
-            }
-          },
-        )).toList(),
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: _posts.map((post) => Post(
+            id: post['_id'],
+            name: post['author']['firstName'] != null && post['author']['lastName'] != null
+                ? '${post['author']['firstName']} ${post['author']['lastName']}'
+                : post['author']['username'] ?? 'Unknown User',
+            username: post['author']['username'] ?? 'unknown',
+            profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+            title: post['title'] ?? '',
+            text: post['body'] ?? '',
+            media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+            links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+            upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
+            downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
+            repostCount: (post['reposts'] as List?)?.length ?? 0,
+            commentCount: (post['comments'] as List?)?.length ?? 0,
+            createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
+            authorId: post['author']['_id'] ?? '',
+            isUpvoted: _upvotedPosts[post['_id']] ?? false,
+            isDownvoted: _downvotedPosts[post['_id']] ?? false,
+            isRepost: post['isRepost'] ?? false,
+            repostCaption: post['repostCaption'],
+            originalPost: post['originalPost'],
+            onUpvote: _handleUpvote,
+            onDownvote: _handleDownvote,
+          )).toList(),
+        ),
       );
     } else {
       if (_users.isEmpty) {
@@ -480,5 +476,29 @@ class _SearchScreenState extends State<SearchScreen> {
           .toList(),
       ),
     );
+  }
+
+  void _handleUpvote(String postId) async {
+    try {
+      await ApiService.upvotePost(postId);
+      setState(() {
+        _upvotedPosts[postId] = true;
+        _downvotedPosts.remove(postId);
+      });
+    } catch (e) {
+      debugPrint('Error upvoting post: $e');
+    }
+  }
+
+  void _handleDownvote(String postId) async {
+    try {
+      await ApiService.downvotePost(postId);
+      setState(() {
+        _downvotedPosts[postId] = true;
+        _upvotedPosts.remove(postId);
+      });
+    } catch (e) {
+      debugPrint('Error downvoting post: $e');
+    }
   }
 }

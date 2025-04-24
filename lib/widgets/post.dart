@@ -9,6 +9,7 @@ import 'comment.dart';
 import 'dart:convert';
 import '../screens/new_message_screen.dart';
 import '../services/message_service.dart';
+import 'repost_content.dart';
 
 class Post extends StatefulWidget {
   final String id;
@@ -28,6 +29,7 @@ class Post extends StatefulWidget {
   final bool isUpvoted;
   final bool isDownvoted;
   final bool isRepost;
+  final String? repostCaption;
   final Map<String, dynamic>? originalPost;
   final Function(String) onUpvote;
   final Function(String) onDownvote;
@@ -51,6 +53,7 @@ class Post extends StatefulWidget {
     this.isUpvoted = false,
     this.isDownvoted = false,
     this.isRepost = false,
+    this.repostCaption,
     this.originalPost,
     required this.onUpvote,
     required this.onDownvote,
@@ -73,11 +76,13 @@ class _PostState extends State<Post> {
   bool _isDownvoted = false;
   int _upvoteCount = 0;
   int _downvoteCount = 0;
+  int _repostCount = 0;
   Map<String, int> _visibleRepliesCount = {};
   Map<String, bool> _showReplies = {};
   int _visibleCommentsCount = 5;
   static const int _commentsPerPage = 5;
   static const int _repliesPerPage = 5;
+  final TextEditingController _repostController = TextEditingController();
 
   @override
   void initState() {
@@ -88,12 +93,14 @@ class _PostState extends State<Post> {
     _isDownvoted = widget.isDownvoted;
     _upvoteCount = widget.upvoteCount;
     _downvoteCount = widget.downvoteCount;
+    _repostCount = widget.repostCount;
   }
 
   @override
   void dispose() {
     _commentController.dispose();
     _replyController.dispose();
+    _repostController.dispose();
     super.dispose();
   }
 
@@ -866,22 +873,24 @@ class _PostState extends State<Post> {
                       ],
                     ),
               const SizedBox(height: 1),
-              Text(
-                widget.title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              if (!widget.isRepost) ...[
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-                    ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.text,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
+                const SizedBox(height: 5),
+                Text(
+                  widget.text,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
                   ],
                 ),
               ),
@@ -909,11 +918,36 @@ class _PostState extends State<Post> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildUserInfo(),
-          const SizedBox(height: 5),
-          _buildLinks(),
-          const SizedBox(height: 5),
-          _buildMediaGrid(),
-          _buildRepostedContent(),
+          if (!widget.isRepost) ...[
+            const SizedBox(height: 5),
+            _buildLinks(),
+            const SizedBox(height: 5),
+            _buildMediaGrid(),
+          ],
+          if (widget.isRepost && widget.repostCaption != null && widget.repostCaption!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              widget.repostCaption!,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+              ),
+            ),
+          ],
+          if (widget.isRepost && widget.originalPost != null)
+            RepostContent(
+              originalPost: widget.originalPost!,
+              onAuthorTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfileScreen(
+                      userId: widget.originalPost!['author']['_id'],
+                    ),
+                  ),
+                );
+              },
+            ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -978,10 +1012,10 @@ class _PostState extends State<Post> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.repeat, color: Colors.white),
-                    onPressed: _handleRepost,
+                    onPressed: _showRepostDialog,
                   ),
                   Text(
-                    widget.repostCount.toString(),
+                    _repostCount.toString(),
                     style: const TextStyle(color: Colors.white),
                   ),
                 ],
@@ -1091,10 +1125,94 @@ class _PostState extends State<Post> {
     }
   }
 
+  void _showRepostDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: const Color(0xFF4F245A),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3D1B45),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Add a caption to your repost',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _repostController,
+                  maxLines: 3,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: 'What are your thoughts?',
+                    hintStyle: TextStyle(color: Colors.white54),
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFDCC87)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFDCC87)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color(0xFFFDCC87)),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(color: Color(0xFFFDCC87)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFDCC87),
+                      ),
+                      onPressed: () async {
+                        Navigator.pop(context);
+                        await _handleRepost();
+                      },
+                      child: const Text(
+                        'Repost',
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _handleRepost() async {
     try {
-      await ApiService.repostPost(widget.id);
+      await ApiService.repostPost(widget.id, _repostController.text);
       if (mounted) {
+        // Refresh the post data to get updated repost count
+        final updatedPost = await ApiService.getPost(widget.id);
+        if (mounted) {
+          setState(() {
+            _repostCount = (updatedPost['reposts'] as List?)?.length ?? 0;
+          });
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post reposted successfully')),
         );
@@ -1106,78 +1224,6 @@ class _PostState extends State<Post> {
         );
       }
     }
-  }
-
-  Widget _buildRepostedContent() {
-    if (!widget.isRepost || widget.originalPost == null) {
-      return const SizedBox.shrink();
-    }
-
-    final originalAuthor = widget.originalPost!['author'];
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(color: const Color(0xFFFDCC87)),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(2),
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Color(0xFFFDCC87),
-                ),
-                child: CircleAvatar(
-                  backgroundImage: AssetImage(originalAuthor['profileImage']),
-                  radius: 15,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${originalAuthor['firstName']} ${originalAuthor['lastName']}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    '@${originalAuthor['username']}',
-                    style: const TextStyle(
-                      color: Color(0xFFFDCC87),
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.originalPost!['title'],
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            widget.originalPost!['body'],
-            style: const TextStyle(
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   Future<void> _addComment() async {

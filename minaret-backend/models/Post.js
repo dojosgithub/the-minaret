@@ -56,6 +56,16 @@ const postSchema = new mongoose.Schema({
       return this.isRepost;
     }
   },
+  repostCaption: {
+    type: String,
+    required: function() {
+      return this.isRepost;
+    }
+  },
+  repostCount: {
+    type: Number,
+    default: 0
+  },
   comments: [{
     author: {
       type: mongoose.Schema.Types.ObjectId,
@@ -98,6 +108,14 @@ const postSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+});
+
+// Add middleware to populate originalPost when finding posts
+postSchema.pre('find', function() {
+  if (this._conditions.isRepost) {
+    this.populate('originalPost', 'title body media links author createdAt')
+      .populate('originalPost.author', 'firstName lastName username profileImage');
+  }
 });
 
 module.exports = mongoose.model('Post', postSchema); 
