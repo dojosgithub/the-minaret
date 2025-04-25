@@ -58,6 +58,17 @@ class _UserScreenState extends State<UserScreen> {
         post['isUpvoted'] = status['isUpvoted'] ?? false;
         post['isDownvoted'] = status['isDownvoted'] ?? false;
         post['isSaved'] = isSaved;
+
+        // If this is a repost, fetch the original post data
+        if (post['isRepost'] == true && post['originalPost'] is String) {
+          try {
+            final originalPost = await ApiService.getPost(post['originalPost']);
+            post['originalPost'] = originalPost;
+          } catch (e) {
+            debugPrint('Error fetching original post: $e');
+            post['originalPost'] = null;
+          }
+        }
       }
 
       // Check vote and save status for saved posts
@@ -67,6 +78,17 @@ class _UserScreenState extends State<UserScreen> {
         post['isUpvoted'] = status['isUpvoted'] ?? false;
         post['isDownvoted'] = status['isDownvoted'] ?? false;
         post['isSaved'] = isSaved;
+
+        // If this is a repost, fetch the original post data
+        if (post['isRepost'] == true && post['originalPost'] is String) {
+          try {
+            final originalPost = await ApiService.getPost(post['originalPost']);
+            post['originalPost'] = originalPost;
+          } catch (e) {
+            debugPrint('Error fetching original post: $e');
+            post['originalPost'] = null;
+          }
+        }
       }
       
       if (mounted) {
@@ -351,12 +373,15 @@ class _UserScreenState extends State<UserScreen> {
           links: List<Map<String, dynamic>>.from(post['links'] ?? []),
           upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
           downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
-          repostCount: 0,
+          repostCount: (post['reposts'] as List?)?.length ?? 0,
           commentCount: (post['comments'] as List?)?.length ?? 0,
           createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
           authorId: post['author']['_id'] ?? '',
           isUpvoted: post['isUpvoted'] ?? false,
           isDownvoted: post['isDownvoted'] ?? false,
+          isRepost: post['isRepost'] ?? false,
+          repostCaption: post['repostCaption'],
+          originalPost: post['isRepost'] == true ? post['originalPost'] : null,
           onUpvote: _handleUpvote,
           onDownvote: _handleDownvote,
         );
