@@ -989,37 +989,20 @@ class _PostState extends State<Post> {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.comment, color: Colors.white),
-                    onPressed: () {
-                      setState(() {
-                        _showComments = !_showComments;
-                        if (_showComments) {
-                          _loadComments();
-                        }
-                      });
-                    },
-                  ),
-                  Text(
-                    widget.commentCount.toString(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.repeat, color: Colors.white),
-                    onPressed: _showRepostDialog,
-                  ),
-                  Text(
-                    _repostCount.toString(),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
+              if (!widget.isRepost) ...[
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.repeat, color: Colors.white),
+                      onPressed: _showRepostDialog,
+                    ),
+                    Text(
+                      _repostCount.toString(),
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ],
+                ),
+              ],
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.white),
                 onPressed: () => _showSharePopup(context),
