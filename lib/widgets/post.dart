@@ -10,6 +10,7 @@ import 'dart:convert';
 import '../screens/new_message_screen.dart';
 import '../services/message_service.dart';
 import 'repost_content.dart';
+import '../screens/post_detail_screen.dart';
 
 class Post extends StatefulWidget {
   final String id;
@@ -935,18 +936,33 @@ class _PostState extends State<Post> {
             ),
           ],
           if (widget.isRepost && widget.originalPost != null)
-            RepostContent(
-              originalPost: widget.originalPost!,
-              onAuthorTap: () {
+            GestureDetector(
+              onTap: () {
+                debugPrint('Original post data: ${widget.originalPost}');
+                final originalPostId = widget.originalPost!['_id']?.toString() ?? '';
+                debugPrint('Navigating to post detail with ID: $originalPostId');
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProfileScreen(
-                      userId: widget.originalPost!['author']['_id'],
+                    builder: (context) => PostDetailScreen(
+                      postId: originalPostId,
                     ),
                   ),
                 );
               },
+              child: RepostContent(
+                originalPost: widget.originalPost!,
+                onAuthorTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProfileScreen(
+                        userId: widget.originalPost!['author']['_id'],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

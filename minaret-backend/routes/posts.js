@@ -543,4 +543,28 @@ router.post('/:postId/repost', auth, async (req, res) => {
   }
 });
 
+// Get a single post by ID
+router.get('/:id', auth, async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id)
+      .populate('author', 'firstName lastName username profileImage')
+      .populate({
+        path: 'originalPost',
+        populate: {
+          path: 'author',
+          select: 'firstName lastName username profileImage'
+        }
+      });
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    res.json(post);
+  } catch (err) {
+    console.error('Error getting post:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router; 
