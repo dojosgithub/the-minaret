@@ -3,6 +3,8 @@ import '../models/conversation.dart';
 import '../models/message.dart';
 import '../services/message_service.dart';
 import '../services/api_service.dart';
+import '../widgets/post.dart';
+import '../screens/post_detail_screen.dart';
 
 class ConversationScreen extends StatefulWidget {
   final String conversationId;
@@ -20,6 +22,7 @@ class ConversationScreen extends StatefulWidget {
 
 class _ConversationScreenState extends State<ConversationScreen> {
   final TextEditingController _messageController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
   List<Message> _messages = [];
   bool _isLoading = true;
   String? _error;
@@ -34,6 +37,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -73,6 +77,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         _messages = messages;
         _isLoading = false;
       });
+      _scrollToBottom();
     } catch (e) {
       debugPrint('Error loading messages: $e');
       setState(() {
@@ -93,16 +98,26 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
-    final message = _messageController.text.trim();
+    final content = _messageController.text.trim();
     _messageController.clear();
 
     try {
       await ApiService.sendMessage(
         widget.otherUser['_id'],
-        message,
+        content,
       );
       await _loadMessages();
     } catch (e) {
@@ -113,6 +128,33 @@ class _ConversationScreenState extends State<ConversationScreen> {
         ),
       );
     }
+  }
+
+  Future<void> _sharePost(Post post) async {
+    try {
+      await ApiService.sendMessage(
+        widget.otherUser['_id'],
+        'Check out this post!',
+        postId: post.id,
+      );
+      await _loadMessages();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to share post: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _handlePostTap(String postId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PostDetailScreen(postId: postId),
+      ),
+    );
   }
 
   @override
@@ -133,8 +175,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
               ),
               child: CircleAvatar(
                 backgroundImage: widget.otherUser['profileImage'] != null
-                    ? NetworkImage(widget.otherUser['profileImage'])
-                    : const AssetImage('assets/default_profile.png') as ImageProvider,
+                    ? NetworkImage('${ApiService.baseUrl}${widget.otherUser['profileImage']}')
+                    : const AssetImage('assets/images/default_profile.png') as ImageProvider,
                 radius: 24,
               ),
             ),
@@ -204,6 +246,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                 ),
                               )
                             : ListView.builder(
+                                controller: _scrollController,
                                 reverse: false,
                                 itemCount: _messages.length,
                                 itemBuilder: (context, index) {
@@ -239,6 +282,90 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                                 color: Colors.white,
                                                 fontSize: 12,
                                                 fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          if (message.postId != null)
+                                            GestureDetector(
+                                              onTap: () => _handlePostTap(message.postId!),
+                                              child: Container(
+                                                width: MediaQuery.of(context).size.width * 0.5,
+                                                padding: const EdgeInsets.all(12),
+                                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                                decoration: BoxDecoration(
+                                                  color: isMe ? const Color(0xFF9D3267) : const Color(0xFFFDCC87),
+                                                  borderRadius: BorderRadius.circular(15),
+                                                  border: Border.all(
+                                                    color: const Color(0xFFFDCC87).withOpacity(0.2),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Center(
+                                                  child: FutureBuilder<Map<String, dynamic>>(
+                                                    future: ApiService.getPost(message.postId!),
+                                                    builder: (context, snapshot) {
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return const Center(
+                                                          child: CircularProgressIndicator(
+                                                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                                          ),
+                                                        );
+                                                      }
+                                                      if (snapshot.hasError) {
+                                                        return const Center(
+                                                          child: Text(
+                                                            'Post is Unavailable',
+                                                            style: TextStyle(
+                                                              color: Colors.white70,
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                      final post = snapshot.data;
+                                                      if (post == null) {
+                                                        return const Center(
+                                                          child: Text(
+                                                            'Post not found',
+                                                            style: TextStyle(
+                                                              color: Colors.white70,
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                      return Column(
+                                                        mainAxisAlignment: MainAxisAlignment.center,
+                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                        children: [
+                                                          Text(
+                                                            post['title'] ?? '',
+                                                            style: TextStyle(
+                                                              color: isMe ? Colors.white : Colors.black,
+                                                              fontWeight: FontWeight.bold,
+                                                              fontSize: 16,
+                                                            ),
+                                                            textAlign: TextAlign.center,
+                                                            maxLines: 1,
+                                                            overflow: TextOverflow.ellipsis,
+                                                          ),
+                                                          if (post['body'] != null) ...[
+                                                            const SizedBox(height: 8),
+                                                            Text(
+                                                              post['body'],
+                                                              style: TextStyle(
+                                                                color: isMe ? Colors.white70 : Colors.black87,
+                                                                fontSize: 14,
+                                                              ),
+                                                              textAlign: TextAlign.center,
+                                                              maxLines: 2,
+                                                              overflow: TextOverflow.ellipsis,
+                                                            ),
+                                                          ],
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
                                               ),
                                             ),
                                           Text(

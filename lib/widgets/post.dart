@@ -269,8 +269,7 @@ class _PostState extends State<Post> {
                                       await ApiService.sendMessage(
                                         user['id'],
                                         'Check out this post: ${widget.title}',
-                                        null,
-                                        widget.id,
+                                        postId: widget.id,
                                       );
                                       if (mounted) {
                                         ScaffoldMessenger.of(context).showSnackBar(

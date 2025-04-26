@@ -1005,12 +1005,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> sendMessage(
-    String recipientId,
-    String content, [
-    List<Map<String, dynamic>>? media,
-    String? postId,
-  ]) async {
+  static Future<void> sendMessage(String recipientId, String content, {String? postId}) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/messages'),
@@ -1018,19 +1013,17 @@ class ApiService {
         body: json.encode({
           'recipient': recipientId,
           'content': content,
-          'media': media,
-          'postId': postId,
+          if (postId != null) 'postId': postId,
         }),
       );
 
-      if (response.statusCode == 201) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to send message');
+      if (response.statusCode != 201) {
+        debugPrint('Message send response: ${response.body}');
+        throw Exception('Failed to send message: ${response.body}');
       }
     } catch (e) {
       debugPrint('Error sending message: $e');
-      rethrow;
+      throw Exception('Failed to send message: $e');
     }
   }
 

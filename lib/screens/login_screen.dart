@@ -89,10 +89,6 @@ class _LoginScreenState extends State<LoginScreen> {
       debugPrint('Login error: $e');
       if (!mounted) return;
       
-      // Make sure to close the loading dialog if it's still showing
-      if (Navigator.canPop(context)) {
-        Navigator.pop(context);
-      }
       
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(

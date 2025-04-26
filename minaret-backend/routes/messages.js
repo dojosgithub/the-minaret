@@ -101,7 +101,7 @@ router.post('/', auth, async (req, res) => {
         recipient: recipientUser,
         content,
         media,
-        post: postId,
+        post: postId, // Store the post ID if it's a shared post
         conversation: conversation?._id
       });
 
@@ -128,14 +128,21 @@ router.post('/', auth, async (req, res) => {
       await conversation.save();
       console.log('Conversation saved successfully:', conversation._id);
 
-      // Populate the message with sender and recipient details
+      // Populate the message with sender, recipient, and post details
       await message.populate([
         { path: 'sender', select: 'username firstName lastName profileImage' },
         { path: 'recipient', select: 'username firstName lastName profileImage' }
       ]);
       
       if (postId) {
-        await message.populate('post', 'title body media');
+        await message.populate({
+          path: 'post',
+          select: 'title body media author',
+          populate: {
+            path: 'author',
+            select: 'firstName lastName username profileImage'
+          }
+        });
       }
 
       res.status(201).json(message);
