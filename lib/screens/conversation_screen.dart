@@ -32,13 +32,36 @@ class _ConversationScreenState extends State<ConversationScreen> {
   void initState() {
     super.initState();
     _loadData();
+    _scrollController.addListener(_scrollListener);
   }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollListener() {
+    // Keep track of scroll position
+  }
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  @override
+  void didUpdateWidget(ConversationScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Scroll to bottom when widget updates (new messages arrive)
+    _scrollToBottom();
   }
 
   Future<void> _loadData() async {
@@ -77,7 +100,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         _messages = messages;
         _isLoading = false;
       });
-      _scrollToBottom();
+      WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
     } catch (e) {
       debugPrint('Error loading messages: $e');
       setState(() {
@@ -98,16 +121,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    }
-  }
-
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
@@ -115,12 +128,20 @@ class _ConversationScreenState extends State<ConversationScreen> {
     _messageController.clear();
 
     try {
+      // Ensure the recipient ID is properly formatted
+      final recipientId = widget.otherUser['_id']?.toString();
+      if (recipientId == null || recipientId.isEmpty) {
+        throw Exception('Invalid recipient ID');
+      }
+
       await ApiService.sendMessage(
-        widget.otherUser['_id'],
+        recipientId,
         content,
       );
       await _loadMessages();
+      _scrollToBottom();
     } catch (e) {
+      debugPrint('Error sending message: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Failed to send message: ${e.toString()}'),
