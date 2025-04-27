@@ -1018,6 +1018,28 @@ class _PostState extends State<Post> {
                   ],
                 ),
               ],
+              Row(
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      Icons.comment,
+                      color: _showComments ? const Color(0xFFFDCC87) : Colors.white,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showComments = !_showComments;
+                        if (_showComments) {
+                          _loadComments();
+                        }
+                      });
+                    },
+                  ),
+                  Text(
+                    widget.commentCount.toString(),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ],
+              ),
               IconButton(
                 icon: const Icon(Icons.share, color: Colors.white),
                 onPressed: () => _showSharePopup(context),
