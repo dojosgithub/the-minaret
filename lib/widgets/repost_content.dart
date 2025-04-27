@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../screens/profile_screen.dart';
 
 class RepostContent extends StatelessWidget {
   final Map<String, dynamic> originalPost;
@@ -179,7 +178,7 @@ class RepostContent extends StatelessWidget {
             if (isLastItem)
               Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.5),
+                  color: Colors.black.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Center(

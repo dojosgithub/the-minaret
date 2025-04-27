@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../models/conversation.dart';
 import '../models/message.dart';
 import '../services/message_service.dart';
 import '../services/api_service.dart';
@@ -151,23 +150,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
-  Future<void> _sharePost(Post post) async {
-    try {
-      await ApiService.sendMessage(
-        widget.otherUser['_id'],
-        'Check out this post!',
-        postId: post.id,
-      );
-      await _loadMessages();
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to share post: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
   void _handlePostTap(String postId) {
     Navigator.push(

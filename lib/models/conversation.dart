@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'message.dart';
 
 class Conversation {
   final String id;

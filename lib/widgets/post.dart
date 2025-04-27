@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../utils/time_utils.dart';
 import '../services/api_service.dart';
 import '../screens/profile_screen.dart';
-import '../screens/user_screen.dart';
 import 'comment.dart';
 import 'dart:convert';
 import '../screens/new_message_screen.dart';

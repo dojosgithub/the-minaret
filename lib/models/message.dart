@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import '../widgets/post.dart';
 
 class Message {
   final String id;
