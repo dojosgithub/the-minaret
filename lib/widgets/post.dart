@@ -639,6 +639,7 @@ class _PostState extends State<Post> {
             children: [
               Container(
                 decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 128),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 clipBehavior: Clip.hardEdge,
@@ -1351,7 +1352,7 @@ class _PostState extends State<Post> {
         ...visibleComments.map((comment) {
           final replies = List<Map<String, dynamic>>.from(comment['replies'] ?? []);
           final visibleRepliesCount = _visibleRepliesCount[comment['_id']] ?? _repliesPerPage;
-          final visibleReplies = replies.take(visibleRepliesCount).toList();
+          final visibleReplies = replies.take(visibleRepliesCount);
           final hasMoreReplies = replies.length > visibleRepliesCount;
           final isRepliesExpanded = _showReplies[comment['_id']] ?? false;
 
@@ -1364,7 +1365,7 @@ class _PostState extends State<Post> {
                 authorProfilePic: comment['author']['profileImage'],
                 text: comment['text'],
                 createdAt: comment['createdAt'],
-                replies: isRepliesExpanded ? visibleReplies : [],
+                replies: isRepliesExpanded ? visibleReplies.toList() : [],
                 onReply: () {
                   setState(() {
                     _replyingToCommentId = comment['_id'];

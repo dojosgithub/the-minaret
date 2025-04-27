@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/message.dart';
 import '../services/message_service.dart';
 import '../services/api_service.dart';
-import '../widgets/post.dart';
 import '../screens/post_detail_screen.dart';
 
 class ConversationScreen extends StatefulWidget {
