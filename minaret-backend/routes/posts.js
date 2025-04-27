@@ -139,6 +139,23 @@ router.post('/:id/save', auth, async (req, res) => {
     user.savedPosts.push(post._id);
     await user.save();
 
+    // Only create notification if:
+    // 1. The saver is not the post author
+    // 2. The post author has save notifications enabled
+    if (req.user.id.toString() !== post.author.toString()) {
+      const postAuthor = await User.findById(post.author);
+      if (postAuthor.notificationPreferences.saved) {
+        const notification = new Notification({
+          type: 'saved',
+          sender: req.user.id,
+          recipient: post.author,
+          post: post._id,
+          read: false
+        });
+        await notification.save();
+      }
+    }
+
     res.json({ message: 'Post saved successfully' });
   } catch (err) {
     console.error(err.message);
@@ -316,6 +333,23 @@ router.post('/:postId/comments', auth, async (req, res) => {
     post.comments.unshift(newComment);
     await post.save();
 
+    // Only create notification if:
+    // 1. The commenter is not the post author
+    // 2. The post author has comment notifications enabled
+    if (req.user.id.toString() !== post.author.toString()) {
+      const postAuthor = await User.findById(post.author);
+      if (postAuthor.notificationPreferences.comments) {
+        const notification = new Notification({
+          type: 'comment',
+          sender: req.user.id,
+          recipient: post.author,
+          post: post._id,
+          read: false
+        });
+        await notification.save();
+      }
+    }
+
     // Populate the new comment with author details
     const populatedPost = await Post.findById(post._id)
       .populate('comments.author', 'username firstName lastName profileImage')
@@ -408,6 +442,23 @@ router.post('/:postId/upvote', auth, async (req, res) => {
       // Remove downvote if exists
       if (hasDownvoted) {
         post.downvotes = post.downvotes.filter(id => id.toString() !== req.user.id.toString());
+      }
+
+      // Only create notification if:
+      // 1. The upvoter is not the post author
+      // 2. The post author has upvote notifications enabled
+      if (req.user.id.toString() !== post.author.toString()) {
+        const postAuthor = await User.findById(post.author);
+        if (postAuthor.notificationPreferences.upvote) {
+          const notification = new Notification({
+            type: 'upvote',
+            sender: req.user.id,
+            recipient: post.author,
+            post: post._id,
+            read: false
+          });
+          await notification.save();
+        }
       }
     }
 
@@ -520,15 +571,22 @@ router.post('/:postId/repost', auth, async (req, res) => {
     originalPost.repostCount += 1;
     await originalPost.save();
 
-    // Create notification for original post author
-    const notification = new Notification({
-      type: 'repost',
-      sender: req.user.id,
-      recipient: originalPost.author,
-      post: originalPost._id,
-      read: false
-    });
-    await notification.save();
+    // Only create notification if:
+    // 1. The reposter is not the original author
+    // 2. The original author has repost notifications enabled
+    if (req.user.id.toString() !== originalPost.author.toString()) {
+      const originalAuthor = await User.findById(originalPost.author);
+      if (originalAuthor.notificationPreferences.repost) {
+        const notification = new Notification({
+          type: 'repost',
+          sender: req.user.id,
+          recipient: originalPost.author,
+          post: originalPost._id,
+          read: false
+        });
+        await notification.save();
+      }
+    }
 
     // Return populated repost
     const populatedRepost = await Post.findById(repost._id)

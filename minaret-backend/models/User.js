@@ -73,6 +73,7 @@ const userSchema = new mongoose.Schema({
     saved: { type: Boolean, default: true },
     peopleYouMightLike: { type: Boolean, default: true },
     peopleYouMightKnow: { type: Boolean, default: true },
+    repost: { type: Boolean, default: true },
   },
 });
 

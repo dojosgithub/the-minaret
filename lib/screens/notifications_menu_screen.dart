@@ -18,6 +18,7 @@ class _NotificationsScreenState extends State<NotificationsMenuScreen> {
   bool saved = true;
   bool peopleYouMightLike = true;
   bool peopleYouMightKnow = true;
+  bool repost = true;
   bool _isLoading = true;
 
   @override
@@ -38,6 +39,7 @@ class _NotificationsScreenState extends State<NotificationsMenuScreen> {
         saved = preferences['saved'] ?? true;
         peopleYouMightLike = preferences['peopleYouMightLike'] ?? true;
         peopleYouMightKnow = preferences['peopleYouMightKnow'] ?? true;
+        repost = preferences['repost'] ?? true;
         _isLoading = false;
       });
     } catch (e) {
@@ -71,6 +73,9 @@ class _NotificationsScreenState extends State<NotificationsMenuScreen> {
           case 'peopleYouMightKnow':
             peopleYouMightKnow = value;
             break;
+          case 'repost':
+            repost = value;
+            break;
         }
       });
 
@@ -83,6 +88,7 @@ class _NotificationsScreenState extends State<NotificationsMenuScreen> {
           'saved': saved,
           'peopleYouMightLike': peopleYouMightLike,
           'peopleYouMightKnow': peopleYouMightKnow,
+          'repost': repost,
         }
       });
 
@@ -110,6 +116,9 @@ class _NotificationsScreenState extends State<NotificationsMenuScreen> {
             break;
           case 'peopleYouMightKnow':
             peopleYouMightKnow = !value;
+            break;
+          case 'repost':
+            repost = !value;
             break;
         }
       });
@@ -196,6 +205,10 @@ class _NotificationsScreenState extends State<NotificationsMenuScreen> {
                   _buildSwitch("Saved", saved, (value) {
                     setState(() => saved = value);
                     _updateNotificationPreference('saved', value);
+                  }),
+                  _buildSwitch("Repost", repost, (value) {
+                    setState(() => repost = value);
+                    _updateNotificationPreference('repost', value);
                   }),
 
                   // Suggestions Section

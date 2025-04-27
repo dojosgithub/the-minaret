@@ -72,27 +72,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        actions: [
-          TextButton(
-            onPressed: () async {
-              try {
-                await ApiService.markAllNotificationsAsRead();
-                _loadNotifications();
-              } catch (e) {
-                debugPrint('Error marking all notifications as read: $e');
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Failed to mark all as read')),
-                  );
-                }
-              }
-            },
-            child: const Text(
-              'Mark all as read',
-              style: TextStyle(color: Color(0xFFFDCC87)),
-            ),
-          ),
-        ],
       ),
       body: _isLoading
           ? const Center(
