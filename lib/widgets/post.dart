@@ -961,6 +961,7 @@ class _PostState extends State<Post> {
                     ),
                   );
                 },
+                currentUserId: widget.authorId,
               ),
             ),
           Row(

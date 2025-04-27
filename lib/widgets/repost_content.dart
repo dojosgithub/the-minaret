@@ -4,16 +4,20 @@ import '../screens/profile_screen.dart';
 class RepostContent extends StatelessWidget {
   final Map<String, dynamic> originalPost;
   final VoidCallback onAuthorTap;
+  final String? currentUserId;
 
   const RepostContent({
     super.key,
     required this.originalPost,
     required this.onAuthorTap,
+    required this.currentUserId,
   });
 
   @override
   Widget build(BuildContext context) {
     final author = originalPost['author'];
+    final isCurrentUser = currentUserId == author['_id'];
+
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(12),
@@ -27,7 +31,13 @@ class RepostContent extends StatelessWidget {
         children: [
           // Original author info
           GestureDetector(
-            onTap: onAuthorTap,
+            onTap: () {
+              if (isCurrentUser) {
+                // Don't navigate if it's the current user
+                return;
+              }
+              onAuthorTap();
+            },
             child: Row(
               children: [
                 Container(
