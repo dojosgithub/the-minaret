@@ -503,75 +503,9 @@ class _PostState extends State<Post> {
       }
       return [];
     } catch (e) {
-      print('Error loading recent users: $e');
+      debugPrint('Error loading recent users: $e');
       return [];
     }
-  }
-
-  void _showReportPopup(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: const Color(0xFF4F245A),
-          child: Container(
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3D1B45),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  "Report Post",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                const SizedBox(height: 10),
-                Column(
-                  children: [
-                    _buildReportReason("Spam"),
-                    _buildReportReason("Harassment"),
-                    _buildReportReason("Misinformation"),
-                    _buildReportReason("Hate Speech"),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFDCC87),
-                    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text(
-                    "Submit Report",
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildReportReason(String reason) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 5),
-      child: Row(
-        children: [
-          const Icon(Icons.radio_button_unchecked, color: Colors.white),
-          const SizedBox(width: 10),
-          Text(reason, style: const TextStyle(color: Colors.white)),
-        ],
-      ),
-    );
   }
 
   Widget _buildMediaGrid() {
@@ -669,7 +603,7 @@ class _PostState extends State<Post> {
               if (isLastItem)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha: 0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
