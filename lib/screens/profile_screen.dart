@@ -164,7 +164,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: CircleAvatar(
             radius: 40,
             backgroundImage: userData?['profileImage'] != null && userData!['profileImage'].isNotEmpty
-                ? NetworkImage(userData!['profileImage'])
+                ? NetworkImage(ApiService.resolveImageUrl(userData!['profileImage']))
                 : const AssetImage('assets/default_profile.png') as ImageProvider,
           ),
         ),

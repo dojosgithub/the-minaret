@@ -300,7 +300,7 @@ class _PostState extends State<Post> {
                                           ),
                                           child: ClipOval(
                                             child: Image.network(
-                                              user['profilePicture'] ?? '',
+                                              ApiService.resolveImageUrl(user['profilePicture'] ?? ''),
                                               fit: BoxFit.cover,
                                               errorBuilder: (context, error, stackTrace) {
                                                 return const Icon(Icons.person, size: 30, color: Color(0xFFFDCC87));
@@ -589,7 +589,7 @@ class _PostState extends State<Post> {
             ),
             clipBehavior: Clip.hardEdge,
             child: Image.network(
-              widget.media[0]['url'],
+              ApiService.resolveImageUrl(widget.media[0]['url']),
               fit: BoxFit.cover,
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
@@ -644,7 +644,7 @@ class _PostState extends State<Post> {
                 ),
                 clipBehavior: Clip.hardEdge,
                 child: Image.network(
-                  widget.media[index]['url'],
+                  ApiService.resolveImageUrl(widget.media[index]['url']),
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
@@ -704,7 +704,7 @@ class _PostState extends State<Post> {
                 return InteractiveViewer(
                   child: Center(
                     child: Image.network(
-                      widget.media[index]['url'],
+                      ApiService.resolveImageUrl(widget.media[index]['url']),
                       fit: BoxFit.contain,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
@@ -796,7 +796,9 @@ class _PostState extends State<Post> {
                   color: Color(0xFFFDCC87),
                 ),
                 child: CircleAvatar(
-                  backgroundImage: AssetImage(widget.profilePic),
+                  backgroundImage: widget.profilePic.startsWith('http') || widget.profilePic.startsWith('/')
+                      ? NetworkImage(ApiService.resolveImageUrl(widget.profilePic))
+                      : AssetImage(widget.profilePic) as ImageProvider,
                   radius: 25,
             ),
                 ),

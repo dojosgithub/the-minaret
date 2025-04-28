@@ -1133,4 +1133,13 @@ class ApiService {
       rethrow;
     }
   }
+
+  static String resolveImageUrl(String? url) {
+    if (url == null || url.isEmpty) {
+      return baseUrl.replaceFirst('/api', '') + '/uploads/profiles/default_profile.png';
+    }
+    if (url.startsWith('http')) return url;
+    final path = url.startsWith('/') ? url.substring(1) : url;
+    return baseUrl.replaceFirst('/api', '') + '/'+ path;
+  }
 } 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 class RepostContent extends StatelessWidget {
   final Map<String, dynamic> originalPost;
@@ -46,7 +47,7 @@ class RepostContent extends StatelessWidget {
                     color: Color(0xFFFDCC87),
                   ),
                   child: CircleAvatar(
-                    backgroundImage: NetworkImage(author['profileImage']),
+                    backgroundImage: NetworkImage(ApiService.resolveImageUrl(author['profileImage'])),
                     radius: 15,
                   ),
                 ),
@@ -128,7 +129,7 @@ class RepostContent extends StatelessWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            media[0]['url'],
+            ApiService.resolveImageUrl(media[0]['url']),
             fit: BoxFit.cover,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
@@ -171,7 +172,7 @@ class RepostContent extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: Image.network(
-                media[index]['url'],
+                ApiService.resolveImageUrl(media[index]['url']),
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;

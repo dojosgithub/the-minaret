@@ -76,7 +76,9 @@ class NotificationWidget extends StatelessWidget {
                     color: Color(0xFFFFE4A7), 
                   ),
                   child: CircleAvatar(
-                    backgroundImage: AssetImage(profilePic),
+                    backgroundImage: profilePic.startsWith('assets/')
+                        ? AssetImage(profilePic)
+                        : NetworkImage(ApiService.resolveImageUrl(profilePic)) as ImageProvider,
                     radius: 20,
                   ),
                 ),

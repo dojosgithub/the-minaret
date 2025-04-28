@@ -442,7 +442,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     backgroundImage: _imageFile != null
                         ? FileImage(_imageFile!)
                         : (userData?['profileImage'] != null
-                            ? NetworkImage(userData!['profileImage'])
+                            ? NetworkImage(ApiService.resolveImageUrl(userData!['profileImage']))
                             : const AssetImage('assets/default_profile.png')) as ImageProvider,
                   ),
                   const SizedBox(height: 10),
