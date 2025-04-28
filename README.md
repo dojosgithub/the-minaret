@@ -38,7 +38,7 @@ cp .env.example .env
 
 # Update .env with your configuration:
 MONGODB_URI=mongodb://localhost:27017/minaret
-JWT_SECRET=e2aae21e26d37fed7f62f8d2e0e9abc5ace40eab586753a604ce4cc7475374a1
+JWT_SECRET=JWT_TOKEN_HERE
 PORT=5000
 
 # Seed the database with initial data

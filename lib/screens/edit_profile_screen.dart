@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:ui';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import 'change_password_screen.dart';
+import '../services/image_service.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -21,7 +23,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   
   File? _imageFile;
   bool isLoading = true;
-  DateTime? _selectedDate;
+  String _selectedDay = 'Day';
+  String _selectedMonth = 'Month';
+  String _selectedYear = 'Year';
+  bool _isDateExpanded = false;
   Map<String, dynamic>? userData;
 
   @override
@@ -50,9 +55,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         _usernameController.text = data['username'] ?? '';
         _bioController.text = data['bio'] ?? '';
         _phoneController.text = data['phoneNumber'] ?? '';
-        _selectedDate = data['dateOfBirth'] != null 
-            ? DateTime.parse(data['dateOfBirth']) 
-            : null;
+        if (data['dateOfBirth'] != null) {
+          final date = DateTime.parse(data['dateOfBirth']);
+          _selectedDay = date.day.toString().padLeft(2, '0');
+          _selectedMonth = _getMonthName(date.month);
+          _selectedYear = date.year.toString();
+        }
         isLoading = false;
       });
     } catch (e) {
@@ -61,19 +69,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  String _getMonthName(int month) {
+    final months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months[month - 1];
+  }
+
   Future<void> _pickImage() async {
     try {
       final ImagePicker picker = ImagePicker();
       final XFile? image = await picker.pickImage(
         source: ImageSource.gallery,
-        maxWidth: 1024, // Limit image size
-        maxHeight: 1024,
+        maxWidth: 500, // Limit image size
+        maxHeight: 500,
         imageQuality: 85, // Compress image
       );
       
       if (image != null) {
+        if (image.path.startsWith('blob:')) {
+          setState(() {
+          _imageFile = File(image.path); // This may still not work on web, but allows mobile/desktop
+        });
+        return;
+        }
         // Verify file type
         String extension = image.path.split('.').last.toLowerCase();
+        print('Picked file path: ${image.path}');
+        print('Detected extension: $extension');
         if (!['jpg', 'jpeg', 'png'].contains(extension)) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -97,6 +121,227 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  void _showDatePicker(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Stack(
+          children: [
+            BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+              ),
+            ),
+            Dialog(
+              backgroundColor: const Color(0xFF3A1E47),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                height: 300,
+                child: Column(
+                  children: [
+                    const Text(
+                      'Select Birthday',
+                      style: TextStyle(
+                        color: Color(0xFFFDCC87),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          // Selection lines
+                          Positioned.fill(
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    height: 1,
+                                    color: const Color(0xFFFDCC87),
+                                  ),
+                                  const SizedBox(height: 38),
+                                  Container(
+                                    height: 1,
+                                    color: const Color(0xFFFDCC87),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              // Day picker
+                              Expanded(
+                                child: ListWheelScrollView.useDelegate(
+                                  itemExtent: 40,
+                                  perspective: 0.005,
+                                  diameterRatio: 1.2,
+                                  physics: const FixedExtentScrollPhysics(),
+                                  childDelegate: ListWheelChildBuilderDelegate(
+                                    childCount: 31,
+                                    builder: (context, index) {
+                                      return Center(
+                                        child: Text(
+                                          index < 9 ? '0${index + 1}' : '${index + 1}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  onSelectedItemChanged: (index) {
+                                    setState(() {
+                                      _selectedDay = index < 9 ? '0${index + 1}' : '${index + 1}';
+                                    });
+                                  },
+                                ),
+                              ),
+                              // Month picker
+                              Expanded(
+                                child: ListWheelScrollView.useDelegate(
+                                  itemExtent: 40,
+                                  perspective: 0.005,
+                                  diameterRatio: 1.2,
+                                  physics: const FixedExtentScrollPhysics(),
+                                  childDelegate: ListWheelChildBuilderDelegate(
+                                    childCount: 12,
+                                    builder: (context, index) {
+                                      final months = [
+                                        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                                      ];
+                                      return Center(
+                                        child: Text(
+                                          months[index],
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  onSelectedItemChanged: (index) {
+                                    final months = [
+                                      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+                                    ];
+                                    setState(() {
+                                      _selectedMonth = months[index];
+                                    });
+                                  },
+                                ),
+                              ),
+                              // Year picker
+                              Expanded(
+                                child: ListWheelScrollView.useDelegate(
+                                  itemExtent: 40,
+                                  perspective: 0.005,
+                                  diameterRatio: 1.2,
+                                  physics: const FixedExtentScrollPhysics(),
+                                  childDelegate: ListWheelChildBuilderDelegate(
+                                    childCount: 100,
+                                    builder: (context, index) {
+                                      return Center(
+                                        child: Text(
+                                          '${2024 - index}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  onSelectedItemChanged: (index) {
+                                    setState(() {
+                                      _selectedYear = '${2024 - index}';
+                                    });
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFDCC87),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(25),
+                        ),
+                        minimumSize: const Size(double.infinity, 45),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text(
+                        'Confirm',
+                        style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildBirthdayField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Birthday', style: TextStyle(color: Colors.white)),
+        const SizedBox(height: 5),
+        InkWell(
+          onTap: () => _showDatePicker(context),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFF3A1E47),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  _selectedDay != 'Day' && _selectedMonth != 'Month' && _selectedYear != 'Year'
+                      ? '$_selectedDay $_selectedMonth $_selectedYear'
+                      : 'Select Birthday',
+                  style: TextStyle(
+                    color: _selectedDay != 'Day' ? const Color(0xFFFDCC87) : Colors.grey,
+                  ),
+                ),
+                const Icon(
+                  Icons.calendar_today,
+                  color: Color(0xFFFDCC87),
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _saveProfile() async {
     try {
       setState(() => isLoading = true);
@@ -108,14 +353,37 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'username': _usernameController.text,
         'bio': _bioController.text,
         'phoneNumber': _phoneController.text,
-        'dateOfBirth': _selectedDate?.toIso8601String(),
       };
+
+      // Add date of birth if selected
+      if (_selectedDay != 'Day' && _selectedMonth != 'Month' && _selectedYear != 'Year') {
+        final monthMap = {
+          'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4, 'May': 5, 'Jun': 6,
+          'Jul': 7, 'Aug': 8, 'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+        };
+        final date = DateTime(
+          int.parse(_selectedYear),
+          monthMap[_selectedMonth]!,
+          int.parse(_selectedDay),
+        );
+        updateData['dateOfBirth'] = date.toIso8601String();
+      }
 
       // Upload image if selected
       if (_imageFile != null) {
-        final String? imageUrl = await ApiService.uploadProfileImage(_imageFile!);
-        if (imageUrl != null) {
+        try {
+          final imageUrl = await ImageService.uploadProfileImage(
+            _imageFile!,
+            userData!['_id'],
+          );
           updateData['profileImage'] = imageUrl;
+        } catch (e) {
+          debugPrint('Error uploading profile image: $e');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to upload profile image')),
+            );
+          }
         }
       }
 
@@ -126,7 +394,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile updated successfully')),
         );
-        Navigator.pop(context); // Go back to previous screen
+        Navigator.pop(context);
       }
     } catch (e) {
       debugPrint('Error updating profile: $e');
@@ -201,7 +469,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildTextField('Bio', _bioController, maxLines: 3),
             _buildTextField('Phone Number', _phoneController),
             const SizedBox(height: 15),
-            _buildDatePicker(),
+            _buildBirthdayField(),
             const SizedBox(height: 30),
             SizedBox(
               width: double.infinity,
@@ -258,43 +526,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
         ),
         controller: controller,
-      ),
-    );
-  }
-
-  Widget _buildDatePicker() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildDropdown(['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'], 'Day'),
-        _buildDropdown(['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'], 'Month'),
-        _buildDropdown(List.generate(100, (index) => (2024 - index).toString()), 'Year'),
-      ],
-    );
-  }
-
-  Widget _buildDropdown(List<String> items, String hint) {
-    return Container(
-      width: 100,
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: const Color(0xFF3A1D47),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          dropdownColor: const Color(0xFF3A1D47),
-          iconEnabledColor: const Color(0xFFFDCC87),
-          style: const TextStyle(color: Colors.white),
-          hint: Text(hint, style: const TextStyle(color: Colors.grey)),
-          items: items.map((String value) {
-            return DropdownMenuItem<String>(
-              value: value,
-              child: Text(value),
-            );
-          }).toList(),
-          onChanged: (newValue) {},
-        ),
       ),
     );
   }

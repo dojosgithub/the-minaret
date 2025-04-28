@@ -29,17 +29,17 @@ class RepostContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Original author info
-          GestureDetector(
-            onTap: () {
-              if (isCurrentUser) {
-                // Don't navigate if it's the current user
-                return;
-              }
-              onAuthorTap();
-            },
-            child: Row(
-              children: [
-                Container(
+          Row(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  if (isCurrentUser) {
+                    // Don't navigate if it's the current user
+                    return;
+                  }
+                  onAuthorTap();
+                },
+                child: Container(
                   padding: const EdgeInsets.all(2),
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
@@ -50,28 +50,46 @@ class RepostContent extends StatelessWidget {
                     radius: 15,
                   ),
                 ),
-                const SizedBox(width: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
+              ),
+              const SizedBox(width: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  GestureDetector(
+                    onTap: () {
+                      if (isCurrentUser) {
+                        // Don't navigate if it's the current user
+                        return;
+                      }
+                      onAuthorTap();
+                    },
+                    child: Text(
                       '${author['firstName']} ${author['lastName']}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    Text(
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      if (isCurrentUser) {
+                        // Don't navigate if it's the current user
+                        return;
+                      }
+                      onAuthorTap();
+                    },
+                    child: Text(
                       '@${author['username']}',
                       style: const TextStyle(
                         color: Color(0xFFFDCC87),
                         fontSize: 12,
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
+                  ),
+                ],
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           // Original post content
