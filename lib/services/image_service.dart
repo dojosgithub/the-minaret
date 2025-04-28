@@ -6,8 +6,6 @@ import 'dart:convert';
 import 'package:http_parser/http_parser.dart';
 
 class ImageService {
-  static const int _maxImageSize = 500; // pixels
-  static const int _compressionQuality = 85; // percentage
 
   static Future<String> uploadProfileImage(File imageFile, String userId) async {
     try {

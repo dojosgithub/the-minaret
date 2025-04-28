@@ -28,8 +28,8 @@ class _SearchScreenState extends State<SearchScreen> {
   String? _error;
   List<String> _recentSearches = [];
   int _selectedTab = 0; // 0 for posts, 1 for users
-  Map<String, bool> _upvotedPosts = {};
-  Map<String, bool> _downvotedPosts = {};
+  final Map<String, bool> _upvotedPosts = {};
+  final Map<String, bool> _downvotedPosts = {};
 
   @override
   void initState() {

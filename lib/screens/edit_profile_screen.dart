@@ -26,7 +26,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _selectedDay = 'Day';
   String _selectedMonth = 'Month';
   String _selectedYear = 'Year';
-  bool _isDateExpanded = false;
   Map<String, dynamic>? userData;
 
   @override
@@ -128,7 +127,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
               child: Container(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 153),  // 0.6 * 255 ≈ 153
               ),
             ),
             Dialog(
