@@ -96,8 +96,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         }
         // Verify file type
         String extension = image.path.split('.').last.toLowerCase();
-        print('Picked file path: ${image.path}');
-        print('Detected extension: $extension');
         if (!['jpg', 'jpeg', 'png'].contains(extension)) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(

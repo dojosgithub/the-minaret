@@ -297,7 +297,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                                   color: isMe ? const Color(0xFF9D3267) : const Color(0xFFFDCC87),
                                                   borderRadius: BorderRadius.circular(15),
                                                   border: Border.all(
-                                                    color: const Color(0xFFFDCC87).withOpacity(0.2),
+                                                    color: const Color(0xFFFDCC87).withValues(alpha: 72),
                                                     width: 1,
                                                   ),
                                                 ),

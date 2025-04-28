@@ -75,11 +75,8 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // Prevent back button from exiting the app when on home screen
-        return _currentIndex != 0;
-      },
+    return PopScope(
+      canPop: _currentIndex != 0,
       child: ScreenWrapper(
         currentIndex: _currentIndex,
         onIndexChanged: setIndex,
