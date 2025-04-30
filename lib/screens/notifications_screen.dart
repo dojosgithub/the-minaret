@@ -28,13 +28,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     });
 
     try {
+      // Get current user ID
+      final currentUserId = await ApiService.currentUserId;
+      if (currentUserId == null) {
+        throw Exception('User not logged in');
+      }
+
       // Get all notifications
       final notifications = await ApiService.getNotifications();
       
       // Filter notifications where current user is the recipient
       final filteredNotifications = notifications.where((notification) {
-        return notification['recipient'] != null && 
-               notification['recipient']['_id'] != null;
+        final recipientId = notification['recipient']?.toString();
+        return recipientId != null && recipientId == currentUserId;
       }).toList();
 
       setState(() {

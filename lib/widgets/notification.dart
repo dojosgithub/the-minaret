@@ -24,10 +24,10 @@ class NotificationWidget extends StatelessWidget {
     try {
       // Get current user's ID
       final currentUser = await ApiService.getUserProfile();
-      final currentUserId = currentUser['_id'];
+      final currentUserId = currentUser['_id'].toString();
 
       // Navigate to appropriate screen based on whether it's the current user
-      if (senderId == currentUserId) {
+      if (senderId.toString() == currentUserId) {
         Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const UserScreen()),
@@ -36,7 +36,7 @@ class NotificationWidget extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ProfileScreen(userId: senderId),
+            builder: (context) => ProfileScreen(userId: senderId.toString()),
           ),
         );
       }
