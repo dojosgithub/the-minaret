@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../widgets/top_bar.dart';
 import '../screens/messages_screen.dart';
+import '../services/api_service.dart';
 
 class PrivacySafetyScreen extends StatefulWidget {
   const PrivacySafetyScreen({super.key});
@@ -11,14 +12,59 @@ class PrivacySafetyScreen extends StatefulWidget {
 }
 
 class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
-  final Map<String, String> privacySettings = {
-    "Comments": "Everyone",
-    "Upvote": "Everyone",
-    "Share": "Everyone",
-    "Profile View": "Everyone",
+  Map<String, String> privacySettings = {
+    "comments": "Friends",
+    "upvote": "Friends",
+    "share": "Friends",
+    "profileView": "Friends",
   };
 
   final List<String> visibilityOptions = ["Everyone", "Friends", "No one"];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    setState(() => _isLoading = true);
+    try {
+      final preferences = await ApiService.getViewPreferences();
+      setState(() {
+        privacySettings = preferences;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to load preferences: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _savePreferences() async {
+    setState(() => _isLoading = true);
+    try {
+      await ApiService.updateViewPreferences(privacySettings);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Preferences updated successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update preferences: $e')),
+        );
+      }
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,49 +84,71 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
         },
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Back Button & Title
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  "Privacy & Safety",
-                  style: TextStyle(
-                    color: Color(0xFFFDCC87),
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Back Button & Title
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+                        onPressed: () => Navigator.pop(context),
+                      ),
+                      const SizedBox(width: 10),
+                      const Text(
+                        "Privacy & Safety",
+                        style: TextStyle(
+                          color: Color(0xFFFDCC87),
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
 
-            const SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-            // Small Subtitle
-            const Text(
-              "Who can see",
-              style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 10),
+                  // Small Subtitle
+                  const Text(
+                    "Who can see",
+                    style: TextStyle(color: Colors.grey, fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  const SizedBox(height: 10),
 
-            // Privacy Options List
-            Column(
-              children: privacySettings.keys.map((setting) {
-                return _buildPrivacyOption(setting);
-              }).toList(),
+                  // Privacy Options List
+                  Expanded(
+                    child: ListView(
+                      children: privacySettings.keys.map((setting) {
+                        return _buildPrivacyOption(setting);
+                      }).toList(),
+                    ),
+                  ),
+
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: ElevatedButton(
+                      onPressed: _savePreferences,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFDCC87),
+                        minimumSize: const Size(double.infinity, 50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: const Text(
+                        'Save Changes',
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -105,6 +173,11 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
+            Text(
+              privacySettings[setting]!,
+              style: const TextStyle(color: Color(0xFFFDCC87), fontSize: 14),
+            ),
+            const SizedBox(width: 10),
             const Icon(Icons.arrow_forward_ios, color: Colors.white, size: 18),
           ],
         ),
@@ -115,13 +188,13 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
   // Icon mapping function
   Widget _getIconForSetting(String setting) {
     switch (setting) {
-      case "Comments":
+      case "comments":
         return const Icon(Icons.comment_outlined, color: Colors.white);
-      case "Upvote":
+      case "upvote":
         return const Icon(Icons.arrow_upward, color: Colors.white);
-      case "Share":
+      case "share":
         return const Icon(Icons.reply_outlined, color: Colors.white);
-      case "Profile View":
+      case "profileView":
         return const Icon(Icons.remove_red_eye_outlined, color: Colors.white);
       default:
         return const Icon(Icons.security, color: Colors.white);
@@ -132,18 +205,18 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
   void _showVisibilityDialog(String setting) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withValues(alpha: 0.5), // Dim background
+      barrierColor: Colors.black.withOpacity(0.5),
       builder: (BuildContext context) {
         String selectedOption = privacySettings[setting]!;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8), // Blur effect
+            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
             child: Container(
               width: 250,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF4F245A), // Same as background color
+                color: const Color(0xFF4F245A),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Column(

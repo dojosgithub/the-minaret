@@ -3,6 +3,7 @@ import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 import '../utils/post_type.dart';
+import 'dart:convert';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -36,17 +37,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initializePosts() async {
     setState(() {
-      _postsFuture = ApiService.getPosts(type: PostType.selectedType).then((posts) async {
-        // Check vote status for each post
-        for (var post in posts) {
-          final status = await ApiService.getPostVoteStatus(post['_id']);
-          post['isUpvoted'] = status['isUpvoted'] ?? false;
-          post['isDownvoted'] = status['isDownvoted'] ?? false;
+      _postsFuture = ApiService.getFollowedUsers().then((followedUsers) async {
+        if (followedUsers.isEmpty) {
+          return <Map<String, dynamic>>[];
         }
-        return posts;
+        
+        // Get all posts first
+        final posts = await ApiService.getPosts(type: PostType.selectedType);
+        
+        // Filter posts to only show those from followed users
+        final filteredPosts = posts.where((post) => 
+          followedUsers.any((user) => user['_id'].toString() == post['author']['_id'].toString())
+        ).toList();
+        
+        // Check vote status for each post
+        for (var post in filteredPosts) {
+          try {
+            final status = await ApiService.getPostVoteStatus(post['_id']);
+            post['isUpvoted'] = status['isUpvoted'] ?? false;
+            post['isDownvoted'] = status['isDownvoted'] ?? false;
+          } catch (e) {
+            debugPrint('Error getting vote status for post ${post['_id']}: $e');
+            post['isUpvoted'] = false;
+            post['isDownvoted'] = false;
+          }
+        }
+        
+        return filteredPosts;
       }).catchError((error) {
         debugPrint('Error fetching posts: $error');
-        throw error;
+        return <Map<String, dynamic>>[];
       });
     });
   }
@@ -104,6 +124,21 @@ class _HomeScreenState extends State<HomeScreen> {
             }
 
             if (snapshot.hasError) {
+              // Check if the error is due to no posts
+              if (snapshot.error.toString().contains('No posts available')) {
+                return const SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(20.0),
+                      child: Text(
+                        'No posts available',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ),
+                );
+              }
               return ConnectionErrorWidget(
                 onRetry: _refreshPosts,
               );

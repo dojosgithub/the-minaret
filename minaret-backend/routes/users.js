@@ -439,4 +439,43 @@ router.get('/:userId/following', auth, async (req, res) => {
   }
 });
 
+// Update view preferences
+router.put('/view-preferences', auth, async (req, res) => {
+  try {
+    const { preferences } = req.body;
+    
+    // Validate preferences
+    const validPreferences = ['comments', 'upvote', 'share', 'profileView'];
+    const validValues = ['Everyone', 'Friends', 'No one'];
+    
+    for (const [key, value] of Object.entries(preferences)) {
+      if (!validPreferences.includes(key) || !validValues.includes(value)) {
+        return res.status(400).json({ message: 'Invalid preference or value' });
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { 'viewPreferences': preferences } },
+      { new: true }
+    ).select('-password');
+
+    res.json(user.viewPreferences);
+  } catch (err) {
+    console.error('Error updating view preferences:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
+// Get view preferences
+router.get('/view-preferences', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('viewPreferences');
+    res.json(user.viewPreferences);
+  } catch (err) {
+    console.error('Error getting view preferences:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
 module.exports = router; 

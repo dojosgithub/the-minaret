@@ -195,11 +195,28 @@ class ApiService {
 
   static Future<Map<String, dynamic>> register(Map<String, dynamic> userData) async {
     try {
+      // Transform the data to match backend expectations
+      final transformedData = {
+        'firstName': userData['firstName'],
+        'lastName': userData['lastName'],
+        'username': userData['username'],
+        'email': userData['email'],
+        'phoneNumber': userData['phoneNumber'],
+        'password': userData['password'],
+        'type': userData['userType'], // Transform userType to type
+        'birthday': userData['dateOfBirth'], // Transform dateOfBirth to birthday
+      };
+
+      debugPrint('Registering user with data: $transformedData');
+      
       final response = await http.post(
         Uri.parse('$baseUrl/auth/register'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode(userData),
+        body: json.encode(transformedData),
       );
+
+      debugPrint('Registration response status: ${response.statusCode}');
+      debugPrint('Registration response body: ${response.body}');
 
       final data = json.decode(response.body);
       if (response.statusCode == 201) {
@@ -1064,15 +1081,29 @@ class ApiService {
     }
   }
 
-  static Future<http.Response> getFollowedUsers() async {
+  static Future<List<Map<String, dynamic>>> getFollowedUsers() async {
     try {
+      final currentUserId = await ApiService.currentUserId;
+      if (currentUserId == null) {
+        throw Exception('User not logged in');
+      }
+
       final response = await http.get(
-        Uri.parse('$baseUrl/users/following'),
+        Uri.parse('$baseUrl/users/$currentUserId/following'),
         headers: await getHeaders(),
       );
-      return response;
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data.map((item) => 
+          Map<String, dynamic>.from(item)
+        ));
+      } else {
+        throw Exception('Failed to load followed users');
+      }
     } catch (e) {
-      throw Exception('Failed to get followed users: $e');
+      debugPrint('Error getting followed users: $e');
+      rethrow;
     }
   }
 
@@ -1177,6 +1208,41 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('Error getting following: $e');
+      rethrow;
+    }
+  }
+
+  static Future<Map<String, String>> getViewPreferences() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/view-preferences'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        return Map<String, String>.from(json.decode(response.body));
+      } else {
+        throw Exception('Failed to load view preferences');
+      }
+    } catch (e) {
+      debugPrint('Error getting view preferences: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> updateViewPreferences(Map<String, String> preferences) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/view-preferences'),
+        headers: await getHeaders(),
+        body: json.encode({'preferences': preferences}),
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Failed to update view preferences');
+      }
+    } catch (e) {
+      debugPrint('Error updating view preferences: $e');
       rethrow;
     }
   }

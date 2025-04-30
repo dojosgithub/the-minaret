@@ -28,9 +28,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     });
 
     try {
+      // Get all notifications
       final notifications = await ApiService.getNotifications();
+      
+      // Filter notifications where current user is the recipient
+      final filteredNotifications = notifications.where((notification) {
+        return notification['recipient'] != null && 
+               notification['recipient']['_id'] != null;
+      }).toList();
+
       setState(() {
-        _notifications = notifications;
+        _notifications = filteredNotifications;
         _isLoading = false;
       });
     } catch (e) {

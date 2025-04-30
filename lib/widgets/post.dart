@@ -496,12 +496,18 @@ class _PostState extends State<Post> {
       }
       
       // If no conversations, get followed users
-      final response = await ApiService.getFollowedUsers();
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['users'] ?? [];
+      try {
+        final followedUsers = await ApiService.getFollowedUsers();
+        return followedUsers.map((user) => {
+          'username': user['username'],
+          'firstName': user['firstName'],
+          'lastName': user['lastName'],
+          'profilePicture': user['profileImage'],
+        }).toList();
+      } catch (e) {
+        debugPrint('Error loading followed users: $e');
+        return [];
       }
-      return [];
     } catch (e) {
       debugPrint('Error loading recent users: $e');
       return [];

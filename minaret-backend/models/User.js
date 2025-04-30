@@ -75,6 +75,12 @@ const userSchema = new mongoose.Schema({
     peopleYouMightKnow: { type: Boolean, default: true },
     repost: { type: Boolean, default: true },
   },
+  viewPreferences: {
+    comments: { type: String, enum: ['Everyone', 'Friends', 'No one'], default: 'Friends' },
+    upvote: { type: String, enum: ['Everyone', 'Friends', 'No one'], default: 'Friends' },
+    share: { type: String, enum: ['Everyone', 'Friends', 'No one'], default: 'Friends' },
+    profileView: { type: String, enum: ['Everyone', 'Friends', 'No one'], default: 'Friends' },
+  },
 });
 
 module.exports = mongoose.model('User', userSchema); 
