@@ -287,12 +287,12 @@ class _PostState extends State<Post> {
                                     width: 80,
                                     margin: const EdgeInsets.only(right: 16),
                                     child: Column(
-                                      children: [
-                                        Container(
+                        children: [
+                          Container(
                                           width: 60,
                                           height: 60,
                                           decoration: BoxDecoration(
-                                            shape: BoxShape.circle,
+                              shape: BoxShape.circle,
                                             border: Border.all(
                                               color: const Color(0xFFFDCC87),
                                               width: 2,
@@ -335,7 +335,7 @@ class _PostState extends State<Post> {
                         icon: Icons.message,
                         label: 'Message',
                         onTap: () {
-                          Navigator.pop(context);
+                        Navigator.pop(context);
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -390,8 +390,8 @@ class _PostState extends State<Post> {
                           }
                           Navigator.pop(context);
                         },
-                        child: Column(
-                          children: [
+            child: Column(
+              children: [
                             Container(
                               width: 50,
                               height: 50,
@@ -407,7 +407,7 @@ class _PostState extends State<Post> {
                               ),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
+                const Text(
                               'WhatsApp',
                               style: TextStyle(color: Colors.white),
                             ),
@@ -426,13 +426,13 @@ class _PostState extends State<Post> {
                               const SnackBar(content: Text('Could not launch Telegram')),
                             );
                           }
-                        Navigator.pop(context);
-                        },
-                      ),
-                    ],
+                    Navigator.pop(context);
+                  },
                   ),
-                ],
-              ),
+                    ],
+                ),
+              ],
+          ),
             );
           },
         );
@@ -570,8 +570,8 @@ class _PostState extends State<Post> {
           onTap: () => _showGalleryView(index),
           child: Stack(
             fit: StackFit.expand,
-            children: [
-              Container(
+      children: [
+        Container(
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 128),
                   borderRadius: BorderRadius.circular(8),
@@ -630,7 +630,7 @@ class _PostState extends State<Post> {
       builder: (context) => Dialog(
         backgroundColor: Colors.black,
         child: Stack(
-          children: [
+      children: [
             PageView.builder(
               controller: PageController(initialPage: initialIndex),
               itemCount: widget.media.length,
@@ -666,7 +666,7 @@ class _PostState extends State<Post> {
             Positioned(
               top: 0,
               right: 0,
-              child: IconButton(
+          child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
@@ -687,9 +687,9 @@ class _PostState extends State<Post> {
           padding: const EdgeInsets.only(bottom: 8),
           child: InkWell(
             onTap: () => _launchURL(link['url']),
-            child: Container(
+          child: Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
+            decoration: BoxDecoration(
                 color: const Color(0xFF4F245A),
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(color: const Color(0xFFFDCC87), width: 1),
@@ -709,10 +709,10 @@ class _PostState extends State<Post> {
                     ),
                   ),
                 ],
-              ),
-            ),
           ),
-        );
+        ),
+      ),
+    );
       }).toList(),
     );
   }
@@ -799,7 +799,7 @@ class _PostState extends State<Post> {
                                 : Icon(
                             _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
                             color: const Color(0xFFFDCC87),
-                                  ),
+                          ),
                             onPressed: _toggleSave,
                           ),
                         ],
@@ -817,15 +817,15 @@ class _PostState extends State<Post> {
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  widget.text,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white,
-                  ),
-                ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      widget.text,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.white,
+                      ),
+                    ),
               ],
                   ],
                 ),
@@ -918,7 +918,7 @@ class _PostState extends State<Post> {
                     _upvoteCount.toString(),
                     style: TextStyle(
                       color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
-                    ),
+                  ),
                   ),
                 ],
               ),
@@ -942,9 +942,9 @@ class _PostState extends State<Post> {
                 ],
               ),
               if (!widget.isRepost) ...[
-                Row(
-                  children: [
-                    IconButton(
+              Row(
+                children: [
+                  IconButton(
                       icon: const Icon(Icons.repeat, color: Colors.white),
                       onPressed: _showRepostDialog,
                     ),

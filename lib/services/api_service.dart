@@ -1142,4 +1142,42 @@ class ApiService {
     final path = url.startsWith('/') ? url.substring(1) : url;
     return baseUrl.replaceFirst('/api', '') + '/'+ path;
   }
+
+  static Future<List<Map<String, dynamic>>> getUserFollowers(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId/followers'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load followers');
+      }
+    } catch (e) {
+      debugPrint('Error getting followers: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> getUserFollowing(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/$userId/following'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return List<Map<String, dynamic>>.from(data);
+      } else {
+        throw Exception('Failed to load following');
+      }
+    } catch (e) {
+      debugPrint('Error getting following: $e');
+      rethrow;
+    }
+  }
 } 

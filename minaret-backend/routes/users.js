@@ -405,4 +405,38 @@ router.put('/profile', auth, async (req, res) => {
   }
 });
 
+// Get user followers
+router.get('/:userId/followers', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId)
+      .populate('followers', 'firstName lastName username profileImage');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user.followers);
+  } catch (err) {
+    console.error('Error getting followers:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
+// Get user following
+router.get('/:userId/following', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId)
+      .populate('following', 'firstName lastName username profileImage');
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user.following);
+  } catch (err) {
+    console.error('Error getting following:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
 module.exports = router; 

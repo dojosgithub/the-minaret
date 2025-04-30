@@ -3,6 +3,7 @@ import '../widgets/top_bar_without_menu.dart';
 import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
+import '../screens/followers_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -213,30 +214,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildFollowCounts() {
     return Row(
       children: [
-        Text(
-          '${userData?['followers']?.length ?? 0} ',
-          style: const TextStyle(
-            color: Color(0xFFFDCC87),
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowersScreen(
+                  userId: widget.userId,
+                  isFollowers: true,
+                  title: 'Followers',
+                ),
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              Text(
+                '${userData?['followers']?.length ?? 0} ',
+                style: const TextStyle(
+                  color: Color(0xFFFDCC87),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
+                'Followers',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ],
           ),
-        ),
-        const Text(
-          'Followers',
-          style: TextStyle(color: Colors.grey, fontSize: 14),
         ),
         const SizedBox(width: 15),
-        Text(
-          '${userData?['following']?.length ?? 0} ',
-          style: const TextStyle(
-            color: Color(0xFFFDCC87),
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+        GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => FollowersScreen(
+                  userId: widget.userId,
+                  isFollowers: false,
+                  title: 'Following',
+                ),
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              Text(
+                '${userData?['following']?.length ?? 0} ',
+                style: const TextStyle(
+                  color: Color(0xFFFDCC87),
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const Text(
+                'Following',
+                style: TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ],
           ),
-        ),
-        const Text(
-          'Following',
-          style: TextStyle(color: Colors.grey, fontSize: 14),
         ),
       ],
     );
