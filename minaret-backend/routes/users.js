@@ -439,8 +439,22 @@ router.get('/:userId/following', auth, async (req, res) => {
   }
 });
 
+// Get view preferences
+router.get('/preferences/view', auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user.viewPreferences);
+  } catch (err) {
+    console.error('Error getting view preferences:', err);
+    res.status(500).json({ message: 'Server Error', error: err.message });
+  }
+});
+
 // Update view preferences
-router.put('/view-preferences', auth, async (req, res) => {
+router.put('/preferences/view', auth, async (req, res) => {
   try {
     const { preferences } = req.body;
     
@@ -463,17 +477,6 @@ router.put('/view-preferences', auth, async (req, res) => {
     res.json(user.viewPreferences);
   } catch (err) {
     console.error('Error updating view preferences:', err);
-    res.status(500).json({ message: 'Server Error', error: err.message });
-  }
-});
-
-// Get view preferences
-router.get('/view-preferences', auth, async (req, res) => {
-  try {
-    const user = await User.findById(req.user.id).select('viewPreferences');
-    res.json(user.viewPreferences);
-  } catch (err) {
-    console.error('Error getting view preferences:', err);
     res.status(500).json({ message: 'Server Error', error: err.message });
   }
 });

@@ -1215,12 +1215,13 @@ class ApiService {
   static Future<Map<String, String>> getViewPreferences() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/users/view-preferences'),
+        Uri.parse('$baseUrl/users/preferences/view'),
         headers: await getHeaders(),
       );
 
       if (response.statusCode == 200) {
-        return Map<String, String>.from(json.decode(response.body));
+        final Map<String, dynamic> data = json.decode(response.body);
+        return Map<String, String>.from(data);
       } else {
         throw Exception('Failed to load view preferences');
       }
@@ -1233,7 +1234,7 @@ class ApiService {
   static Future<void> updateViewPreferences(Map<String, String> preferences) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/users/view-preferences'),
+        Uri.parse('$baseUrl/users/preferences/view'),
         headers: await getHeaders(),
         body: json.encode({'preferences': preferences}),
       );

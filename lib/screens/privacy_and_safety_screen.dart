@@ -128,24 +128,6 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
                       }).toList(),
                     ),
                   ),
-
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: ElevatedButton(
-                      onPressed: _savePreferences,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFDCC87),
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: const Text(
-                        'Save Changes',
-                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -202,12 +184,13 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
   }
 
   // Popup Dialog for Selecting Privacy
-  void _showVisibilityDialog(String setting) {
-    showDialog(
+  Future<void> _showVisibilityDialog(String setting) async {
+    String selectedOption = privacySettings[setting]!;
+    
+    await showDialog(
       context: context,
       barrierColor: Colors.black.withOpacity(0.5),
       builder: (BuildContext context) {
-        String selectedOption = privacySettings[setting]!;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: BackdropFilter(
@@ -230,11 +213,35 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
                     activeColor: const Color(0xFFFDCC87),
                     value: option,
                     groupValue: selectedOption,
-                    onChanged: (value) {
-                      setState(() {
-                        privacySettings[setting] = value!;
-                      });
-                      Navigator.pop(context);
+                    onChanged: (value) async {
+                      if (value != null) {
+                        setState(() {
+                          privacySettings[setting] = value;
+                        });
+                        Navigator.pop(context);
+                        
+                        // Update preferences immediately
+                        try {
+                          await ApiService.updateViewPreferences(privacySettings);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Preferences updated successfully'),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to update preferences: $e'),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        }
+                      }
                     },
                   );
                 }).toList(),
