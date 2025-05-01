@@ -5,7 +5,7 @@ import 'feedback_screen.dart';
 import 'community_guidelines_screen.dart';
 import 'privacy_and_safety_screen.dart';
 import 'about_screen.dart';
-import '../widgets/top_bar.dart';
+import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import 'welcome_screen.dart';
 import '../screens/messages_screen.dart';
@@ -78,17 +78,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A), // Background color of all pages
-      appBar: TopBar(
-        onMenuPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
-        onMessagesPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MessagesScreen()),
-          );
-        },
-      ),
+      appBar: TopBarWithoutMenu(),
       body: Column(
         children: [
           // Back button & title section

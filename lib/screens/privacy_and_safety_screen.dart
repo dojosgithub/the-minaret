@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../widgets/top_bar.dart';
+import '../widgets/top_bar_without_menu.dart';
 import '../screens/messages_screen.dart';
 import '../services/api_service.dart';
 
@@ -17,6 +17,13 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
     "upvote": "Friends",
     "share": "Friends",
     "profileView": "Friends",
+  };
+
+  final Map<String, String> settingTitles = {
+    "comments": "Comments",
+    "upvote": "Upvotes",
+    "share": "Shares",
+    "profileView": "Profile Views",
   };
 
   final List<String> visibilityOptions = ["Everyone", "Friends", "No one"];
@@ -72,17 +79,7 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
       backgroundColor: const Color(0xFF4F245A),
 
       // Top Bar with Back & Profile
-      appBar: TopBar(
-        onMenuPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
-        onMessagesPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MessagesScreen()),
-          );
-        },
-      ),
+      appBar: const TopBarWithoutMenu(),
 
       body: _isLoading
           ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
@@ -151,7 +148,7 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
             const SizedBox(width: 15),
             Expanded(
               child: Text(
-                setting,
+                settingTitles[setting]!,
                 style: const TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),

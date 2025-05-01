@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/top_bar.dart';
+import '../widgets/top_bar_without_menu.dart';
 import '../screens/messages_screen.dart';
 
 class CommunityGuidelinesScreen extends StatefulWidget {
@@ -34,17 +34,7 @@ class _CommunityGuidelinesScreenState extends State<CommunityGuidelinesScreen> {
       backgroundColor: const Color(0xFF4F245A),
 
       // Top Bar with Menu & Profile
-      appBar: TopBar(
-        onMenuPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
-        onMessagesPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MessagesScreen()),
-          );
-        },
-      ),
+      appBar: const TopBarWithoutMenu(),
 
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20),

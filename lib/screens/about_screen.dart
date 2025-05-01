@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../widgets/top_bar.dart';
+import '../widgets/top_bar_without_menu.dart';
 import '../screens/messages_screen.dart';
 
 
@@ -16,17 +16,7 @@ class AboutScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF4F245A),
 
       // Top Bar with Back & Profile
-      appBar: TopBar(
-        onMenuPressed: () {
-          Scaffold.of(context).openDrawer();
-        },
-        onMessagesPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const MessagesScreen()),
-          );
-        },
-      ),
+      appBar: const TopBarWithoutMenu(),
 
       body: Padding(
         padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
