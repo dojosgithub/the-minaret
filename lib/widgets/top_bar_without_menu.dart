@@ -8,6 +8,7 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
+      height: 110,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -32,24 +33,33 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/top_bar_pattern.png', // Added the new pattern image
-              fit: BoxFit.cover, // Covers entire top bar
+              'assets/top_bar_pattern.png',
+              fit: BoxFit.cover,
             ),
           ),
           SafeArea(
-            child: SizedBox(
-              height: 110,
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: SvgPicture.asset(
-                    'assets/logo.svg',
-                    height: 65,
-                    fit: BoxFit.contain,
+            child: Column(
+              children: [
+                AppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  toolbarHeight: 52,
+                  automaticallyImplyLeading: false,
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: SvgPicture.asset(
+                        'assets/logo.svg',
+                        height: 65,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         ],
@@ -58,5 +68,5 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(120);
+  Size get preferredSize => const Size.fromHeight(110);
 }

@@ -13,108 +13,107 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Builder(
-      builder: (BuildContext context) => ClipRRect(
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)), // Curved edges
-        child: Container(
-          width: double.infinity, // Added to match TopBarWithoutMenu
-          height: 120, // Increased height for a wider top bar
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              stops: [0.4, 1.0], // Pushed the darker color further down
-              colors: [
-                Color(0xFF4F245A), // Background color of all pages (Top)
-                Color(0xFF9D3267), // Current Top Bar color (Bottom)
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black26,
-                spreadRadius: 2,
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
+    return Container(
+      width: double.infinity,
+      height: 110,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          stops: [0.4, 1.0],
+          colors: [
+            Color(0xFF4F245A),
+            Color(0xFF9D3267),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            spreadRadius: 2,
+            blurRadius: 10,
+            offset: Offset(0, 2),
           ),
-          child: Stack(
-            children: [
-              // Translucent Background Pattern Overlay
-              Positioned.fill(
-                child: Opacity(
-                  opacity: 1.0, // Adjust transparency as needed
-                  child: Image.asset(
-                    'assets/top_bar_pattern.png', // Updated with the new pattern image
-                    fit: BoxFit.cover, // Covers entire top bar
+        ],
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/top_bar_pattern.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                AppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  toolbarHeight: 52,
+                  leading: IconButton(
+                    icon: const Icon(
+                      Icons.menu,
+                      color: Color(0xFFFDCC87),
+                      size: 32,
+                    ),
+                    onPressed: onMenuPressed,
                   ),
-                ),
-              ),
-              AppBar(
-                backgroundColor: Colors.transparent, // Transparent background
-                elevation: 0, // Remove default elevation
-                leading: IconButton(
-                  icon: const Icon(
-                    Icons.menu,
-                    color: Color(0xFFFDCC87),
-                    size: 32, // Increased size
-                  ),
-                  onPressed: onMenuPressed,
-                ),
-                actions: [
-                  // Custom message bubble icon with dots
-                  IconButton(
-                    icon: Stack(
-                      children: [
-                        const Icon(
-                          Icons.chat_bubble_outline,
-                          color: Color(0xFFFDCC87),
-                          size: 32,
-                        ),
-                        Positioned(
-                          right: 8,
-                          top: 12, // Adjusted to center vertically
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(
-                              3,
-                              (index) => Container(
-                                width: 3,
-                                height: 3,
-                                margin: const EdgeInsets.symmetric(horizontal: 1),
-                                decoration: const BoxDecoration(
-                                  color: Color(0xFFFDCC87),
-                                  shape: BoxShape.circle,
+                  actions: [
+                    IconButton(
+                      icon: Stack(
+                        children: [
+                          const Icon(
+                            Icons.chat_bubble_outline,
+                            color: Color(0xFFFDCC87),
+                            size: 32,
+                          ),
+                          Positioned(
+                            right: 8,
+                            top: 12,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(
+                                3,
+                                (index) => Container(
+                                  width: 3,
+                                  height: 3,
+                                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFDCC87),
+                                    shape: BoxShape.circle,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
+                      onPressed: onMessagesPressed,
                     ),
-                    onPressed: onMessagesPressed,
-                  ),
-                ],
-              ),
-              // Logo positioned at the bottom center of the bar
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 10), // Slightly above the bottom
-                  child: SvgPicture.asset(
-                    'assets/logo.svg', // Path to the logo image
-                    height: 65, // Slightly larger logo
-                    fit: BoxFit.contain,
+                  ],
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: SvgPicture.asset(
+                        'assets/logo.svg',
+                        height: 65,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(120); // Custom height for the top bar
+  Size get preferredSize => const Size.fromHeight(110);
 }
