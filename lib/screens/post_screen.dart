@@ -26,12 +26,27 @@ class _PostPageState extends State<PostScreen> {
   final List<File> _selectedMedia = [];
   final List<Map<String, String>> _links = [];
   bool _isLoading = false;
+  Map<String, dynamic>? userData;
 
   @override
   void initState() {
     super.initState();
     _titleController.addListener(_onChangesMade);
     _bodyController.addListener(_onChangesMade);
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final data = await ApiService.getUserProfile();
+      if (mounted) {
+        setState(() {
+          userData = data;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+    }
   }
 
   @override
@@ -418,9 +433,11 @@ class _PostPageState extends State<PostScreen> {
                           shape: BoxShape.circle,
                           color: Color(0xFFFDCC87),
                         ),
-                        child: const CircleAvatar(
-                          backgroundImage: AssetImage('assets/default_profile.png'),
+                        child: CircleAvatar(
                           radius: 25,
+                          backgroundImage: userData?['profileImage'] != null && userData!['profileImage'].isNotEmpty
+                              ? NetworkImage(ApiService.resolveImageUrl(userData!['profileImage']))
+                              : const AssetImage('assets/default_profile.png') as ImageProvider,
                         ),
                       ),
                     ],

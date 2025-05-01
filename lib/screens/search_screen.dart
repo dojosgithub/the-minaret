@@ -203,7 +203,9 @@ class _SearchScreenState extends State<SearchScreen> {
           final isFollowing = user['isFollowing'] ?? false;
           return ListTile(
             leading: CircleAvatar(
-              backgroundImage: NetworkImage(user['profileImage'] ?? 'assets/default_profile.png'),
+              backgroundImage: user['profileImage'] != null && user['profileImage'].isNotEmpty
+                  ? NetworkImage(ApiService.resolveImageUrl(user['profileImage']))
+                  : const AssetImage('assets/default_profile.png') as ImageProvider,
             ),
             title: Text(
               user['firstName'] != null && user['lastName'] != null

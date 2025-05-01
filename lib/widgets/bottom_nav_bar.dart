@@ -15,51 +15,90 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double itemWidth = screenWidth / 5;
-    double indentHeight = 60; // Reduced indent height
-    double navBarHeight = 70; // Reduced navbar height
+    double indentHeight = 50;
+    double navBarHeight = 60;
 
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        // Base container with clipping
         ClipPath(
           clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
-          child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Container(
-              height: navBarHeight,
-              decoration: const BoxDecoration(
-                color: Color(0xFF9D3267),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    spreadRadius: 2,
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
-                  ),
-                ],
-              ),
-              child: BottomNavigationBar(
-                currentIndex: currentIndex,
-                onTap: onTap,
-                backgroundColor: Colors.transparent,
-                selectedItemColor: Colors.white,
-                unselectedItemColor: Colors.white70,
-                elevation: 0,
-                type: BottomNavigationBarType.fixed,
-                showSelectedLabels: false,
-                showUnselectedLabels: false,
-                iconSize: 24,
-                items: List.generate(5, (index) => _buildNavItem(index, currentIndex)),
-              ),
+          child: Container(
+            height: navBarHeight,
+            decoration: const BoxDecoration(
+              color: Color(0xFF9D3267),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black26,
+                  spreadRadius: 2,
+                  blurRadius: 10,
+                  offset: Offset(0, -2),
+                ),
+              ],
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
             ),
           ),
         ),
+        
+        // Custom navbar items row
         Positioned(
-          bottom: 50, // Increased to fix the overflow issue
-          left: (itemWidth * currentIndex) + (itemWidth / 2) - 25,
+          bottom: 10,
+          left: 0,
+          right: 0,
+          child: SizedBox(
+            height: 40,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: List.generate(5, (index) {
+                // Don't show the icon for the selected tab
+                if (index == currentIndex) {
+                  return SizedBox(width: itemWidth);
+                }
+                
+                return GestureDetector(
+                  onTap: () => onTap(index),
+                  behavior: HitTestBehavior.opaque,
+                  child: SizedBox(
+                    width: itemWidth,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SvgPicture.asset(
+                          _getIconPath(index),
+                          height: 20,
+                          width: 20,
+                          colorFilter: const ColorFilter.mode(
+                            Colors.white,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _getLabel(index),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+        
+        // Selected tab indicator & icon
+        Positioned(
+          bottom: 40,
+          left: (itemWidth * currentIndex) + (itemWidth / 2) - 20,
           child: Container(
-            width: 50,
-            height: 50,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
               color: const Color(0xFF9D3267),
               shape: BoxShape.circle,
@@ -72,70 +111,35 @@ class BottomNavBar extends StatelessWidget {
               ],
             ),
             child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: FittedBox(
-                fit: BoxFit.contain,
-                child: SvgPicture.asset(
-                  _getIconPath(currentIndex),
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
-                    BlendMode.srcIn,
-                  ),
+              padding: const EdgeInsets.all(10),
+              child: SvgPicture.asset(
+                _getIconPath(currentIndex),
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
                 ),
               ),
             ),
           ),
         ),
+        
+        // Selected tab label
         Positioned(
-          bottom: 0, // Adjusted to align labels with the reduced navbar height
+          bottom: 5,
           left: itemWidth * currentIndex,
           width: itemWidth,
           child: Center(
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                _getLabel(currentIndex),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                ),
+            child: Text(
+              _getLabel(currentIndex),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
         ),
       ],
-    );
-  }
-
-  BottomNavigationBarItem _buildNavItem(int index, int selectedIndex) {
-    return BottomNavigationBarItem(
-      icon: index == selectedIndex 
-          ? const SizedBox.shrink() 
-          : Container(
-              color: Colors.transparent,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Container(
-                    width: 35,
-                    height: 35,
-                    color: Colors.transparent,
-                  ),
-                  SvgPicture.asset(
-                    _getIconPath(index),
-                    height: 24,
-                    width: 24,
-                    fit: BoxFit.contain, // Ensure proper scaling
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-      label: '',
     );
   }
 
@@ -174,7 +178,7 @@ class BottomNavBar extends StatelessWidget {
   }
 }
 
-// Custom Clipper for Indent (No Changes)
+// Custom Clipper for Indent
 class BottomNavClipper extends CustomClipper<Path> {
   final int selectedIndex;
   final double itemWidth;
@@ -186,7 +190,7 @@ class BottomNavClipper extends CustomClipper<Path> {
   Path getClip(Size size) {
     Path path = Path();
     double indentCenter = (selectedIndex * itemWidth) + (itemWidth / 2);
-    double indentWidth = 45;
+    double indentWidth = 38; // Fine-tuned indent width
 
     path.lineTo(indentCenter - indentWidth, 0);
     path.quadraticBezierTo(indentCenter, indentHeight, indentCenter + indentWidth, 0);
