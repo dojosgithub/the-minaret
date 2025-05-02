@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../utils/time_utils.dart';
+import '../services/api_service.dart';
 
 class Comment extends StatelessWidget {
   final String authorName;
@@ -93,7 +94,7 @@ class Comment extends StatelessWidget {
               child: _ReplyWidget(
                 authorName: '${reply['author']['firstName']} ${reply['author']['lastName']}',
                 authorUsername: reply['author']['username'],
-                authorProfilePic: reply['author']['profileImage'],
+                authorProfilePic: ApiService.resolveImageUrl(reply['author']['profileImage']),
                 text: reply['text'],
                 createdAt: reply['createdAt'],
               ),

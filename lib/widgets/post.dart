@@ -1303,7 +1303,7 @@ class _PostState extends State<Post> {
               Comment(
                 authorName: '${comment['author']['firstName']} ${comment['author']['lastName']}',
                 authorUsername: comment['author']['username'],
-                authorProfilePic: comment['author']['profileImage'],
+                authorProfilePic: ApiService.resolveImageUrl(comment['author']['profileImage']),
                 text: comment['text'],
                 createdAt: comment['createdAt'],
                 replies: isRepliesExpanded ? visibleReplies.toList() : [],
