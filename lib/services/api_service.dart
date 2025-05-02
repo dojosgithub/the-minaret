@@ -73,8 +73,17 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data);
+        final List<dynamic> rawData = json.decode(response.body);
+        final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(rawData);
+        
+        // Ensure repostCount is present in each post
+        for (var post in data) {
+          if (post['repostCount'] == null) {
+            post['repostCount'] = 0;
+          }
+        }
+        
+        return data;
       } else {
         throw Exception('Failed to load posts');
       }
@@ -378,8 +387,17 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data);
+        final List<dynamic> rawData = json.decode(response.body);
+        final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(rawData);
+        
+        // Ensure repostCount is present in each post
+        for (var post in data) {
+          if (post['repostCount'] == null) {
+            post['repostCount'] = 0;
+          }
+        }
+        
+        return data;
       } else {
         throw Exception('Failed to load user posts');
       }
@@ -397,8 +415,17 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data);
+        final List<dynamic> rawData = json.decode(response.body);
+        final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(rawData);
+        
+        // Ensure repostCount is present in each post
+        for (var post in data) {
+          if (post['repostCount'] == null) {
+            post['repostCount'] = 0;
+          }
+        }
+        
+        return data;
       } else {
         throw Exception('Failed to load saved posts');
       }
@@ -579,10 +606,20 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
+        final Map<String, dynamic> responseData = json.decode(response.body);
+        final List<Map<String, dynamic>> posts = List<Map<String, dynamic>>.from(responseData['posts'] ?? []);
+        final List<Map<String, dynamic>> users = List<Map<String, dynamic>>.from(responseData['users'] ?? []);
+        
+        // Ensure repostCount is present in each post
+        for (var post in posts) {
+          if (post['repostCount'] == null) {
+            post['repostCount'] = 0;
+          }
+        }
+        
         return {
-          'posts': List<Map<String, dynamic>>.from(data['posts'] ?? []),
-          'users': List<Map<String, dynamic>>.from(data['users'] ?? []),
+          'posts': posts,
+          'users': users,
         };
       } else {
         throw Exception('Failed to search posts and users');
@@ -709,8 +746,17 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        final List<dynamic> data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data);
+        final List<dynamic> rawData = json.decode(response.body);
+        final List<Map<String, dynamic>> data = List<Map<String, dynamic>>.from(rawData);
+        
+        // Ensure repostCount is present in each post
+        for (var post in data) {
+          if (post['repostCount'] == null) {
+            post['repostCount'] = 0;
+          }
+        }
+        
+        return data;
       } else {
         throw Exception('Failed to load user posts');
       }
@@ -1155,7 +1201,12 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final data = json.decode(response.body);
+        // Ensure repostCount is present in the response
+        if (data['repostCount'] == null) {
+          data['repostCount'] = 0;
+        }
+        return data;
       } else {
         throw Exception('Failed to load post');
       }

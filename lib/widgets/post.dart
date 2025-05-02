@@ -947,9 +947,9 @@ class _PostState extends State<Post> {
                 ],
               ),
               if (!widget.isRepost) ...[
-              Row(
-                children: [
-                  IconButton(
+                Row(
+                  children: [
+                    IconButton(
                       icon: const Icon(Icons.repeat, color: Colors.white),
                       onPressed: _showRepostDialog,
                     ),
@@ -1172,7 +1172,7 @@ class _PostState extends State<Post> {
         final updatedPost = await ApiService.getPost(widget.id);
         if (mounted) {
           setState(() {
-            _repostCount = (updatedPost['reposts'] as List?)?.length ?? 0;
+            _repostCount = updatedPost['repostCount'] ?? 0;
           });
         }
         ScaffoldMessenger.of(context).showSnackBar(

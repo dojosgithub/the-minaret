@@ -176,7 +176,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   links: List<Map<String, dynamic>>.from(post['links'] ?? []),
                   upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
                   downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
-                  repostCount: (post['reposts'] as List?)?.length ?? 0,
+                  repostCount: post['repostCount'] ?? 0,
                   commentCount: (post['comments'] as List?)?.length ?? 0,
                   createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
                   authorId: post['author']['_id'] ?? '',
