@@ -234,73 +234,91 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildUserHeader() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    // Get the screen width to make responsive adjustments
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    
+    return Column(
       children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-            );
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFFDCC87), width: 2),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                );
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFFFDCC87), width: 2),
+                ),
+                child: CircleAvatar(
+                  radius: isSmallScreen ? 35 : 40,
+                  backgroundImage: userData?['profileImage'] != null && userData!['profileImage'].isNotEmpty
+                      ? NetworkImage(ApiService.resolveImageUrl(userData!['profileImage']))
+                      : const AssetImage('assets/default_profile.png') as ImageProvider,
+                ),
+              ),
             ),
-            child: CircleAvatar(
-              radius: 40,
-              backgroundImage: userData?['profileImage'] != null && userData!['profileImage'].isNotEmpty
-                  ? NetworkImage(ApiService.resolveImageUrl(userData!['profileImage']))
-                  : const AssetImage('assets/default_profile.png') as ImageProvider,
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: isSmallScreen ? 18 : 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    '@${userData?['username'] ?? ''}',
+                    style: TextStyle(
+                      color: Colors.grey, 
+                      fontSize: isSmallScreen ? 14 : 16
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 10),
+                  _buildFollowCounts(),
+                ],
+              ),
             ),
-          ),
-        ),
-        const SizedBox(width: 15),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFDCC87),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmallScreen ? 10 : 15, 
+                  vertical: 8
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                );
+              },
+              child: Text(
+                'Edit Profile',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: isSmallScreen ? 12 : 14,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Text(
-                '@${userData?['username'] ?? ''}',
-                style: const TextStyle(color: Colors.grey, fontSize: 16),
-              ),
-              const SizedBox(height: 10),
-              _buildFollowCounts(),
-            ],
-          ),
-        ),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFFDCC87),
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
             ),
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-            );
-          },
-          child: const Text(
-            'Edit Profile',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          ],
         ),
       ],
     );
@@ -390,67 +408,79 @@ class _UserScreenState extends State<UserScreen> {
   }
 
   Widget _buildFollowCounts() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final fontSize = isSmallScreen ? 12.0 : 14.0;
+    final countFontSize = isSmallScreen ? 14.0 : 16.0;
+    
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FollowersScreen(
-                  userId: userData!['_id'],
-                  isFollowers: true,
-                  title: 'Followers',
+        Flexible(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FollowersScreen(
+                    userId: userData!['_id'],
+                    isFollowers: true,
+                    title: 'Followers',
+                  ),
                 ),
-              ),
-            );
-          },
-          child: Row(
-            children: [
-              Text(
-                '${userData?['followers']?.length ?? 0} ',
-                style: const TextStyle(
-                  color: Color(0xFFFDCC87),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${userData?['followers']?.length ?? 0} ',
+                  style: TextStyle(
+                    color: const Color(0xFFFDCC87),
+                    fontSize: countFontSize,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const Text(
-                'Followers',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-            ],
+                Text(
+                  'Followers',
+                  style: TextStyle(color: Colors.grey, fontSize: fontSize),
+                ),
+              ],
+            ),
           ),
         ),
-        const SizedBox(width: 15),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FollowersScreen(
-                  userId: userData!['_id'],
-                  isFollowers: false,
-                  title: 'Following',
+        SizedBox(width: isSmallScreen ? 8 : 15),
+        Flexible(
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => FollowersScreen(
+                    userId: userData!['_id'],
+                    isFollowers: false,
+                    title: 'Following',
+                  ),
                 ),
-              ),
-            );
-          },
-          child: Row(
-            children: [
-              Text(
-                '${userData?['following']?.length ?? 0} ',
-                style: const TextStyle(
-                  color: Color(0xFFFDCC87),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              );
+            },
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${userData?['following']?.length ?? 0} ',
+                  style: TextStyle(
+                    color: const Color(0xFFFDCC87),
+                    fontSize: countFontSize,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const Text(
-                'Following',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-            ],
+                Text(
+                  'Following',
+                  style: TextStyle(color: Colors.grey, fontSize: fontSize),
+                ),
+              ],
+            ),
           ),
         ),
       ],
