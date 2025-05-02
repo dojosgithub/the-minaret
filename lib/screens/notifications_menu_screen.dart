@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar_without_menu.dart';
-import '../screens/messages_screen.dart';
 import '../services/api_service.dart';
 
 class NotificationsMenuScreen extends StatefulWidget {

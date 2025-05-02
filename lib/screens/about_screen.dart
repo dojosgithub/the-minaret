@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar_without_menu.dart';
-import '../screens/messages_screen.dart';
 
 
 class AboutScreen extends StatelessWidget {

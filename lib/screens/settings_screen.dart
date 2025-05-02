@@ -8,7 +8,6 @@ import 'about_screen.dart';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import 'welcome_screen.dart';
-import '../screens/messages_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

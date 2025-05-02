@@ -164,32 +164,6 @@ class _UserScreenState extends State<UserScreen> {
     }
   }
 
-  Future<void> _handleSave(String postId) async {
-    try {
-      final isCurrentlySaved = await ApiService.isPostSaved(postId);
-      if (isCurrentlySaved) {
-        await ApiService.unsavePost(postId);
-      } else {
-        await ApiService.savePost(postId);
-      }
-      
-      setState(() {
-        // Update save status in both lists
-        for (var p in userPosts) {
-          if (p['_id'] == postId) {
-            p['isSaved'] = !(p['isSaved'] ?? false);
-          }
-        }
-        for (var p in savedPosts) {
-          if (p['_id'] == postId) {
-            p['isSaved'] = !(p['isSaved'] ?? false);
-          }
-        }
-      });
-    } catch (e) {
-      debugPrint('Error toggling save: $e');
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

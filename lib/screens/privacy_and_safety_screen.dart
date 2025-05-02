@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../widgets/top_bar_without_menu.dart';
-import '../screens/messages_screen.dart';
 import '../services/api_service.dart';
 
 class PrivacySafetyScreen extends StatefulWidget {
@@ -53,25 +52,6 @@ class _PrivacySafetyScreenState extends State<PrivacySafetyScreen> {
     }
   }
 
-  Future<void> _savePreferences() async {
-    setState(() => _isLoading = true);
-    try {
-      await ApiService.updateViewPreferences(privacySettings);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Preferences updated successfully')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update preferences: $e')),
-        );
-      }
-    } finally {
-      setState(() => _isLoading = false);
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
