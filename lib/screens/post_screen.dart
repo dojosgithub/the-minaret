@@ -59,11 +59,8 @@ class _PostPageState extends State<PostScreen> {
   }
 
   void _onChangesMade() {
-    if (!_hasChanges && (_titleController.text.isNotEmpty || 
-        _bodyController.text.isNotEmpty || 
-        selectedType != null || 
-        _selectedMedia.isNotEmpty || 
-        _links.isNotEmpty)) {
+    // Directly set _hasChanges to true without any conditions
+    if (!_hasChanges) {
       setState(() {
         _hasChanges = true;
       });
@@ -227,6 +224,9 @@ class _PostPageState extends State<PostScreen> {
                           selectedType = 'Reporters';
                         });
                         Navigator.pop(context);
+                        this.setState(() {
+                          _hasChanges = true;
+                        });
                       },
                     ),
                     ListTile(
@@ -242,6 +242,9 @@ class _PostPageState extends State<PostScreen> {
                           selectedType = 'Discussion';
                         });
                         Navigator.pop(context);
+                        this.setState(() {
+                          _hasChanges = true;
+                        });
                       },
                     ),
                   ] else if (selectedMainOption == 'Islamic Knowledge') ...[
@@ -259,6 +262,9 @@ class _PostPageState extends State<PostScreen> {
                               selectedType = value;
                             });
                             Navigator.pop(context); // Close popup on selection
+                            this.setState(() {
+                              _hasChanges = true;
+                            });
                           },
                         ),
                         const SizedBox(width: 10), // Add space between suboptions
@@ -273,6 +279,9 @@ class _PostPageState extends State<PostScreen> {
                               selectedType = value;
                             });
                             Navigator.pop(context); // Close popup on selection
+                            this.setState(() {
+                              _hasChanges = true;
+                            });
                           },
                         ),
                         const SizedBox(width: 10), // Add space between suboptions
@@ -287,6 +296,9 @@ class _PostPageState extends State<PostScreen> {
                               selectedType = value;
                             });
                             Navigator.pop(context); // Close popup on selection
+                            this.setState(() {
+                              _hasChanges = true;
+                            });
                           },
                         ),
                         const SizedBox(width: 10), // Add space between suboptions
@@ -301,6 +313,9 @@ class _PostPageState extends State<PostScreen> {
                               selectedType = value;
                             });
                             Navigator.pop(context); // Close popup on selection
+                            this.setState(() {
+                              _hasChanges = true;
+                            });
                           },
                         ),
                       ],
@@ -331,7 +346,7 @@ class _PostPageState extends State<PostScreen> {
               assetPath,
               height: 40,
               width: 40,
-              colorFilter: ColorFilter.mode( // Replaced deprecated color parameter
+              colorFilter: ColorFilter.mode(
                 isSelected ? Colors.black : Colors.white,
                 BlendMode.srcIn,
               ),
@@ -348,6 +363,7 @@ class _PostPageState extends State<PostScreen> {
   }
 
   Future<bool> _onWillPop() async {
+    debugPrint('_onWillPop called with _hasChanges: $_hasChanges');
     if (!_hasChanges) return true;
 
     final result = await showDialog<bool>(
@@ -408,6 +424,7 @@ class _PostPageState extends State<PostScreen> {
       canPop: false,
       onPopInvoked: (bool didPop) async {
         if (!didPop) {
+          debugPrint('Attempting to pop with _hasChanges: $_hasChanges');
           final shouldPop = await _onWillPop();
           if (shouldPop && context.mounted) {
             Navigator.of(context).pop();

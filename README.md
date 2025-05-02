@@ -139,7 +139,7 @@ Property of Dojo IT Solutions.
 ## App Theme
 - Primary background color: `#4F245A`
 - Post background color: Darker shade `#3D1B45`
-- Profile picture circle: `#FFE4A7`
+- Signature Yellow?Golden Color: `0xFFFDCC87`
 
 
 
