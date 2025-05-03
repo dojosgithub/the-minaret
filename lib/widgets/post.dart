@@ -151,10 +151,22 @@ class _PostState extends State<Post> {
       }
     } catch (e) {
       debugPrint('Error toggling save: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to ${_isBookmarked ? 'unsave' : 'save'} post')),
-        );
+      
+      // Check if the error is about a post already being saved
+      // In this case, we don't show an error message and update the bookmark state
+      if (e.toString().contains('Post already saved')) {
+        if (mounted) {
+          setState(() {
+            _isBookmarked = true;
+          });
+        }
+      } else {
+        // For other errors, show the error message
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to ${_isBookmarked ? 'unsave' : 'save'} post')),
+          );
+        }
       }
     } finally {
       if (mounted) {

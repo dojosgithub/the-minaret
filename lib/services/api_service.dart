@@ -538,6 +538,14 @@ class ApiService {
 
       if (response.statusCode == 200) {
         return true;
+      } else if (response.statusCode == 400) {
+        // Check if the error is due to the post already being saved
+        final error = json.decode(response.body);
+        if (error['message']?.toString().contains('already saved') == true) {
+          // Post is already saved, which is fine - return true
+          return true;
+        }
+        throw Exception(error['message'] ?? 'Failed to save post');
       } else {
         final error = json.decode(response.body);
         throw Exception(error['message'] ?? 'Failed to save post');
@@ -556,6 +564,10 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
+        return true;
+      } else if (response.statusCode == 404) {
+        // Post not found can happen if post was deleted, but user attempts to unsave
+        // Just return true as if successfully unsaved
         return true;
       } else {
         final error = json.decode(response.body);
