@@ -189,10 +189,8 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
                               return ListTile(
                                 leading: CircleAvatar(
                                   backgroundImage: user['profileImage'] != null
-                                      ? NetworkImage(user['profileImage'])
-                                      : const AssetImage(
-                                              'assets/default_profile.png')
-                                          as ImageProvider,
+                                      ? NetworkImage(ApiService.resolveImageUrl(user['profileImage']))
+                                      : const AssetImage('assets/default_profile.png') as ImageProvider,
                                 ),
                                 title: Text(
                                   '${user['firstName']} ${user['lastName']}',

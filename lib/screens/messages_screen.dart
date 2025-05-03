@@ -160,7 +160,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                             return ListTile(
                               leading: CircleAvatar(
                                 backgroundImage: otherUser['profileImage'] != null
-                                    ? NetworkImage(otherUser['profileImage'] as String)
+                                    ? NetworkImage(ApiService.resolveImageUrl(otherUser['profileImage'] as String))
                                     : null,
                                 child: otherUser['profileImage'] == null
                                     ? Text(

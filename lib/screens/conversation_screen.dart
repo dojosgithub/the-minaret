@@ -177,7 +177,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               ),
               child: CircleAvatar(
                 backgroundImage: widget.otherUser['profileImage'] != null
-                    ? NetworkImage('${ApiService.baseUrl}${widget.otherUser['profileImage']}')
+                    ? NetworkImage(ApiService.resolveImageUrl(widget.otherUser['profileImage']))
                     : const AssetImage('assets/images/default_profile.png') as ImageProvider,
                 radius: 24,
               ),
