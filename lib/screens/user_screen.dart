@@ -376,6 +376,7 @@ class _UserScreenState extends State<UserScreen> {
           originalPost: post['isRepost'] == true ? post['originalPost'] : null,
           onUpvote: _handleUpvote,
           onDownvote: _handleDownvote,
+          isSaved: post['isSaved'] ?? false,
         );
       },
     );

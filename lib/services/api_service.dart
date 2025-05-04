@@ -540,15 +540,36 @@ class ApiService {
         return true;
       } else if (response.statusCode == 400) {
         // Check if the error is due to the post already being saved
-        final error = json.decode(response.body);
-        if (error['message']?.toString().contains('already saved') == true) {
-          // Post is already saved, which is fine - return true
-          return true;
+        try {
+          final error = json.decode(response.body);
+          if (error['message']?.toString().contains('already saved') == true) {
+            // Post is already saved, which is fine - return true
+            return true;
+          }
+          throw Exception(error['message'] ?? 'Failed to save post');
+        } catch (e) {
+          // If JSON parsing fails, it means the response is not valid JSON
+          // This could be a notification error but post was saved
+          // Check if post is actually saved now
+          final isSaved = await isPostSaved(postId);
+          if (isSaved) {
+            return true;
+          }
+          throw Exception('Failed to save post: ${response.body}');
         }
-        throw Exception(error['message'] ?? 'Failed to save post');
       } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Failed to save post');
+        try {
+          final error = json.decode(response.body);
+          throw Exception(error['message'] ?? 'Failed to save post');
+        } catch (e) {
+          // Response is not valid JSON
+          // Similar to above, check if post is saved despite the error
+          final isSaved = await isPostSaved(postId);
+          if (isSaved) {
+            return true;
+          }
+          throw Exception('Failed to save post: ${response.body}');
+        }
       }
     } catch (e) {
       debugPrint('Error saving post: $e');

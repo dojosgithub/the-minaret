@@ -9,6 +9,7 @@ import '../screens/new_message_screen.dart';
 import '../services/message_service.dart';
 import 'repost_content.dart';
 import '../screens/post_detail_screen.dart';
+import '../screens/user_screen.dart';
 
 class Post extends StatefulWidget {
   final String id;
@@ -32,6 +33,7 @@ class Post extends StatefulWidget {
   final Map<String, dynamic>? originalPost;
   final Function(String) onUpvote;
   final Function(String) onDownvote;
+  final bool isSaved;
 
   const Post({
     super.key,
@@ -56,6 +58,7 @@ class Post extends StatefulWidget {
     this.originalPost,
     required this.onUpvote,
     required this.onDownvote,
+    this.isSaved = false,
   });
 
   @override
@@ -93,6 +96,50 @@ class _PostState extends State<Post> {
     _upvoteCount = widget.upvoteCount;
     _downvoteCount = widget.downvoteCount;
     _repostCount = widget.repostCount;
+    _isBookmarked = widget.isSaved;
+  }
+
+  @override
+  void didUpdateWidget(Post oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    
+    // Update saved state when widget.isSaved changes
+    if (oldWidget.isSaved != widget.isSaved) {
+      setState(() {
+        _isBookmarked = widget.isSaved;
+      });
+    }
+    
+    // Update other states that might have changed
+    if (oldWidget.isUpvoted != widget.isUpvoted) {
+      setState(() {
+        _isUpvoted = widget.isUpvoted;
+      });
+    }
+    
+    if (oldWidget.isDownvoted != widget.isDownvoted) {
+      setState(() {
+        _isDownvoted = widget.isDownvoted;
+      });
+    }
+    
+    if (oldWidget.upvoteCount != widget.upvoteCount) {
+      setState(() {
+        _upvoteCount = widget.upvoteCount;
+      });
+    }
+    
+    if (oldWidget.downvoteCount != widget.downvoteCount) {
+      setState(() {
+        _downvoteCount = widget.downvoteCount;
+      });
+    }
+    
+    if (oldWidget.repostCount != widget.repostCount) {
+      setState(() {
+        _repostCount = widget.repostCount;
+      });
+    }
   }
 
   @override
@@ -119,6 +166,15 @@ class _PostState extends State<Post> {
 
   Future<void> _checkIfSaved() async {
     try {
+      // If it's already known to be saved (e.g., in the saved tab),
+      // don't make an API call to check again
+      if (widget.isSaved) {
+        setState(() {
+          _isBookmarked = true;
+        });
+        return;
+      }
+      
       final isSaved = await ApiService.isPostSaved(widget.id);
       if (mounted) {
         setState(() {
@@ -140,14 +196,18 @@ class _PostState extends State<Post> {
     try {
       if (_isBookmarked) {
         await ApiService.unsavePost(widget.id);
+        if (mounted) {
+          setState(() {
+            _isBookmarked = false;
+          });
+        }
       } else {
         await ApiService.savePost(widget.id);
-      }
-      
-      if (mounted) {
-        setState(() {
-          _isBookmarked = !_isBookmarked;
-        });
+        if (mounted) {
+          setState(() {
+            _isBookmarked = true;
+          });
+        }
       }
     } catch (e) {
       debugPrint('Error toggling save: $e');
@@ -161,11 +221,33 @@ class _PostState extends State<Post> {
           });
         }
       } else {
-        // For other errors, show the error message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to ${_isBookmarked ? 'unsave' : 'save'} post')),
-          );
+        // Use the "saved" status of the post after the error
+        // If the error happened after unsaving, keep the bookmark as saved
+        // If the error happened after saving, check the actual save status
+        if (_isBookmarked) {
+          // Was trying to unsave, but failed, so stay bookmarked
+          // Don't show error message in this case since it could be a notification error
+        } else {
+          // Was trying to save, but failed with error
+          // Check if post was actually saved despite the error
+          try {
+            final isSaved = await ApiService.isPostSaved(widget.id);
+            setState(() {
+              _isBookmarked = isSaved;
+            });
+            if (!isSaved && mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Failed to save post')),
+              );
+            }
+          } catch (checkError) {
+            // If checking save status also fails, show original error
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Failed to save post: ${e.toString()}')),
+              );
+            }
+          }
         }
       }
     } finally {

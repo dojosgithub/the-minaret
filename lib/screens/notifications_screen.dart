@@ -72,6 +72,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return '$senderName replied to your comment';
       case 'repost':
         return '$senderName reposted your post';
+      case 'saved':
+        return '$senderName saved your post';
       default:
         return 'New notification';
     }
