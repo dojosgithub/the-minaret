@@ -192,6 +192,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       postId: _getPostId(notification),
       notificationId: notification['_id']?.toString(),
       isRead: notification['read'] == true,
+      notificationType: notification['type'],
     );
   }
 
@@ -208,6 +209,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+           
             const Padding(
               padding: EdgeInsets.only(left: 16, top: 16, bottom: 8),
               child: Text(

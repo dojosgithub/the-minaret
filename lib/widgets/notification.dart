@@ -14,6 +14,7 @@ class NotificationWidget extends StatelessWidget {
   final String? postId;
   final String? notificationId;
   final bool isRead;
+  final String notificationType;
 
   const NotificationWidget({
     super.key,
@@ -25,6 +26,7 @@ class NotificationWidget extends StatelessWidget {
     this.postId,
     this.notificationId,
     this.isRead = false,
+    required this.notificationType,
   });
 
   Future<void> _navigateToProfile(BuildContext context) async {
@@ -80,9 +82,13 @@ class NotificationWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: postId != null && postId!.isNotEmpty 
-          ? () => _navigateToPost(context)
-          : null,
+      onTap: () {
+        if (notificationType == 'follow') {
+          _navigateToProfile(context);
+        } else if (postId != null && postId!.isNotEmpty) {
+          _navigateToPost(context);
+        }
+      },
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
         padding: const EdgeInsets.all(10),
@@ -149,9 +155,18 @@ class NotificationWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (postId != null && postId!.isNotEmpty)
+                if (postId != null && postId!.isNotEmpty && notificationType != 'follow')
                   const Text(
                     "Tap to view post",
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFFFDCC87),
+                      fontStyle: FontStyle.italic,
+                    ),
+                  )
+                else if (notificationType == 'follow')
+                  const Text(
+                    "Tap to view profile",
                     style: TextStyle(
                       fontSize: 12,
                       color: Color(0xFFFDCC87),
