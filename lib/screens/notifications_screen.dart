@@ -14,6 +14,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   List<Map<String, dynamic>> _notifications = [];
   bool _isLoading = true;
   String? _error;
+  bool _hasMarkedAsRead = false;
 
   @override
   void initState() {
@@ -42,6 +43,27 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         final recipientId = notification['recipient']?.toString();
         return recipientId != null && recipientId == currentUserId;
       }).toList();
+
+      // If this is the first time loading notifications in this session,
+      // mark all as read (only if _hasMarkedAsRead is false)
+      if (!_hasMarkedAsRead && filteredNotifications.isNotEmpty) {
+        try {
+          await ApiService.markAllNotificationsAsRead();
+          // Update the read status in the local data
+          for (var notification in filteredNotifications) {
+            notification['read'] = true;
+          }
+          _hasMarkedAsRead = true;
+        } catch (e) {
+          debugPrint('Error marking all notifications as read: $e');
+        }
+      } else if (_hasMarkedAsRead) {
+        // If notifications were already marked as read in this session,
+        // ensure they are still marked as read in the UI
+        for (var notification in filteredNotifications) {
+          notification['read'] = true;
+        }
+      }
 
       setState(() {
         _notifications = filteredNotifications;
@@ -98,74 +120,125 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return null;
   }
 
+  Widget _buildNotificationList() {
+    if (_notifications.isEmpty) {
+      return const Center(
+        child: Text(
+          'No notifications yet',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
+    // Divide notifications into new (unread) and older (read)
+    // When notifications screen is refreshed, all should be read since they're marked as read when viewed
+    final newNotifications = _notifications.where((notification) => 
+      notification['read'] != true
+    ).toList();
+    
+    final olderNotifications = _notifications.where((notification) => 
+      notification['read'] == true
+    ).toList();
+
+    return ListView(
+      children: [
+        // Only show "New" section if there are unread notifications
+        if (newNotifications.isNotEmpty) ...[
+          const Padding(
+            padding: EdgeInsets.only(left: 16, top: 16, bottom: 8),
+            child: Text(
+              'New',
+              style: TextStyle(
+                color: Color(0xFFFDCC87),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          ...newNotifications.map((notification) => _buildNotificationWidget(notification)),
+        ],
+        
+        // Only show "Older" section if there are unread notifications
+        if (olderNotifications.isNotEmpty) ...[
+          // Only add top padding if there were new notifications above
+          Padding(
+            padding: EdgeInsets.only(
+              left: 16, 
+              top: newNotifications.isNotEmpty ? 16 : 0, 
+              bottom: 8
+            ),
+            child: newNotifications.isNotEmpty ? const Text(
+              'Older',
+              style: TextStyle(
+                color: Color(0xFFFDCC87),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ) : const SizedBox.shrink(),
+          ),
+          ...olderNotifications.map((notification) => _buildNotificationWidget(notification)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildNotificationWidget(Map<String, dynamic> notification) {
+    return NotificationWidget(
+      name: notification['sender']['username'] ?? 'Minaret User',
+      profilePic: notification['sender']['profileImage'] ?? 'assets/default_profile.png',
+      text: _getNotificationText(notification),
+      dateTime: DateTime.parse(notification['createdAt']),
+      senderId: notification['sender']['_id'],
+      postId: _getPostId(notification),
+      notificationId: notification['_id']?.toString(),
+      isRead: notification['read'] == true,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
-      appBar: AppBar(
-        title: Row(
+      // Use PreferredSize with zero height to avoid the translucent appbar problem
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(), // Empty container with zero height
+      ),
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.notifications_outlined, color: Colors.white),
-            const SizedBox(width: 8),
-            const Text('Notifications', style: TextStyle(color: Colors.white)),
+            const Padding(
+              padding: EdgeInsets.only(left: 16, top: 16, bottom: 8),
+              child: Text(
+                'Notifications',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Expanded(
+              child: _isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                    ),
+                  )
+                : _error != null
+                    ? ConnectionErrorWidget(
+                        onRetry: _loadNotifications,
+                      )
+                    : RefreshIndicator(
+                        onRefresh: _loadNotifications,
+                        color: const Color(0xFFFDCC87),
+                        child: _buildNotificationList(),
+                      ),
+            ),
           ],
         ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        actions: [
-          if (_notifications.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.done_all, color: Colors.white),
-              onPressed: () async {
-                try {
-                  await ApiService.markAllNotificationsAsRead();
-                  _loadNotifications(); // Reload to update UI
-                } catch (e) {
-                  debugPrint('Error marking all notifications as read: $e');
-                }
-              },
-              tooltip: 'Mark all as read',
-            ),
-        ],
       ),
-      body: _isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-              ),
-            )
-          : _error != null
-              ? ConnectionErrorWidget(
-                  onRetry: _loadNotifications,
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadNotifications,
-                  color: const Color(0xFFFDCC87),
-                  child: _notifications.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No notifications yet',
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        )
-                      : ListView.builder(
-                          itemCount: _notifications.length,
-                          itemBuilder: (context, index) {
-                            final notification = _notifications[index];
-                            return NotificationWidget(
-                              name: notification['sender']['username'] ?? 'Minaret User',
-                              profilePic: notification['sender']['profileImage'] ?? 'assets/default_profile.png',
-                              text: _getNotificationText(notification),
-                              dateTime: DateTime.parse(notification['createdAt']),
-                              senderId: notification['sender']['_id'],
-                              postId: _getPostId(notification),
-                              notificationId: notification['_id']?.toString(),
-                              isRead: notification['read'] == true,
-                            );
-                          },
-                        ),
-                ),
     );
   }
 }

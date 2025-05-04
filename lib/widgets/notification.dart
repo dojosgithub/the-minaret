@@ -84,10 +84,10 @@ class NotificationWidget extends StatelessWidget {
           ? () => _navigateToPost(context)
           : null,
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 15),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: isRead ? const Color(0xFF322734) : const Color(0xFF3D1B45),
+          color: const Color(0xFF3D1B45),
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
