@@ -79,6 +79,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  String? _getPostId(Map<String, dynamic> notification) {
+    // Check if notification has a related post
+    final postTypes = ['upvote', 'downvote', 'comment', 'reply', 'repost', 'saved'];
+    
+    if (postTypes.contains(notification['type'])) {
+      // If notification contains a post object with an _id field
+      if (notification['post'] != null) {
+        // Handle if post is an object with _id field
+        if (notification['post'] is Map && notification['post']['_id'] != null) {
+          return notification['post']['_id'].toString();
+        }
+        // Handle if post is just the ID as a string or other type
+        return notification['post'].toString();
+      }
+    }
+    
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -94,6 +113,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
+        actions: [
+          if (_notifications.isNotEmpty)
+            IconButton(
+              icon: const Icon(Icons.done_all, color: Colors.white),
+              onPressed: () async {
+                try {
+                  await ApiService.markAllNotificationsAsRead();
+                  _loadNotifications(); // Reload to update UI
+                } catch (e) {
+                  debugPrint('Error marking all notifications as read: $e');
+                }
+              },
+              tooltip: 'Mark all as read',
+            ),
+        ],
       ),
       body: _isLoading
           ? const Center(
@@ -125,6 +159,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                               text: _getNotificationText(notification),
                               dateTime: DateTime.parse(notification['createdAt']),
                               senderId: notification['sender']['_id'],
+                              postId: _getPostId(notification),
+                              notificationId: notification['_id']?.toString(),
+                              isRead: notification['read'] == true,
                             );
                           },
                         ),
