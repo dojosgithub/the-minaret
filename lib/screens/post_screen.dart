@@ -433,6 +433,10 @@ class _PostPageState extends State<PostScreen> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF4F245A),
+        appBar: PreferredSize(
+          preferredSize: Size.zero,
+          child: Container(), // Empty container with zero height
+        ),
         body: Stack(
           children: [
             SingleChildScrollView(

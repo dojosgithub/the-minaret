@@ -270,6 +270,7 @@ class _SearchScreenState extends State<SearchScreen> {
       backgroundColor: const Color(0xFF4F245A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF4F245A),
+        elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
           onPressed: () {

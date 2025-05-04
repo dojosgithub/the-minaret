@@ -106,6 +106,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
+      appBar: PreferredSize(
+        preferredSize: Size.zero,
+        child: Container(), // Empty container with zero height
+      ),
       body: RefreshIndicator(
         onRefresh: () async {
           _refreshPosts();
