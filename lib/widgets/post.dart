@@ -10,6 +10,7 @@ import '../services/message_service.dart';
 import 'repost_content.dart';
 import '../screens/post_detail_screen.dart';
 import '../screens/user_screen.dart';
+import 'dart:async';
 
 class Post extends StatefulWidget {
   final String id;
@@ -308,17 +309,165 @@ class _PostState extends State<Post> {
   }
 
   void _showSharePopup(BuildContext context) {
+    final TextEditingController _searchController = TextEditingController();
+    List<Map<String, dynamic>> _searchResults = [];
+    bool _isSearching = false;
+    Timer? _debounce;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: const Color(0xFF4F245A),
+      isScrollControlled: true,
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            
+            void searchUsers(String query) {
+              if (_debounce?.isActive ?? false) _debounce?.cancel();
+              
+              _debounce = Timer(const Duration(milliseconds: 500), () async {
+                if (query.isEmpty) {
+                  setState(() {
+                    _isSearching = false;
+                    _searchResults = [];
+                  });
+                  return;
+                }
+
+                setState(() {
+                  _isSearching = true;
+                });
+
+                try {
+                  final searchResults = await ApiService.searchUsers(query);
+                  final currentUserId = await ApiService.currentUserId;
+                  // Filter out current user from API results
+                  final filteredResults = searchResults.where((user) => user['_id'] != currentUserId).toList();
+                  setState(() {
+                    _searchResults = filteredResults;
+                    _isSearching = false;
+                  });
+                } catch (e) {
+                  debugPrint('Error searching users: $e');
+                  setState(() {
+                    _isSearching = false;
+                  });
+                }
+              });
+            }
+
+            Widget buildSearchResults() {
+              if (_isSearching) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                    ),
+                  ),
+                );
+              }
+              
+              if (_searchResults.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8.0, top: 16.0, bottom: 8.0),
+                    child: Text(
+                      'Search Results',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final user = _searchResults[index];
+                        return GestureDetector(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            try {
+                              await ApiService.sendMessage(
+                                user['_id'],
+                                'Check out this post: ${widget.title}',
+                                postId: widget.id,
+                              );
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Post shared successfully')),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Failed to share post: $e')),
+                                );
+                              }
+                            }
+                          },
+                          child: Container(
+                            width: 80,
+                            margin: const EdgeInsets.only(right: 16),
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFFFDCC87),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: ClipOval(
+                                    child: Image.network(
+                                      ApiService.resolveImageUrl(user['profileImage'] ?? ''),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return const Icon(Icons.person, size: 30, color: Color(0xFFFDCC87));
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  user['username'] ?? '',
+                                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }
+
             return Container(
               padding: const EdgeInsets.all(16),
+              // Make sure the bottom sheet is tall enough to accommodate the search
+              height: MediaQuery.of(context).size.height * 0.7,
               decoration: BoxDecoration(
                 color: const Color(0xFF3D1B45),
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(15), 
+                  topRight: Radius.circular(15)
+                ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -332,7 +481,32 @@ class _PostState extends State<Post> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  // Recent users section
+                  
+                  // User search field
+                  TextField(
+                    controller: _searchController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search users...',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      filled: true,
+                      fillColor: const Color(0xFF4F245A),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onChanged: searchUsers,
+                  ),
+                  
+                  // Search results
+                  buildSearchResults(),
+                  
+                  if (_searchResults.isNotEmpty)
+                    const Divider(color: Color(0xFFFDCC87), height: 32),
+                  
+                  // Recent users section - load only once
                   FutureBuilder<List<dynamic>>(
                     future: _loadRecentUsers(),
                     builder: (context, snapshot) {
@@ -388,12 +562,12 @@ class _PostState extends State<Post> {
                                     width: 80,
                                     margin: const EdgeInsets.only(right: 16),
                                     child: Column(
-                        children: [
-                          Container(
+                                      children: [
+                                        Container(
                                           width: 60,
                                           height: 60,
                                           decoration: BoxDecoration(
-                              shape: BoxShape.circle,
+                                            shape: BoxShape.circle,
                                             border: Border.all(
                                               color: const Color(0xFFFDCC87),
                                               width: 2,
@@ -429,111 +603,89 @@ class _PostState extends State<Post> {
                   ),
                   const SizedBox(height: 20),
                   // Share options section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildShareOption(
-                        icon: Icons.message,
-                        label: 'Message',
-                        onTap: () {
-                        Navigator.pop(context);
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => NewMessageScreen(
-                                initialPost: {
-                                  '_id': widget.id,
-                                  'title': widget.title,
-                                  'body': widget.text,
-                                  'media': widget.media,
-                                  'author': {
-                                    'username': widget.username,
-                                    'firstName': widget.name.split(' ')[0],
-                                    'lastName': widget.name.split(' ').length > 1 ? widget.name.split(' ')[1] : '',
-                                    'profileImage': widget.profilePic,
-                                  }
-                                },
-                              ),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          _buildShareOption(
+                            icon: Icons.copy,
+                            label: 'Copy Link',
+                            onTap: () {
+                              Clipboard.setData(ClipboardData(
+                                text: 'https://minaret.com/posts/${widget.id}',
+                              ));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Link copied to clipboard')),
+                              );
+                              Navigator.pop(context);
+                            },
+                          ),
+                          _buildShareOption(
+                            icon: Icons.share,
+                            label: 'More',
+                            onTap: () {
+                              // Implement native share functionality
+                              Navigator.pop(context);
+                            },
+                          ),
+                          GestureDetector(
+                            onTap: () async {
+                              final url = 'https://wa.me/?text=Check out this post: https://minaret.com/posts/${widget.id}';
+                              if (await canLaunchUrlString(url)) {
+                                await launchUrlString(url);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Could not launch WhatsApp')),
+                                );
+                              }
+                              Navigator.pop(context);
+                            },
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFF4F245A),
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: const Color(0xFFFDCC87)),
+                                  ),
+                                  child: Image.asset(
+                                    'assets/whatsapp.png',
+                                    width: 30,
+                                    height: 30,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'WhatsApp',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
                             ),
-                          );
-                        },
+                          ),
+                          _buildShareOption(
+                            icon: Icons.telegram,
+                            label: 'Telegram',
+                            onTap: () async {
+                              final url = 'https://t.me/share/url?url=https://minaret.com/posts/${widget.id}&text=Check out this post: ${widget.title}';
+                              if (await canLaunchUrlString(url)) {
+                                await launchUrlString(url);
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Could not launch Telegram')),
+                                );
+                              }
+                            Navigator.pop(context);
+                            },
+                          ),
+                        ],
                       ),
-                      _buildShareOption(
-                        icon: Icons.copy,
-                        label: 'Copy Link',
-                        onTap: () {
-                          Clipboard.setData(ClipboardData(
-                            text: 'https://minaret.com/posts/${widget.id}',
-                          ));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Link copied to clipboard')),
-                          );
-                          Navigator.pop(context);
-                        },
-                      ),
-                      _buildShareOption(
-                        icon: Icons.share,
-                        label: 'More',
-                        onTap: () {
-                          // Implement native share functionality
-                          Navigator.pop(context);
-                        },
-                      ),
-                      GestureDetector(
-                        onTap: () async {
-                          final url = 'https://wa.me/?text=Check out this post: https://minaret.com/posts/${widget.id}';
-                          if (await canLaunchUrlString(url)) {
-                            await launchUrlString(url);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Could not launch WhatsApp')),
-                            );
-                          }
-                          Navigator.pop(context);
-                        },
-            child: Column(
-              children: [
-                            Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF4F245A),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFFFDCC87)),
-                              ),
-                              child: Image.asset(
-                                'assets/whatsapp.png',
-                                width: 30,
-                                height: 30,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                const Text(
-                              'WhatsApp',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                          ],
-                        ),
-                      ),
-                      _buildShareOption(
-                        icon: Icons.telegram,
-                        label: 'Telegram',
-                        onTap: () async {
-                          final url = 'https://t.me/share/url?url=https://minaret.com/posts/${widget.id}&text=Check out this post: ${widget.title}';
-                          if (await canLaunchUrlString(url)) {
-                            await launchUrlString(url);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Could not launch Telegram')),
-                            );
-                          }
-                    Navigator.pop(context);
-                  },
+                    ),
                   ),
-                    ],
-                ),
-              ],
-          ),
+                ],
+              ),
             );
           },
         );
