@@ -12,41 +12,7 @@ A full-stack social media application built with Flutter and Node.js.
 
 ## Installation Steps
 
-### 1. Database Setup
-```bash
-# Start MongoDB
-# Windows
-net start MongoDB
 
-# macOS
-brew services start mongodb-community
-
-# Linux
-sudo systemctl start mongod
-```
-
-### 2. Backend Setup
-```bash
-# Navigate to backend directory
-cd minaret-backend
-
-# Install dependencies
-npm install
-
-# Create .env file
-cp .env.example .env
-
-# Update .env with your configuration:
-MONGODB_URI=mongodb://localhost:27017/minaret
-JWT_SECRET=JWT_TOKEN_HERE
-PORT=5000
-
-# Seed the database with initial data
-node scripts/seedData.js
-
-# Start the backend server
-npm start
-```
 
 ### 3. Flutter Setup
 ```bash
