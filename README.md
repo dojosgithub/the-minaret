@@ -42,17 +42,36 @@ flutter build apk  # For Android
 flutter build ios  # For iOS
 ```
 
-## API Configuration
+## Environment Configuration
 
-### Local Development
-Update `lib/services/api_service.dart` with the correct backend URL:
+Create a `.env` file in the root of your Flutter project with the following content:
+
+```
+API_BASE_URL=http://10.00.2.2:5000/api
+```
+
+Replace the value with your backend URL as needed (see below for device-specific URLs).
+
+The app uses [flutter_dotenv](https://pub.dev/packages/flutter_dotenv) to load environment variables. Make sure to add it to your `pubspec.yaml` dependencies:
+
+```
+dependencies:
+  flutter_dotenv: ^5.0.2
+```
+
+Then run:
+
+```
+flutter pub get
+```
+
+### API Configuration
 
 - Android Emulator: `http://10.0.2.2:5000/api`
 - iOS Simulator: `http://localhost:5000/api`
 - Physical Device: `http://your.computer.ip:5000/api`
 
-### Production
-Update the API URL in `api_service.dart` with your production backend URL.
+Update the value of `API_BASE_URL` in your `.env` file accordingly.
 
 ## Testing
 

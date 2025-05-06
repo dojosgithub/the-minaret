@@ -39,6 +39,7 @@ dependencies:
   url_launcher: ^6.2.5
   image_picker: ^1.0.7
   shared_preferences: ^2.2.2
+  flutter_dotenv: ^5.0.2
 
 dev_dependencies:
   
@@ -58,6 +59,7 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
+    - .env
     - assets/quran.svg
     - assets/tafsir.svg
     - assets/sunnah.svg
