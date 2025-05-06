@@ -79,6 +79,7 @@ class _PostState extends State<Post> {
   int _upvoteCount = 0;
   int _downvoteCount = 0;
   int _repostCount = 0;
+  int _commentCount = 0;
   Map<String, int> _visibleRepliesCount = {};
   Map<String, bool> _showReplies = {};
   int _visibleCommentsCount = 5;
@@ -96,6 +97,7 @@ class _PostState extends State<Post> {
     _upvoteCount = widget.upvoteCount;
     _downvoteCount = widget.downvoteCount;
     _repostCount = widget.repostCount;
+    _commentCount = widget.commentCount;
     _isBookmarked = widget.isSaved;
   }
 
@@ -138,6 +140,12 @@ class _PostState extends State<Post> {
     if (oldWidget.repostCount != widget.repostCount) {
       setState(() {
         _repostCount = widget.repostCount;
+      });
+    }
+    
+    if (oldWidget.commentCount != widget.commentCount) {
+      setState(() {
+        _commentCount = widget.commentCount;
       });
     }
   }
@@ -564,6 +572,9 @@ class _PostState extends State<Post> {
 
   Future<List<dynamic>> _loadRecentUsers() async {
     try {
+      final List<dynamic> uniqueUsers = [];
+      final Set<String> addedUserIds = {};
+      
       // First try to get recent conversations
       final conversations = await MessageService.getConversations();
       if (conversations.isNotEmpty) {
@@ -571,36 +582,48 @@ class _PostState extends State<Post> {
         final currentUserId = await ApiService.currentUserId;
         if (currentUserId == null) return [];
 
-        return conversations.map((conv) {
+        for (final conv in conversations) {
           // Find the other participant
           final otherParticipant = conv.participants.firstWhere(
             (p) => p['_id'] != currentUserId,
             orElse: () => conv.participants.first,
           );
-
-          return {
-            'id': otherParticipant['_id'],
-            'username': otherParticipant['username'],
-            'firstName': otherParticipant['firstName'],
-            'lastName': otherParticipant['lastName'],
-            'profilePicture': otherParticipant['profileImage'],
-          };
-        }).toList();
+          
+          final userId = otherParticipant['_id'];
+          if (userId != null && !addedUserIds.contains(userId)) {
+            addedUserIds.add(userId);
+            uniqueUsers.add({
+              'id': userId,
+              'username': otherParticipant['username'],
+              'firstName': otherParticipant['firstName'],
+              'lastName': otherParticipant['lastName'],
+              'profilePicture': otherParticipant['profileImage'],
+            });
+          }
+        }
       }
       
-      // If no conversations, get followed users
+      // Then add followed users that haven't been added yet
       try {
         final followedUsers = await ApiService.getFollowedUsers();
-        return followedUsers.map((user) => {
-          'username': user['username'],
-          'firstName': user['firstName'],
-          'lastName': user['lastName'],
-          'profilePicture': user['profileImage'],
-        }).toList();
+        for (final user in followedUsers) {
+          final userId = user['_id'];
+          if (userId != null && !addedUserIds.contains(userId)) {
+            addedUserIds.add(userId);
+            uniqueUsers.add({
+              'id': userId,
+              'username': user['username'],
+              'firstName': user['firstName'],
+              'lastName': user['lastName'],
+              'profilePicture': user['profileImage'],
+            });
+          }
+        }
       } catch (e) {
         debugPrint('Error loading followed users: $e');
-        return [];
       }
+      
+      return uniqueUsers;
     } catch (e) {
       debugPrint('Error loading recent users: $e');
       return [];
@@ -1071,7 +1094,7 @@ class _PostState extends State<Post> {
                     },
                   ),
                   Text(
-                    widget.commentCount.toString(),
+                    _commentCount.toString(),
                     style: const TextStyle(color: Colors.white),
                   ),
                 ],
@@ -1293,6 +1316,8 @@ class _PostState extends State<Post> {
       setState(() {
         _comments.insert(0, newComment);
         _commentController.clear();
+        // Update comment count immediately
+        _commentCount++;
       });
     } catch (e) {
       debugPrint('Error adding comment: $e');

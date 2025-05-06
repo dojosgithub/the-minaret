@@ -268,6 +268,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                         horizontal: 16,
                                         vertical: 8,
                                       ),
+                                      constraints: BoxConstraints(
+                                        maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: isMe
                                             ? const Color(0xFFFDCC87)
@@ -375,6 +378,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                             style: TextStyle(
                                               color: isMe ? Colors.black : Colors.white,
                                             ),
+                                            softWrap: true,
+                                            overflow: TextOverflow.visible,
                                           ),
                                           Text(
                                             _formatTime(message.createdAt),
