@@ -269,7 +269,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                         vertical: 8,
                                       ),
                                       constraints: BoxConstraints(
-                                        maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                        maxWidth: MediaQuery.of(context).size.width * 0.6,
                                       ),
                                       decoration: BoxDecoration(
                                         color: isMe

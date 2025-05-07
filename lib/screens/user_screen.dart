@@ -26,6 +26,16 @@ class _UserScreenState extends State<UserScreen> {
     _loadUserData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // This will refresh data when coming back from Followers screen
+    final route = ModalRoute.of(context);
+    if (route != null && route.isCurrent) {
+      _loadUserData();
+    }
+  }
+
   Future<void> _loadUserData() async {
     setState(() {
       isLoading = true;
@@ -397,8 +407,8 @@ class _UserScreenState extends State<UserScreen> {
       children: [
         Flexible(
           child: GestureDetector(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => FollowersScreen(
@@ -408,6 +418,9 @@ class _UserScreenState extends State<UserScreen> {
                   ),
                 ),
               );
+              if (result == true) {
+                _loadUserData();
+              }
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -431,8 +444,8 @@ class _UserScreenState extends State<UserScreen> {
         SizedBox(width: isSmallScreen ? 8 : 15),
         Flexible(
           child: GestureDetector(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => FollowersScreen(
@@ -442,6 +455,9 @@ class _UserScreenState extends State<UserScreen> {
                   ),
                 ),
               );
+              if (result == true) {
+                _loadUserData();
+              }
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,

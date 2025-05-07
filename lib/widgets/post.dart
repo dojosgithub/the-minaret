@@ -5,11 +5,9 @@ import '../utils/time_utils.dart';
 import '../services/api_service.dart';
 import '../screens/profile_screen.dart';
 import 'comment.dart';
-import '../screens/new_message_screen.dart';
 import '../services/message_service.dart';
 import 'repost_content.dart';
 import '../screens/post_detail_screen.dart';
-import '../screens/user_screen.dart';
 import 'dart:async';
 
 class Post extends StatefulWidget {

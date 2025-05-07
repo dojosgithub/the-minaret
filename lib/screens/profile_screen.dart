@@ -85,15 +85,56 @@ class _ProfileScreenState extends State<ProfileScreen> {
     });
 
     try {
-      if (isFollowing) {
+      // Store original following state to determine what changed
+      final wasFollowing = isFollowing;
+      
+      if (wasFollowing) {
         await ApiService.unfollowUser(widget.userId);
+        // Decrease followers count
+        if (userData != null && userData!['followers'] != null) {
+          setState(() {
+            // Safely decrement followers count only if we were previously following
+            if (userData!['followers'] is List) {
+              List followers = List.from(userData!['followers']);
+              if (followers.isNotEmpty) {
+                followers.removeWhere((follower) => 
+                  follower == ApiService.currentUserId || 
+                  (follower is Map && follower['_id'] == ApiService.currentUserId));
+                userData!['followers'] = followers;
+              }
+            } else if (userData!['followers'] is int && userData!['followers'] > 0) {
+              userData!['followers'] = userData!['followers'] - 1;
+            }
+          });
+        }
       } else {
         await ApiService.followUser(widget.userId);
+        // Increase followers count
+        if (userData != null) {
+          setState(() {
+            // Safely increment followers count only if we were not previously following
+            if (userData!['followers'] is List) {
+              List followers = List.from(userData!['followers']);
+              final currentUserId = ApiService.currentUserId;
+              if (currentUserId != null && !followers.any((follower) => 
+                follower == currentUserId || 
+                (follower is Map && follower['_id'] == currentUserId))) {
+                followers.add(currentUserId);
+                userData!['followers'] = followers;
+              }
+            } else if (userData!['followers'] is int) {
+              userData!['followers'] = userData!['followers'] + 1;
+            } else {
+              userData!['followers'] = 1;
+            }
+          });
+        }
       }
       
       if (mounted) {
+        // Only change the follow state after the operation completes successfully
         setState(() {
-          isFollowing = !isFollowing;
+          isFollowing = !wasFollowing;
           isLoading = false;
         });
       }
@@ -215,8 +256,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       children: [
         GestureDetector(
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => FollowersScreen(
@@ -226,6 +267,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             );
+            if (result == true) {
+              _loadUserData();
+            }
           },
           child: Row(
             children: [
@@ -246,8 +290,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         const SizedBox(width: 15),
         GestureDetector(
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final result = await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => FollowersScreen(
@@ -257,6 +301,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             );
+            if (result == true) {
+              _loadUserData();
+            }
           },
           child: Row(
             children: [
