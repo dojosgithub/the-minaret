@@ -60,10 +60,6 @@ dev_dependencies:
 flutter:
   assets:
     - .env
-    - assets/quran.svg
-    - assets/tafsir.svg
-    - assets/sunnah.svg
-    - assets/hadith.svg
     - assets/whatsapp.png
     - assets/telegram.png
     - assets/logo.svg

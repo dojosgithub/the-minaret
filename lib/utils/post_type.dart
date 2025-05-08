@@ -7,11 +7,8 @@ class PostType {
   // Post types that match the backend model
   static const String all = 'all';
   static const String reporters = 'Reporters';
-  static const String teachingQuran = 'Teaching Quran';
+  static const String islamicKnowledge = 'Islamic Knowledge';
   static const String discussion = 'Discussion';
-  static const String hadith = 'Hadith';
-  static const String tafsir = 'Tafsir';
-  static const String sunnah = 'Sunnah';
 
   static void setType(String? type) {
     selectedType = type;

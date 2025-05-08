@@ -204,161 +204,48 @@ class _PostPageState extends State<PostScreen> {
     showDialog(
       context: context,
       builder: (context) {
-        String? selectedMainOption;
-        String? selectedSubOption;
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: const Color(0xFF3D1B45),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
+        return AlertDialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: const Text('Reporters', style: TextStyle(color: Color(0xFFFDCC87))),
+                onTap: () {
+                  setState(() {
+                    selectedType = 'Reporters';
+                    _hasChanges = true;
+                  });
+                  Navigator.pop(context);
+                },
               ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (selectedMainOption == null) ...[
-                    ListTile(
-                      title: const Text('Reporters', style: TextStyle(color: Color(0xFFFDCC87))),
-                      onTap: () {
-                        setState(() {
-                          selectedType = 'Reporters';
-                        });
-                        Navigator.pop(context);
-                        this.setState(() {
-                          _hasChanges = true;
-                        });
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Islamic Knowledge', style: TextStyle(color: Color(0xFFFDCC87))),
-                      onTap: () {
-                        setState(() => selectedMainOption = 'Islamic Knowledge');
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Discussion', style: TextStyle(color: Color(0xFFFDCC87))),
-                      onTap: () {
-                        setState(() {
-                          selectedType = 'Discussion';
-                        });
-                        Navigator.pop(context);
-                        this.setState(() {
-                          _hasChanges = true;
-                        });
-                      },
-                    ),
-                  ] else if (selectedMainOption == 'Islamic Knowledge') ...[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildSubOption(
-                          context,
-                          'Teaching Quran',
-                          'assets/quran.svg',
-                          selectedSubOption,
-                          (value) {
-                            setState(() {
-                              selectedSubOption = value;
-                              selectedType = value;
-                            });
-                            Navigator.pop(context); // Close popup on selection
-                            this.setState(() {
-                              _hasChanges = true;
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 10), // Add space between suboptions
-                        _buildSubOption(
-                          context,
-                          'Hadith',
-                          'assets/hadith.svg',
-                          selectedSubOption,
-                          (value) {
-                            setState(() {
-                              selectedSubOption = value;
-                              selectedType = value;
-                            });
-                            Navigator.pop(context); // Close popup on selection
-                            this.setState(() {
-                              _hasChanges = true;
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 10), // Add space between suboptions
-                        _buildSubOption(
-                          context,
-                          'Tafsir',
-                          'assets/tafsir.svg',
-                          selectedSubOption,
-                          (value) {
-                            setState(() {
-                              selectedSubOption = value;
-                              selectedType = value;
-                            });
-                            Navigator.pop(context); // Close popup on selection
-                            this.setState(() {
-                              _hasChanges = true;
-                            });
-                          },
-                        ),
-                        const SizedBox(width: 10), // Add space between suboptions
-                        _buildSubOption(
-                          context,
-                          'Sunnah',
-                          'assets/sunnah.svg',
-                          selectedSubOption,
-                          (value) {
-                            setState(() {
-                              selectedSubOption = value;
-                              selectedType = value;
-                            });
-                            Navigator.pop(context); // Close popup on selection
-                            this.setState(() {
-                              _hasChanges = true;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
+              ListTile(
+                title: const Text('Islamic Knowledge', style: TextStyle(color: Color(0xFFFDCC87))),
+                onTap: () {
+                  setState(() {
+                    selectedType = 'Islamic Knowledge';
+                    _hasChanges = true;
+                  });
+                  Navigator.pop(context);
+                },
               ),
-            );
-          },
+              ListTile(
+                title: const Text('Discussion', style: TextStyle(color: Color(0xFFFDCC87))),
+                onTap: () {
+                  setState(() {
+                    selectedType = 'Discussion';
+                    _hasChanges = true;
+                  });
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
         );
       },
-    );
-  }
-
-  Widget _buildSubOption(BuildContext context, String label, String assetPath, String? selected, Function(String) onTap) {
-    final isSelected = selected == label;
-    return GestureDetector(
-      onTap: () => onTap(label),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: isSelected ? const Color(0xFFFDCC87) : const Color(0xFF3D1B45),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: SvgPicture.asset(
-              assetPath,
-              height: 40,
-              width: 40,
-              colorFilter: ColorFilter.mode(
-                isSelected ? Colors.black : Colors.white,
-                BlendMode.srcIn,
-              ),
-            ),
-          ),
-          const SizedBox(height: 5),
-          Text(
-            label,
-            style: TextStyle(color: isSelected ? Colors.black : const Color(0xFFFDCC87)),
-          ),
-        ],
-      ),
     );
   }
 

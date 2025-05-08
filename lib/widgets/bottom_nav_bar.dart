@@ -15,8 +15,8 @@ class BottomNavBar extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
     double itemWidth = screenWidth / 5;
-    double indentHeight = 50;
-    double navBarHeight = 60;
+    double indentHeight = 58;
+    double navBarHeight = 65;
 
     return Stack(
       clipBehavior: Clip.none,
@@ -47,7 +47,7 @@ class BottomNavBar extends StatelessWidget {
           left: 0,
           right: 0,
           child: SizedBox(
-            height: 40,
+            height: navBarHeight - 15,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.center,

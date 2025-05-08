@@ -79,39 +79,9 @@ class MenuScreen extends StatelessWidget {
                       const SizedBox(height: 12),
                       _buildMenuItem(
                         context, 
-                        'Teaching Quran',
+                        'Islamic Knowledge',
                         onTap: () {
-                          PostType.setType(PostType.teachingQuran);
-                          Navigator.pop(context);
-                          onIndexChanged(0);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildMenuItem(
-                        context, 
-                        'Tafsir',
-                        onTap: () {
-                          PostType.setType(PostType.tafsir);
-                          Navigator.pop(context);
-                          onIndexChanged(0);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildMenuItem(
-                        context, 
-                        'Sunnah',
-                        onTap: () {
-                          PostType.setType(PostType.sunnah);
-                          Navigator.pop(context);
-                          onIndexChanged(0);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      _buildMenuItem(
-                        context, 
-                        'Hadith',
-                        onTap: () {
-                          PostType.setType(PostType.hadith);
+                          PostType.setType(PostType.islamicKnowledge);
                           Navigator.pop(context);
                           onIndexChanged(0);
                         },
