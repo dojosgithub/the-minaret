@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ApiService {
   static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000/api';
@@ -285,21 +286,38 @@ class ApiService {
       // Add media files
       if (mediaFiles.isNotEmpty) {
         for (String filePath in mediaFiles) {
-          //final file = File(filePath);
+          // Get the filename from the path
           final filename = filePath.split('/').last;
+          
+          // Determine MIME type based on file extension
           final mimeType = filename.endsWith('.jpg') || filename.endsWith('.jpeg') 
               ? 'image/jpeg' 
               : filename.endsWith('.png') 
                   ? 'image/png' 
                   : 'application/octet-stream';
-                  
-          request.files.add(
-            await http.MultipartFile.fromPath(
-              'media',
-              filePath,
-              contentType: MediaType.parse(mimeType),
-            ),
-          );
+          
+          // Handle file upload based on platform
+          try {
+            // Try to use File which works on native platforms (Android/iOS)
+            final file = File(filePath);
+            if (await file.exists()) {
+              // Use bytes approach which works cross-platform
+              final bytes = await file.readAsBytes();
+              request.files.add(
+                http.MultipartFile.fromBytes(
+                  'media',
+                  bytes,
+                  filename: filename,
+                  contentType: MediaType.parse(mimeType),
+                ),
+              );
+            }
+          } catch (e) {
+            // If File is not supported (web platform), just log the error
+            // and skip this file
+            debugPrint('Error adding file to request: $e');
+            debugPrint('File uploads may not be supported on this platform');
+          }
         }
       }
 
@@ -1319,6 +1337,78 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('Error updating view preferences: $e');
+      rethrow;
+    }
+  }
+
+  // New method that takes XFile objects for better cross-platform support
+  static Future<bool> createPostWithXFiles(
+      String type,
+      String title,
+      String body,
+      List<XFile> mediaFiles,
+      List<Map<String, String>> links) async {
+    try {
+      debugPrint('Creating post with token: $_authToken');
+
+      if (_authToken == null) {
+        throw Exception('No token - Authorization denied');
+      }
+
+      var request = http.MultipartRequest('POST', Uri.parse('$baseUrl/posts'));
+      
+      // Add auth token to headers
+      request.headers.addAll(await getHeaders());
+
+      // Add text fields
+      request.fields['type'] = type;
+      request.fields['title'] = title;
+      request.fields['body'] = body;
+      request.fields['links'] = json.encode(links);
+
+      // Add media files
+      if (mediaFiles.isNotEmpty) {
+        for (XFile file in mediaFiles) {
+          // Get the filename from the path
+          final filename = file.name;
+          
+          // Determine MIME type based on file extension
+          final extension = filename.split('.').last.toLowerCase();
+          final mimeType = extension == 'jpg' || extension == 'jpeg'
+              ? 'image/jpeg'
+              : extension == 'png'
+                  ? 'image/png'
+                  : 'application/octet-stream';
+          
+          // Read file as bytes (works on all platforms including web)
+          final bytes = await file.readAsBytes();
+          
+          // Create MultipartFile from bytes
+          request.files.add(
+            http.MultipartFile.fromBytes(
+              'media',
+              bytes,
+              filename: filename,
+              contentType: MediaType.parse(mimeType),
+            ),
+          );
+        }
+      }
+
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      debugPrint('Response status: ${response.statusCode}');
+      debugPrint('Response body: ${response.body}');
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to create post');
+      }
+    } catch (e) {
+      debugPrint('Error creating post: $e');
       rethrow;
     }
   }

@@ -72,11 +72,17 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: SvgPicture.asset(
-                        'assets/logo.svg',
-                        height: 65,
-                        fit: BoxFit.contain,
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minWidth: 100,
+                          maxWidth: 160,
+                          minHeight: 80,
+                        ),
+                        child: SvgPicture.asset(
+                          'assets/logo.svg',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),

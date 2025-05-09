@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_service.dart';
 import 'dart:io';
+import 'dart:convert';
 
 class PostScreen extends StatefulWidget {
   final Function(int) onIndexChanged;
@@ -23,7 +25,7 @@ class _PostPageState extends State<PostScreen> {
   final TextEditingController _linkTitleController = TextEditingController();
   final TextEditingController _linkUrlController = TextEditingController();
   bool _hasChanges = false;
-  final List<File> _selectedMedia = [];
+  final List<XFile> _selectedMedia = [];
   final List<Map<String, String>> _links = [];
   bool _isLoading = false;
   Map<String, dynamic>? userData;
@@ -73,14 +75,14 @@ class _PostPageState extends State<PostScreen> {
       final List<XFile> media = await picker.pickMultiImage();
       if (media.isNotEmpty) {
         setState(() {
-          _selectedMedia.addAll(media.map((m) => File(m.path)));
+          _selectedMedia.addAll(media);
           _onChangesMade();
         });
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to pick media')),
+          SnackBar(content: Text('Failed to pick media: $e')),
         );
       }
     }
@@ -166,11 +168,11 @@ class _PostPageState extends State<PostScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final success = await ApiService.createPost(
+      final success = await ApiService.createPostWithXFiles(
         selectedType!,
         _titleController.text,
         _bodyController.text,
-        _selectedMedia.map((file) => file.path).toList(),
+        _selectedMedia,
         _links,
       );
 
@@ -305,6 +307,94 @@ class _PostPageState extends State<PostScreen> {
     return result ?? false;
   }
 
+  Widget _buildMediaPreview() {
+    if (_selectedMedia.isEmpty) return const SizedBox.shrink();
+    
+    return Container(
+      height: 120,
+      margin: const EdgeInsets.only(top: 10),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: _selectedMedia.length,
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              Container(
+                width: 100,
+                height: 100,
+                margin: const EdgeInsets.only(right: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFFDCC87)),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: kIsWeb
+                      // For web, use Image.network with XFile
+                      ? FutureBuilder<String>(
+                          future: _getWebImageUrl(_selectedMedia[index]),
+                          builder: (context, snapshot) {
+                            if (snapshot.connectionState == ConnectionState.done && snapshot.hasData) {
+                              return Image.network(
+                                snapshot.data!,
+                                fit: BoxFit.cover,
+                              );
+                            } else {
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                ),
+                              );
+                            }
+                          },
+                        )
+                      // For mobile platforms, use File with XFile path
+                      : Image.file(
+                          File(_selectedMedia[index].path),
+                          fit: BoxFit.cover,
+                        ),
+                ),
+              ),
+              Positioned(
+                top: 5,
+                right: 15,
+                child: GestureDetector(
+                  onTap: () => _removeMedia(index),
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF3D1B45),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close,
+                      color: Color(0xFFFDCC87),
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  // Helper method to get a URL for web images
+  Future<String> _getWebImageUrl(XFile file) async {
+    try {
+      // For web, we need to create a data URL from the file content
+      final bytes = await file.readAsBytes();
+      final base64 = base64Encode(bytes);
+      final mimeType = file.name.endsWith('.png') ? 'image/png' : 'image/jpeg';
+      return 'data:$mimeType;base64,$base64';
+    } catch (e) {
+      debugPrint('Error creating image URL: $e');
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -403,48 +493,7 @@ class _PostPageState extends State<PostScreen> {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  if (_selectedMedia.isNotEmpty)
-                    Container(
-                      height: 100,
-                      margin: const EdgeInsets.symmetric(vertical: 10),
-                      child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount: _selectedMedia.length,
-                        itemBuilder: (context, index) {
-                          return Stack(
-                            children: [
-                              Container(
-                                margin: const EdgeInsets.only(right: 10),
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  image: DecorationImage(
-                                    image: FileImage(_selectedMedia[index]),
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                right: 15,
-                                top: 5,
-                                child: GestureDetector(
-                                  onTap: () => _removeMedia(index),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(2),
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: const Icon(Icons.close, size: 16, color: Colors.white),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
+                  _buildMediaPreview(),
 
                   if (_links.isNotEmpty)
                     Column(
