@@ -268,14 +268,34 @@ class _PostState extends State<Post> {
 
   Future<void> _launchURL(String url) async {
     try {
-      if (await canLaunchUrlString(url)) {
-        await launchUrlString(url, mode: LaunchMode.externalApplication);
-      } else {
-        throw 'Could not launch $url';
+      // Ensure the URL has a scheme
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://$url';
+      }
+
+      // Try to launch the URL
+      bool launched = false;
+      try {
+        if (await canLaunchUrlString(url)) {
+          await launchUrlString(url, mode: LaunchMode.externalApplication);
+          launched = true;
+        }
+      } catch (e) {
+        debugPrint('Error checking if URL can be launched: $e');
+        // canLaunchUrlString may throw on some platforms
+      }
+
+      // If the URL didn't launch using canLaunchUrlString check, try direct launch
+      if (!launched) {
+        try {
+          await launchUrlString(url, mode: LaunchMode.externalApplication);
+        } catch (e) {
+          throw 'Could not launch $url: $e';
+        }
       }
     } catch (e) {
       debugPrint('Error launching URL: $e');
-      // You might want to show a snackbar or dialog here to inform the user
+      // Show error message to user
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Could not open link: $url')),

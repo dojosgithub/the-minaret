@@ -253,75 +253,105 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildFollowCounts() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 360;
+    final isVerySmallScreen = screenWidth < 320;
+    final fontSize = isSmallScreen ? 12.0 : 14.0;
+    final countFontSize = isSmallScreen ? 14.0 : 16.0;
+    
+    // Build individual follow count items
+    Widget buildFollowersItem() {
+      return GestureDetector(
+        onTap: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FollowersScreen(
+                userId: widget.userId,
+                isFollowers: true,
+                title: 'Followers',
+              ),
+            ),
+          );
+          if (result == true) {
+            _loadUserData();
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${userData?['followers']?.length ?? 0} ',
+              style: TextStyle(
+                color: const Color(0xFFFDCC87),
+                fontSize: countFontSize,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Followers',
+              style: TextStyle(color: Colors.grey, fontSize: fontSize),
+            ),
+          ],
+        ),
+      );
+    }
+
+    Widget buildFollowingItem() {
+      return GestureDetector(
+        onTap: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => FollowersScreen(
+                userId: widget.userId,
+                isFollowers: false,
+                title: 'Following',
+              ),
+            ),
+          );
+          if (result == true) {
+            _loadUserData();
+          }
+        },
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${userData?['following']?.length ?? 0} ',
+              style: TextStyle(
+                color: const Color(0xFFFDCC87),
+                fontSize: countFontSize,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              'Following',
+              style: TextStyle(color: Colors.grey, fontSize: fontSize),
+            ),
+          ],
+        ),
+      );
+    }
+    
+    // Use Column layout for very small screens
+    if (isVerySmallScreen) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildFollowersItem(),
+          const SizedBox(height: 4),
+          buildFollowingItem(),
+        ],
+      );
+    }
+    
+    // Use Row layout for larger screens
     return Row(
       children: [
-        GestureDetector(
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FollowersScreen(
-                  userId: widget.userId,
-                  isFollowers: true,
-                  title: 'Followers',
-                ),
-              ),
-            );
-            if (result == true) {
-              _loadUserData();
-            }
-          },
-          child: Row(
-            children: [
-              Text(
-                '${userData?['followers']?.length ?? 0} ',
-                style: const TextStyle(
-                  color: Color(0xFFFDCC87),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Text(
-                'Followers',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 15),
-        GestureDetector(
-          onTap: () async {
-            final result = await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => FollowersScreen(
-                  userId: widget.userId,
-                  isFollowers: false,
-                  title: 'Following',
-                ),
-              ),
-            );
-            if (result == true) {
-              _loadUserData();
-            }
-          },
-          child: Row(
-            children: [
-              Text(
-                '${userData?['following']?.length ?? 0} ',
-                style: const TextStyle(
-                  color: Color(0xFFFDCC87),
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Text(
-                'Following',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-            ],
-          ),
-        ),
+        buildFollowersItem(),
+        SizedBox(width: isSmallScreen ? 8 : 15),
+        buildFollowingItem(),
       ],
     );
   }

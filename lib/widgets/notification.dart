@@ -160,7 +160,8 @@ class NotificationWidget extends StatelessWidget {
                     "Tap to view post",
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFFFDCC87),
+                      color: Colors.white,
+                      //color: Color(0xFFFDCC87),
                       fontStyle: FontStyle.italic,
                     ),
                   )
@@ -169,7 +170,8 @@ class NotificationWidget extends StatelessWidget {
                     "Tap to view profile",
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFFFDCC87),
+                      color: Colors.white,
+                      //color: Color(0xFFFDCC87),
                       fontStyle: FontStyle.italic,
                     ),
                   )
