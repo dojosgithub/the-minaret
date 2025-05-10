@@ -350,7 +350,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Row(
       children: [
         buildFollowersItem(),
-        SizedBox(width: isSmallScreen ? 8 : 15),
+        SizedBox(width: isSmallScreen ? 12 : 15),
         buildFollowingItem(),
       ],
     );

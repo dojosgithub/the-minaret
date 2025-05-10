@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/home_screen.dart';
 import 'screens/notifications_screen.dart';
@@ -11,6 +12,20 @@ import 'widgets/screen_wrapper.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Set SystemUiMode to edgeToEdge for transparent navigation bar support
+  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  
+  // Ensure status bar is transparent with appropriate contrast
+  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+    statusBarColor: Colors.transparent,
+    statusBarIconBrightness: Brightness.light,
+    systemNavigationBarColor: Colors.transparent,
+    systemNavigationBarDividerColor: Colors.transparent,
+    systemNavigationBarIconBrightness: Brightness.light,
+    systemNavigationBarContrastEnforced: false,
+  ));
+  
   await dotenv.load();
   await ApiService.initialize();
   runApp(const MyApp());

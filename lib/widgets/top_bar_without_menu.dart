@@ -53,9 +53,9 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: ConstrainedBox(
                         constraints: BoxConstraints(
-                          minWidth: 100,
-                          maxWidth: 160,
-                          minHeight: 80,
+                          minWidth: MediaQuery.of(context).size.width < 600 ? 120 : 100,
+                          maxWidth: MediaQuery.of(context).size.width < 600 ? 200 : 160,
+                          minHeight: MediaQuery.of(context).size.width < 600 ? 100 : 80,
                         ),
                         child: SvgPicture.asset(
                           'assets/logo.svg',

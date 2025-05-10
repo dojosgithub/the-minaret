@@ -495,7 +495,7 @@ class _UserScreenState extends State<UserScreen> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Flexible(child: buildFollowersItem()),
-        SizedBox(width: isSmallScreen ? 8 : 15),
+        SizedBox(width: isSmallScreen ? 12 : 15),
         Flexible(child: buildFollowingItem()),
       ],
     );
