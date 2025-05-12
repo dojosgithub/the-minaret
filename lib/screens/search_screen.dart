@@ -3,6 +3,7 @@ import '../services/api_service.dart';
 import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import 'profile_screen.dart';
+import 'dart:async';
 
 class SearchScreen extends StatefulWidget {
   final Function(int) onIndexChanged;
@@ -18,6 +19,7 @@ class SearchScreen extends StatefulWidget {
 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounce;
   bool _isLoading = false;
   List<Map<String, dynamic>> _posts = [];
   List<Map<String, dynamic>> _users = [];
@@ -35,6 +37,8 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     _loadRecentSearches();
+    // Add listener to search controller
+    _searchController.addListener(_onSearchChanged);
   }
 
   Future<void> _loadRecentSearches() async {
@@ -50,8 +54,24 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged() {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      if (_searchController.text.isNotEmpty) {
+        _performSearch();
+      } else {
+        setState(() {
+          _posts = [];
+          _users = [];
+        });
+      }
+    });
   }
 
   Future<void> _performSearch() async {
@@ -281,24 +301,29 @@ class _SearchScreenState extends State<SearchScreen> {
           padding: const EdgeInsets.only(top: 8.0),
           child: SizedBox(
             height: 50,
-          child: TextField(
+            child: TextField(
               controller: _searchController,
-            style: const TextStyle(color: Colors.black),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
+              style: const TextStyle(color: Colors.black),
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: Colors.white,
                 hintText: 'Search posts and users...',
-              hintStyle: const TextStyle(color: Colors.grey),
-              border: OutlineInputBorder(
+                hintStyle: const TextStyle(color: Colors.grey),
+                border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
-                borderSide: BorderSide.none,
+                  borderSide: BorderSide.none,
                 ),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.search, color: Colors.grey),
-                  onPressed: _performSearch,
-                ),
+                // Remove the search button since search is now automatic
+                suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: const Icon(Icons.clear, color: Colors.grey),
+                      onPressed: () {
+                        _searchController.clear();
+                      },
+                    )
+                  : const Icon(Icons.search, color: Colors.grey),
               ),
-              onSubmitted: (_) => _performSearch(),
+              // Remove onSubmitted since we're using the listener
             ),
           ),
         ),
