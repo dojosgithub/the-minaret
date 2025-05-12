@@ -60,8 +60,16 @@ class _PostPageState extends State<PostScreen> {
   }
 
   void _onChangesMade() {
-    // Directly set _hasChanges to true without any conditions
-    if (!_hasChanges) {
+    // Check if there are any actual changes before setting the flag
+    final bool hasTypeSelected = selectedType != null;
+    final bool hasTitleText = _titleController.text.isNotEmpty;
+    final bool hasBodyText = _bodyController.text.isNotEmpty;
+    final bool hasMedia = _selectedMedia.isNotEmpty;
+    final bool hasLinks = _links.isNotEmpty;
+    
+    final bool hasActualChanges = hasTypeSelected || hasTitleText || hasBodyText || hasMedia || hasLinks;
+    
+    if (hasActualChanges && !_hasChanges) {
       setState(() {
         _hasChanges = true;
       });
@@ -90,6 +98,7 @@ class _PostPageState extends State<PostScreen> {
   void _removeMedia(int index) {
     setState(() {
       _selectedMedia.removeAt(index);
+      // Check if there are still changes
       _onChangesMade();
     });
   }
@@ -152,6 +161,7 @@ class _PostPageState extends State<PostScreen> {
   void _removeLink(int index) {
     setState(() {
       _links.removeAt(index);
+      // Check if there are still changes
       _onChangesMade();
     });
   }
@@ -176,6 +186,11 @@ class _PostPageState extends State<PostScreen> {
       );
 
       if (success && mounted) {
+        // Reset the _hasChanges flag since post was created successfully
+        setState(() {
+          _hasChanges = false;
+        });
+        
         // First show the success message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Post created successfully')),
@@ -251,9 +266,21 @@ class _PostPageState extends State<PostScreen> {
   }
 
   Future<bool> _onWillPop() async {
-    debugPrint('_onWillPop called with _hasChanges: $_hasChanges');
+    // If there are no changes, allow navigation without confirmation
     if (!_hasChanges) return true;
 
+    // Check if there are actual changes to confirm
+    final bool hasTypeSelected = selectedType != null;
+    final bool hasTitleText = _titleController.text.isNotEmpty;
+    final bool hasBodyText = _bodyController.text.isNotEmpty;
+    final bool hasMedia = _selectedMedia.isNotEmpty;
+    final bool hasLinks = _links.isNotEmpty;
+    
+    final bool hasActualChanges = hasTypeSelected || hasTitleText || hasBodyText || hasMedia || hasLinks;
+    
+    if (!hasActualChanges) return true;
+    
+    // Show confirmation dialog if changes exist
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -270,7 +297,7 @@ class _PostPageState extends State<PostScreen> {
           ),
         ),
         content: const Text(
-          'Are you sure you want to go back and discard the post?',
+          'Are you sure you want to discard this post? All your changes will be lost.',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -304,6 +331,14 @@ class _PostPageState extends State<PostScreen> {
     );
 
     return result ?? false;
+  }
+
+  // Function to safely navigate away with confirmation
+  Future<void> _navigateAway(int index) async {
+    final canNavigate = await _onWillPop();
+    if (canNavigate && mounted) {
+      widget.onIndexChanged(index);
+    }
   }
 
   Widget _buildMediaPreview() {
@@ -400,7 +435,6 @@ class _PostPageState extends State<PostScreen> {
       canPop: false,
       onPopInvoked: (bool didPop) async {
         if (!didPop) {
-          debugPrint('Attempting to pop with _hasChanges: $_hasChanges');
           final shouldPop = await _onWillPop();
           if (shouldPop && context.mounted) {
             Navigator.of(context).pop();
@@ -409,9 +443,22 @@ class _PostPageState extends State<PostScreen> {
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF4F245A),
-        appBar: PreferredSize(
-          preferredSize: Size.zero,
-          child: Container(), // Empty container with zero height
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF4F245A),
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+            onPressed: () => _navigateAway(0), // Go back to home with confirmation
+          ),
+          title: const Text(
+            'Create Post',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ),
         body: Stack(
           children: [
@@ -574,10 +621,26 @@ class _PostPageState extends State<PostScreen> {
               ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _isLoading ? null : _createPost,
-          backgroundColor: _isLoading ? Colors.grey : const Color(0xFFFDCC87),
-          child: const Icon(Icons.post_add, color: Colors.black),
+        bottomNavigationBar: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _createPost,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _isLoading ? Colors.grey : const Color(0xFFFDCC87),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text(
+                'Post',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
