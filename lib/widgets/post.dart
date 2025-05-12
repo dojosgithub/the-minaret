@@ -807,7 +807,7 @@ class _PostState extends State<Post> {
       return GestureDetector(
         onTap: () => _showGalleryView(0),
         child: AspectRatio(
-          aspectRatio: 1,
+          aspectRatio: 16/9,
           child: Container(
             margin: const EdgeInsets.symmetric(vertical: 8),
             decoration: BoxDecoration(
@@ -831,8 +831,27 @@ class _PostState extends State<Post> {
               },
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.error),
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4F245A),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFFDCC87).withOpacity(0.5)),
+                  ),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.broken_image, color: Color(0xFFFDCC87), size: 24),
+                      SizedBox(height: 8),
+                      Text(
+                        'Failed to load image',
+                        style: TextStyle(
+                          color: Color(0xFFFDCC87),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 );
               },
             ),
@@ -862,10 +881,10 @@ class _PostState extends State<Post> {
           onTap: () => _showGalleryView(index),
           child: Stack(
             fit: StackFit.expand,
-      children: [
-        Container(
+            children: [
+              Container(
                 decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 128),
+                  color: const Color(0xFF4F245A),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 clipBehavior: Clip.hardEdge,
@@ -886,8 +905,22 @@ class _PostState extends State<Post> {
                   },
                   errorBuilder: (context, error, stackTrace) {
                     return Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.error),
+                      padding: const EdgeInsets.all(4),
+                      child: const Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.broken_image, color: Color(0xFFFDCC87), size: 16),
+                          SizedBox(height: 4),
+                          Text(
+                            'Image not found',
+                            style: TextStyle(
+                              color: Color(0xFFFDCC87),
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
@@ -895,7 +928,7 @@ class _PostState extends State<Post> {
               if (isLastItem)
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.5),
+                    color: Colors.black.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
@@ -922,7 +955,7 @@ class _PostState extends State<Post> {
       builder: (context) => Dialog(
         backgroundColor: Colors.black,
         child: Stack(
-      children: [
+          children: [
             PageView.builder(
               controller: PageController(initialPage: initialIndex),
               itemCount: widget.media.length,
@@ -946,8 +979,26 @@ class _PostState extends State<Post> {
                       },
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Colors.grey[300],
-                          child: const Icon(Icons.error),
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F245A),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFFDCC87).withOpacity(0.5)),
+                          ),
+                          child: const Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.broken_image, color: Color(0xFFFDCC87), size: 48),
+                              SizedBox(height: 16),
+                              Text(
+                                'Failed to load image',
+                                style: TextStyle(
+                                  color: Color(0xFFFDCC87),
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
                     ),
@@ -958,7 +1009,7 @@ class _PostState extends State<Post> {
             Positioned(
               top: 0,
               right: 0,
-          child: IconButton(
+              child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () => Navigator.pop(context),
               ),
