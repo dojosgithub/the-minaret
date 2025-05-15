@@ -177,47 +177,50 @@ class _UserScreenState extends State<UserScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A),
-      appBar: PreferredSize(
-        preferredSize: Size.zero,
-        child: Container(), // Empty container with zero height
-      ),
-      body: isLoading
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-              ),
-            )
-          : error != null
-              ? ConnectionErrorWidget(
-                  onRetry: _loadUserData,
-                )
-              : RefreshIndicator(
-                  onRefresh: _loadUserData,
-                  color: const Color(0xFFFDCC87),
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildUserHeader(),
-                          const SizedBox(height: 10),
-                          Text(
-                            userData?['bio'] ?? 'No bio available',
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                            softWrap: true,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildTabs(),
-                          const SizedBox(height: 10),
-                          _buildPosts(),
-                        ],
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF4F245A),
+        appBar: PreferredSize(
+          preferredSize: Size.zero,
+          child: Container(), // Empty container with zero height
+        ),
+        body: isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                ),
+              )
+            : error != null
+                ? ConnectionErrorWidget(
+                    onRetry: _loadUserData,
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadUserData,
+                    color: const Color(0xFFFDCC87),
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildUserHeader(),
+                            const SizedBox(height: 10),
+                            Text(
+                              userData?['bio'] ?? 'No bio available',
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                              softWrap: true,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildTabs(),
+                            const SizedBox(height: 10),
+                            _buildPosts(),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
+      ),
     );
   }
 

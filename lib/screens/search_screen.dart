@@ -286,187 +286,190 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A),
-      appBar: AppBar(
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
         backgroundColor: const Color(0xFF4F245A),
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
-          onPressed: () {
-            widget.onIndexChanged(0);
-          },
-        ),
-        title: Padding(
-          padding: const EdgeInsets.only(top: 8.0),
-          child: SizedBox(
-            height: 50,
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: Colors.black),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: Colors.white,
-                hintText: 'Search posts and users...',
-                hintStyle: const TextStyle(color: Colors.grey),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-                // Remove the search button since search is now automatic
-                suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear, color: Colors.grey),
-                      onPressed: () {
-                        _searchController.clear();
-                      },
-                    )
-                  : const Icon(Icons.search, color: Colors.grey),
-              ),
-              // Remove onSubmitted since we're using the listener
-            ),
+        appBar: AppBar(
+          backgroundColor: const Color(0xFF4F245A),
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+            onPressed: () {
+              widget.onIndexChanged(0);
+            },
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.sort, color: Color(0xFFFDCC87)),
-            onPressed: () => showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return StatefulBuilder(
-                  builder: (context, setState) {
-                return AlertDialog(
-                  backgroundColor: const Color(0xFF3D1B45),
-                  shape: RoundedRectangleBorder(
+          title: Padding(
+            padding: const EdgeInsets.only(top: 8.0),
+            child: SizedBox(
+              height: 50,
+              child: TextField(
+                controller: _searchController,
+                style: const TextStyle(color: Colors.black),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  hintText: 'Search posts and users...',
+                  hintStyle: const TextStyle(color: Colors.grey),
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
                   ),
-                  content: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                            _buildExpansionTile(
-                              context,
-                              'Sort by',
-                              ['Date', 'Most Relevant', 'Recent'],
-                              _selectedSortBy,
-                              (value) => setState(() => _selectedSortBy = value),
-                            ),
-                            _buildExpansionTile(
-                              context,
-                              'Date Posted',
-                              ['Last 24 Hours', 'This Week', 'This Month', '2024'],
-                              _selectedDatePosted,
-                              (value) => setState(() => _selectedDatePosted = value),
-                            ),
-                            _buildExpansionTile(
-                              context,
-                              'Posted By',
-                              ['Me', 'Followings', 'Anyone'],
-                              _selectedPostedBy,
-                              (value) => setState(() => _selectedPostedBy = value),
-                            ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                _performSearch();
-                              },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFDCC87),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
-                          child: const Text('Show Results', style: TextStyle(color: Colors.black)),
-                        ),
-                      ],
-                    ),
-                  ),
-                    );
-                  },
-                );
-              },
+                  // Remove the search button since search is now automatic
+                  suffixIcon: _searchController.text.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear, color: Colors.grey),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : const Icon(Icons.search, color: Colors.grey),
+                ),
+                // Remove onSubmitted since we're using the listener
+              ),
             ),
           ),
-        ],
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
-          : _hasError && _error != null && _error!.contains('Failed to connect to server')
-              ? ConnectionErrorWidget(
-                  onRetry: () {
-                    if (_searchController.text.isNotEmpty) {
-                      _performSearch();
-                    }
-                  },
-                )
-              : _posts.isNotEmpty || _users.isNotEmpty
-                  ? Column(
-                      children: [
-                        const SizedBox(height: 10),
-                        _buildTabs(),
-                        const SizedBox(height: 10),
-                        Expanded(
-                          child: _buildSearchResults(),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.sort, color: Color(0xFFFDCC87)),
+              onPressed: () => showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return StatefulBuilder(
+                    builder: (context, setState) {
+                      return AlertDialog(
+                        backgroundColor: const Color(0xFF3D1B45),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                      ],
-                    )
-                  : Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        content: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildExpansionTile(
+                                context,
+                                'Sort by',
+                                ['Date', 'Most Relevant', 'Recent'],
+                                _selectedSortBy,
+                                (value) => setState(() => _selectedSortBy = value),
+                              ),
+                              _buildExpansionTile(
+                                context,
+                                'Date Posted',
+                                ['Last 24 Hours', 'This Week', 'This Month', '2024'],
+                                _selectedDatePosted,
+                                (value) => setState(() => _selectedDatePosted = value),
+                              ),
+                              _buildExpansionTile(
+                                context,
+                                'Posted By',
+                                ['Me', 'Followings', 'Anyone'],
+                                _selectedPostedBy,
+                                (value) => setState(() => _selectedPostedBy = value),
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  _performSearch();
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFDCC87),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  minimumSize: const Size(double.infinity, 50),
+                                ),
+                                child: const Text('Show Results', style: TextStyle(color: Colors.black)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)))
+            : _hasError && _error != null && _error!.contains('Failed to connect to server')
+                ? ConnectionErrorWidget(
+                    onRetry: () {
+                      if (_searchController.text.isNotEmpty) {
+                        _performSearch();
+                      }
+                    },
+                  )
+                : _posts.isNotEmpty || _users.isNotEmpty
+                    ? Column(
                         children: [
-                          if (_searchController.text.isNotEmpty)
-                            const Center(
-                              child: Padding(
-                                padding: EdgeInsets.only(bottom: 20.0),
-                                child: Text(
-                                  "No results found",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
+                          const SizedBox(height: 10),
+                          _buildTabs(),
+                          const SizedBox(height: 10),
+                          Expanded(
+                            child: _buildSearchResults(),
+                          ),
+                        ],
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            if (_searchController.text.isNotEmpty)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.only(bottom: 20.0),
+                                  child: Text(
+                                    "No results found",
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ),
+                            
+                            const Text(
+                              "Recent Searches",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          
-                          const Text(
-                            "Recent Searches",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          Expanded(
-                            child: ListView.builder(
-                              itemCount: _recentSearches.length,
-                              itemBuilder: (context, index) {
-                                final search = _recentSearches[index];
-                                return ListTile(
-                                  leading: const Icon(Icons.history, color: Color(0xFFFDCC87)),
-                                  title: Text(
-                                    search,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                  trailing: IconButton(
-                                    icon: const Icon(Icons.close, color: Color(0xFFFDCC87)),
-                                    onPressed: () async {
-                                      await ApiService.deleteRecentSearch(search);
-                                      await _loadRecentSearches();
+                            const SizedBox(height: 10),
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: _recentSearches.length,
+                                itemBuilder: (context, index) {
+                                  final search = _recentSearches[index];
+                                  return ListTile(
+                                    leading: const Icon(Icons.history, color: Color(0xFFFDCC87)),
+                                    title: Text(
+                                      search,
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                    trailing: IconButton(
+                                      icon: const Icon(Icons.close, color: Color(0xFFFDCC87)),
+                                      onPressed: () async {
+                                        await ApiService.deleteRecentSearch(search);
+                                        await _loadRecentSearches();
+                                      },
+                                    ),
+                                    onTap: () {
+                                      _searchController.text = search;
+                                      _performSearch();
                                     },
-                                  ),
-                                  onTap: () {
-                                    _searchController.text = search;
-                                    _performSearch();
-                                  },
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
       ),
     );

@@ -93,7 +93,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: _currentIndex != 0,
+      canPop: false,
       child: ScreenWrapper(
         currentIndex: _currentIndex,
         onIndexChanged: setIndex,

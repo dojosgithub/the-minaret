@@ -73,40 +73,43 @@ class _ScreenWrapperState extends State<ScreenWrapper> {
       ),
       child: Container(
         color: const Color(0xFF4F245A),
-        child: Material(
-          color: Colors.transparent,
-          child: Scaffold(
-            key: _scaffoldKey,
-            drawer: MenuScreen(
-              onIndexChanged: widget.onIndexChanged,
-            ),
-            drawerEdgeDragWidth: 0, // Disable swipe gesture to open drawer
-            backgroundColor: Colors.transparent,
-            extendBodyBehindAppBar: true, // Important - extend body behind appbar
-            extendBody: true, // Extend body behind bottom nav
-            appBar: widget.currentIndex == 4 // Check if it's the SearchScreen
-                ? TopBarSettings(
-                    onIndexChanged: widget.onIndexChanged,
-                  )
-                : TopBar(
-                    onMenuPressed: () {
-                      _scaffoldKey.currentState?.openDrawer();
-                    },
-                    onMessagesPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const MessagesScreen()),
-                      );
-                    },
-                  ),
-            body: widget.child,
-            bottomNavigationBar: BottomNavBar(
-              currentIndex: widget.currentIndex,
-              onTap: (index) {
-                if (index != widget.currentIndex) {
-                  widget.onIndexChanged(index);
-                }
-              },
+        child: PopScope(
+          canPop: widget.currentIndex == 0, // Only allow pop from home screen (which should actually be false anyway)
+          child: Material(
+            color: Colors.transparent,
+            child: Scaffold(
+              key: _scaffoldKey,
+              drawer: MenuScreen(
+                onIndexChanged: widget.onIndexChanged,
+              ),
+              drawerEdgeDragWidth: 0, // Disable swipe gesture to open drawer
+              backgroundColor: Colors.transparent,
+              extendBodyBehindAppBar: true, // Important - extend body behind appbar
+              extendBody: true, // Extend body behind bottom nav
+              appBar: widget.currentIndex == 4 // Check if it's the SearchScreen
+                  ? TopBarSettings(
+                      onIndexChanged: widget.onIndexChanged,
+                    )
+                  : TopBar(
+                      onMenuPressed: () {
+                        _scaffoldKey.currentState?.openDrawer();
+                      },
+                      onMessagesPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const MessagesScreen()),
+                        );
+                      },
+                    ),
+              body: widget.child,
+              bottomNavigationBar: BottomNavBar(
+                currentIndex: widget.currentIndex,
+                onTap: (index) {
+                  if (index != widget.currentIndex) {
+                    widget.onIndexChanged(index);
+                  }
+                },
+              ),
             ),
           ),
         ),

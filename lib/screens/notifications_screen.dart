@@ -198,55 +198,58 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A),
-      // Use PreferredSize with zero height to avoid the translucent appbar problem
-      appBar: PreferredSize(
-        preferredSize: Size.zero,
-        child: Container(), // Empty container with zero height
-      ),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
-              child: Row(
-                children: [
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF4F245A),
+        // Use PreferredSize with zero height to avoid the translucent appbar problem
+        appBar: PreferredSize(
+          preferredSize: Size.zero,
+          child: Container(), // Empty container with zero height
+        ),
+        body: SafeArea(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(left: 16, top: 16, bottom: 8),
+                child: Row(
+                  children: [
 
-                  const Icon(Icons.notifications_outlined, color: Colors.white),
-                  const SizedBox(width: 8),
-                  const Text(
-                    'Notifications',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
+                    const Icon(Icons.notifications_outlined, color: Colors.white),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Notifications',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
                   
 
-                ],
+                  ],
+                ),
               ),
-            ),
-            Expanded(
-              child: _isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                    ),
-                  )
-                : _error != null
-                    ? ConnectionErrorWidget(
-                        onRetry: _loadNotifications,
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadNotifications,
-                        color: const Color(0xFFFDCC87),
-                        child: _buildNotificationList(),
+              Expanded(
+                child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
                       ),
-            ),
-          ],
+                    )
+                  : _error != null
+                      ? ConnectionErrorWidget(
+                          onRetry: _loadNotifications,
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadNotifications,
+                          color: const Color(0xFFFDCC87),
+                          child: _buildNotificationList(),
+                        ),
+              ),
+            ],
+          ),
         ),
       ),
     );

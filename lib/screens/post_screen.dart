@@ -437,7 +437,7 @@ class _PostPageState extends State<PostScreen> {
         if (!didPop) {
           final shouldPop = await _onWillPop();
           if (shouldPop && context.mounted) {
-            Navigator.of(context).pop();
+            widget.onIndexChanged(0);
           }
         }
       },

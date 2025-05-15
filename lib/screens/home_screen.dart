@@ -104,31 +104,54 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A),
-      appBar: PreferredSize(
-        preferredSize: Size.zero,
-        child: Container(), // Empty container with zero height
-      ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          _refreshPosts();
-        },
-        color: const Color(0xFFFDCC87),
-        child: FutureBuilder<List<Map<String, dynamic>>>(
-          future: _postsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                ),
-              );
-            }
+    return PopScope(
+      canPop: false,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF4F245A),
+        appBar: PreferredSize(
+          preferredSize: Size.zero,
+          child: Container(), // Empty container with zero height
+        ),
+        body: RefreshIndicator(
+          onRefresh: () async {
+            _refreshPosts();
+          },
+          color: const Color(0xFFFDCC87),
+          child: FutureBuilder<List<Map<String, dynamic>>>(
+            future: _postsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                  ),
+                );
+              }
 
-            if (snapshot.hasError) {
-              // Check if the error is due to no posts
-              if (snapshot.error.toString().contains('No posts available')) {
+              if (snapshot.hasError) {
+                // Check if the error is due to no posts
+                if (snapshot.error.toString().contains('No posts available')) {
+                  return const SingleChildScrollView(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    child: Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: Text(
+                          'No posts available',
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  );
+                }
+                return ConnectionErrorWidget(
+                  onRetry: _refreshPosts,
+                );
+              }
+
+              final posts = snapshot.data ?? [];
+              
+              if (posts.isEmpty) {
                 return const SingleChildScrollView(
                   physics: AlwaysScrollableScrollPhysics(),
                   child: Center(
@@ -142,59 +165,39 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 );
               }
-              return ConnectionErrorWidget(
-                onRetry: _refreshPosts,
-              );
-            }
 
-            final posts = snapshot.data ?? [];
-            
-            if (posts.isEmpty) {
-              return const SingleChildScrollView(
-                physics: AlwaysScrollableScrollPhysics(),
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(20.0),
-                    child: Text(
-                      'No posts available',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  children: posts.map((post) => Post(
+                    id: post['_id'],
+                    name: post['author']['firstName'] != null && post['author']['lastName'] != null
+                        ? '${post['author']['firstName']} ${post['author']['lastName']}'
+                        : post['author']['username'] ?? 'Unknown User',
+                    username: post['author']['username'] ?? 'unknown',
+                    profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+                    title: post['title'] ?? '',
+                    text: post['body'] ?? '',
+                    media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+                    links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+                    upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
+                    downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
+                    repostCount: post['repostCount'] ?? 0,
+                    commentCount: (post['comments'] as List?)?.length ?? 0,
+                    createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
+                    authorId: post['author']['_id'] ?? '',
+                    isUpvoted: _upvotedPosts[post['_id']] ?? false,
+                    isDownvoted: _downvotedPosts[post['_id']] ?? false,
+                    isRepost: post['isRepost'] ?? false,
+                    repostCaption: post['repostCaption'],
+                    originalPost: post['originalPost'],
+                    onUpvote: _handleUpvote,
+                    onDownvote: _handleDownvote,
+                  )).toList(),
                 ),
               );
-            }
-
-            return SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              child: Column(
-                children: posts.map((post) => Post(
-                  id: post['_id'],
-                  name: post['author']['firstName'] != null && post['author']['lastName'] != null
-                      ? '${post['author']['firstName']} ${post['author']['lastName']}'
-                      : post['author']['username'] ?? 'Unknown User',
-                  username: post['author']['username'] ?? 'unknown',
-                  profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
-                  title: post['title'] ?? '',
-                  text: post['body'] ?? '',
-                  media: List<Map<String, dynamic>>.from(post['media'] ?? []),
-                  links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                  upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
-                  downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
-                  repostCount: post['repostCount'] ?? 0,
-                  commentCount: (post['comments'] as List?)?.length ?? 0,
-                  createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
-                  authorId: post['author']['_id'] ?? '',
-                  isUpvoted: _upvotedPosts[post['_id']] ?? false,
-                  isDownvoted: _downvotedPosts[post['_id']] ?? false,
-                  isRepost: post['isRepost'] ?? false,
-                  repostCaption: post['repostCaption'],
-                  originalPost: post['originalPost'],
-                  onUpvote: _handleUpvote,
-                  onDownvote: _handleDownvote,
-                )).toList(),
-              ),
-            );
-          },
+            },
+          ),
         ),
       ),
     );
