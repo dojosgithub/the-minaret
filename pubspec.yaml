@@ -51,30 +51,26 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^5.0.0
+  flutter_lints: ^2.0.0
   flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
-# Flutter launcher icons configuration
+# App icon configuration
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/logo_512.png" # Use the logo PNG for android/ios
-  adaptive_icon_background: "#4F245A"
-  adaptive_icon_foreground: "assets/logo_512.png"
+  image_path: "assets/app_icon.png"
+  adaptive_icon_background: "#4F245A" # Purple background matching app theme
+  adaptive_icon_foreground: "assets/app_icon.png" # Using the same app_icon for foreground
   remove_alpha_ios: true
+  min_sdk_android: 21 # Required for adaptive icons
   web:
     generate: true
+    image_path: "assets/app_icon.png"
     background_color: "#4F245A"
     theme_color: "#4F245A"
-    favicon: "assets/logo.svg"  # Use the logo.svg directly for the web favicon
-  windows:
-    generate: true
-    icon_size: 48
-  macos:
-    generate: true
 
 # The following section is specific to Flutter packages.
 flutter:
@@ -83,7 +79,7 @@ flutter:
     - assets/whatsapp.png
     - assets/telegram.png
     - assets/logo.svg
-    - assets/logo_512.png
+    - assets/app_icon.png
     - assets/name.svg
     - assets/slogan.svg
     - assets/home.svg
