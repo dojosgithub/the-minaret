@@ -47,7 +47,7 @@ flutter build ios  # For iOS
 Create a `.env` file in the root of your Flutter project with the following content:
 
 ```
-API_BASE_URL=http://10.00.2.2:5000/api
+API_BASE_URL= https://the-minaret-f6e46d4294b5.herokuapp.com/api
 ```
 
 Replace the value with your backend URL as needed (see below for device-specific URLs).
@@ -64,12 +64,7 @@ Then run:
 ```
 flutter pub get
 ```
-
-### API Configuration
-
-- Android Emulator: `http://10.0.2.2:5000/api`
-- iOS Simulator: `http://localhost:5000/api`
-- Physical Device: `http://your.computer.ip:5000/api`
+`
 
 Update the value of `API_BASE_URL` in your `.env` file accordingly.
 
@@ -86,36 +81,6 @@ npm test
 flutter test
 ```
 
-## Common Issues & Solutions
-
-### Backend Connection Issues
-1. Verify MongoDB is running:
-```bash
-mongo --eval "db.version()"
-```
-
-2. Check backend status:
-```bash
-curl http://localhost:5000/api/test
-```
-
-3. For physical devices:
-- Ensure device and computer are on same network
-- Configure firewall to allow port 5000
-- Use correct IP address in API configuration
-
-### Registration Issues
-- Username must be unique
-- Password must be at least 8 characters
-- Phone number must be unique and in valid format
-- All fields are required
-
-## Contributing
-1. Fork the repository
-2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create Pull Request
 
 ## License
 Property of Dojo IT Solutions.
