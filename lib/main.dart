@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/home_screen.dart';
 import 'screens/notifications_screen.dart';
@@ -9,26 +10,56 @@ import 'screens/search_screen.dart';
 import 'screens/welcome_screen.dart';
 import 'services/api_service.dart';
 import 'widgets/screen_wrapper.dart';
+import 'dart:async';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  
-  // Set SystemUiMode to edgeToEdge for transparent navigation bar support
-  await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-  
-  // Ensure status bar is transparent with appropriate contrast
-  SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-    statusBarColor: Colors.transparent,
-    statusBarIconBrightness: Brightness.light,
-    systemNavigationBarColor: Colors.transparent,
-    systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: Brightness.light,
-    systemNavigationBarContrastEnforced: false,
-  ));
-  
-  await dotenv.load();
-  await ApiService.initialize();
-  runApp(const MyApp());
+Future<void> main() async {
+  // Add error handling for the whole app
+  await runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Apply system UI configurations only for mobile platforms
+    if (!kIsWeb) {
+      // Set SystemUiMode to edgeToEdge for transparent navigation bar support
+      await SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+      
+      // Ensure status bar is transparent with appropriate contrast
+      SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarDividerColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+        systemNavigationBarContrastEnforced: false,
+      ));
+    }
+    
+    try {
+      // Load environment variables with a shorter timeout for web
+      await dotenv.load(fileName: ".env").timeout(
+        Duration(seconds: kIsWeb ? 2 : 20),
+        onTimeout: () {
+          debugPrint("Dotenv load timed out, continuing anyway");
+          return;
+        }
+      );
+    } catch (e) {
+      debugPrint("Error loading .env file: $e");
+      // Continue without env file on web
+      if (!kIsWeb) rethrow;
+    }
+    
+    try {
+      await ApiService.initialize();
+    } catch (e) {
+      debugPrint("Error initializing API service: $e");
+      // Continue with default API settings
+    }
+    
+    runApp(const MyApp());
+  }, (error, stack) {
+    debugPrint('Global error caught: $error');
+    debugPrint(stack.toString());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -43,12 +74,15 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.purple,
       ),
       home: FutureBuilder<bool>(
-        future: ApiService.isLoggedIn(),
+        future: _checkLoginState(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
+              backgroundColor: Color(0xFF4F245A),
               body: Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                ),
               ),
             );
           }
@@ -58,6 +92,15 @@ class MyApp extends StatelessWidget {
         },
       ),
     );
+  }
+  
+  Future<bool> _checkLoginState() async {
+    try {
+      return await ApiService.isLoggedIn();
+    } catch (e) {
+      debugPrint('Error checking login state: $e');
+      return false;
+    }
   }
 }
 

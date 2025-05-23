@@ -19,131 +19,144 @@ class BottomNavBar extends StatelessWidget {
     double navBarHeight = 75;
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: bottomPadding > 0 ? bottomPadding - 10 : 0),
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          // Base container with clipping
-          ClipPath(
-            clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
-            child: Container(
-              height: navBarHeight,
-              decoration: const BoxDecoration(
-                color: Color(0xFF9D3267),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black26,
-                    spreadRadius: 2,
-                    blurRadius: 10,
-                    offset: Offset(0, -2),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Main nav bar with proper clipping
+        Padding(
+          padding: EdgeInsets.only(bottom: bottomPadding > 0 ? 0 : 0),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              // Base container with clipping
+              ClipPath(
+                clipper: BottomNavClipper(currentIndex, itemWidth, indentHeight),
+                child: Container(
+                  height: navBarHeight,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF9D3267),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                   ),
-                ],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
               ),
-            ),
-          ),
-          
-          // Custom navbar items row
-          Positioned(
-            bottom: 15,
-            left: 0,
-            right: 0,
-            child: SizedBox(
-              height: navBarHeight - 20,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: List.generate(5, (index) {
-                  // Don't show the icon for the selected tab
-                  if (index == currentIndex) {
-                    return SizedBox(width: itemWidth);
-                  }
-                  
-                  return GestureDetector(
-                    onTap: () => onTap(index),
-                    behavior: HitTestBehavior.opaque,
-                    child: SizedBox(
-                      width: itemWidth,
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          SvgPicture.asset(
-                            _getIconPath(index),
-                            height: 20,
-                            width: 20,
-                            colorFilter: const ColorFilter.mode(
-                              Colors.white,
-                              BlendMode.srcIn,
-                            ),
+              
+              // Custom navbar items row
+              Positioned(
+                bottom: 15,
+                left: 0,
+                right: 0,
+                child: SizedBox(
+                  height: navBarHeight - 20,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      // Don't show the icon for the selected tab
+                      if (index == currentIndex) {
+                        return SizedBox(width: itemWidth);
+                      }
+                      
+                      return GestureDetector(
+                        onTap: () => onTap(index),
+                        behavior: HitTestBehavior.opaque,
+                        child: SizedBox(
+                          width: itemWidth,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SvgPicture.asset(
+                                _getIconPath(index),
+                                height: 20,
+                                width: 20,
+                                colorFilter: const ColorFilter.mode(
+                                  Colors.white,
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _getLabel(index),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _getLabel(index),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
+                        ),
+                      );
+                    }),
+                  ),
+                ),
+              ),
+              
+              // Selected tab indicator & icon
+              Positioned(
+                bottom: 45,
+                left: (itemWidth * currentIndex) + (itemWidth / 2) - 20,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF9D3267),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black45,
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: SvgPicture.asset(
+                      _getIconPath(currentIndex),
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
                       ),
                     ),
-                  );
-                }),
-              ),
-            ),
-          ),
-          
-          // Selected tab indicator & icon
-          Positioned(
-            bottom: 45,
-            left: (itemWidth * currentIndex) + (itemWidth / 2) - 20,
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: const Color(0xFF9D3267),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black45,
-                    blurRadius: 8,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(10),
-                child: SvgPicture.asset(
-                  _getIconPath(currentIndex),
-                  colorFilter: const ColorFilter.mode(
-                    Colors.white,
-                    BlendMode.srcIn,
                   ),
                 ),
               ),
-            ),
-          ),
-          
-          // Selected tab label
-          Positioned(
-            bottom: 10,
-            left: itemWidth * currentIndex,
-            width: itemWidth,
-            child: Center(
-              child: Text(
-                _getLabel(currentIndex),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
+              
+              // Selected tab label
+              Positioned(
+                bottom: 10,
+                left: itemWidth * currentIndex,
+                width: itemWidth,
+                child: Center(
+                  child: Text(
+                    _getLabel(currentIndex),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+        
+        // iOS safe area extension (only shows on iOS devices with home bar)
+        if (bottomPadding > 0)
+          Container(
+            height: bottomPadding - 10,
+            color: const Color(0xFF9D3267),
+          ),
+      ],
     );
   }
 
