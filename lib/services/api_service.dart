@@ -9,7 +9,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ApiService {
-  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'http://localhost:5000/api';
+  static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://the-minaret-f6e46d4294b5.herokuapp.com/api';
 
   static String? _authToken;  // Store the JWT token
 

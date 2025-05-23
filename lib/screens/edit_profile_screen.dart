@@ -454,7 +454,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             Row(
               children: [
                 Expanded(child: _buildTextField('First Name', _firstNameController)),
@@ -462,8 +462,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 Expanded(child: _buildTextField('Last Name', _lastNameController)),
               ],
             ),
+            const SizedBox(height: 15),
             _buildTextField('Username', _usernameController),
+            const SizedBox(height: 15),
             _buildTextField('Bio', _bioController, maxLines: 3),
+            const SizedBox(height: 15),
             _buildTextField('Phone Number', _phoneController),
             const SizedBox(height: 15),
             _buildBirthdayField(),
@@ -476,6 +479,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   backgroundColor: const Color(0xFFFDCC87),
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(25),
+                  ),
                 ),
                 child: const Text(
                   'Save',
@@ -507,23 +513,30 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 15),
-      child: TextField(
-        maxLines: maxLines,
-        style: const TextStyle(color: Colors.white),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: const TextStyle(color: Colors.grey),
-          filled: true,
-          fillColor: const Color(0xFF3A1D47),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10),
-            borderSide: BorderSide.none,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white)),
+        const SizedBox(height: 5),
+        TextField(
+          maxLines: maxLines,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: const Color(0xFF3A1D47),
+            enabledBorder: OutlineInputBorder(
+              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(25),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderSide: const BorderSide(color: Colors.white),
+              borderRadius: BorderRadius.circular(25),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
           ),
+          controller: controller,
         ),
-        controller: controller,
-      ),
+      ],
     );
   }
 }
