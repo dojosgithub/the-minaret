@@ -169,31 +169,35 @@ class _HomeScreenState extends State<HomeScreen> {
               return SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
-                  children: posts.map((post) => Post(
-                    id: post['_id'],
-                    name: post['author']['firstName'] != null && post['author']['lastName'] != null
-                        ? '${post['author']['firstName']} ${post['author']['lastName']}'
-                        : post['author']['username'] ?? 'Unknown User',
-                    username: post['author']['username'] ?? 'unknown',
-                    profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
-                    title: post['title'] ?? '',
-                    text: post['body'] ?? '',
-                    media: List<Map<String, dynamic>>.from(post['media'] ?? []),
-                    links: List<Map<String, dynamic>>.from(post['links'] ?? []),
-                    upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
-                    downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
-                    repostCount: post['repostCount'] ?? 0,
-                    commentCount: (post['comments'] as List?)?.length ?? 0,
-                    createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
-                    authorId: post['author']['_id'] ?? '',
-                    isUpvoted: _upvotedPosts[post['_id']] ?? false,
-                    isDownvoted: _downvotedPosts[post['_id']] ?? false,
-                    isRepost: post['isRepost'] ?? false,
-                    repostCaption: post['repostCaption'],
-                    originalPost: post['originalPost'],
-                    onUpvote: _handleUpvote,
-                    onDownvote: _handleDownvote,
-                  )).toList(),
+                  children: [
+                    ...posts.map((post) => Post(
+                      id: post['_id'],
+                      name: post['author']['firstName'] != null && post['author']['lastName'] != null
+                          ? '${post['author']['firstName']} ${post['author']['lastName']}'
+                          : post['author']['username'] ?? 'Unknown User',
+                      username: post['author']['username'] ?? 'unknown',
+                      profilePic: post['author']['profileImage'] ?? 'assets/default_profile.png',
+                      title: post['title'] ?? '',
+                      text: post['body'] ?? '',
+                      media: List<Map<String, dynamic>>.from(post['media'] ?? []),
+                      links: List<Map<String, dynamic>>.from(post['links'] ?? []),
+                      upvoteCount: (post['upvotes'] as List?)?.length ?? 0,
+                      downvoteCount: (post['downvotes'] as List?)?.length ?? 0,
+                      repostCount: post['repostCount'] ?? 0,
+                      commentCount: (post['comments'] as List?)?.length ?? 0,
+                      createdAt: post['createdAt'] ?? DateTime.now().toIso8601String(),
+                      authorId: post['author']['_id'] ?? '',
+                      isUpvoted: _upvotedPosts[post['_id']] ?? false,
+                      isDownvoted: _downvotedPosts[post['_id']] ?? false,
+                      isRepost: post['isRepost'] ?? false,
+                      repostCaption: post['repostCaption'],
+                      originalPost: post['originalPost'],
+                      onUpvote: _handleUpvote,
+                      onDownvote: _handleDownvote,
+                    )).toList(),
+                    // Add bottom padding to prevent content from being hidden under the nav bar
+                    const SizedBox(height: 80),
+                  ],
                 ),
               );
             },
