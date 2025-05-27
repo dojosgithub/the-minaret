@@ -49,6 +49,7 @@ class _RepostContentState extends State<RepostContent> {
   Widget build(BuildContext context) {
     final originalPost = widget.originalPost;
     final originalAuthor = originalPost['author'];
+    // Use the same time format as in posts
     final timeAgo = getTimeAgo(DateTime.parse(originalPost['createdAt']));
 
     return Container(
@@ -64,6 +65,7 @@ class _RepostContentState extends State<RepostContent> {
         children: [
           // Original post author and time
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               GestureDetector(
                 onTap: () {
@@ -86,39 +88,48 @@ class _RepostContentState extends State<RepostContent> {
                 ),
               ),
               const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () {
-                  if (originalAuthor['_id'] != widget.authorId) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ProfileScreen(
-                          userId: originalAuthor['_id'],
+              Expanded(
+                child: GestureDetector(
+                  onTap: () {
+                    if (originalAuthor['_id'] != widget.authorId) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProfileScreen(
+                            userId: originalAuthor['_id'],
+                          ),
                         ),
+                      );
+                    }
+                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        originalAuthor['firstName'] != null && originalAuthor['lastName'] != null
+                            ? '${originalAuthor['firstName']} ${originalAuthor['lastName']}'
+                            : originalAuthor['username'] ?? 'Unknown User',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    );
-                  }
-                },
-                child: Text(
-                  originalAuthor['firstName'] != null && originalAuthor['lastName'] != null
-                      ? '${originalAuthor['firstName']} ${originalAuthor['lastName']}'
-                      : originalAuthor['username'] ?? 'Unknown User',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                      Text(
+                        '@${originalAuthor['username']}',
+                        style: const TextStyle(
+                          color: Color(0xFFFDCC87),
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
                   ),
                 ),
               ),
-              const SizedBox(width: 4),
-              Text(
-                '@${originalAuthor['username']}',
-                style: TextStyle(
-                  color: Color(0xFFFDCC87),
-                  fontSize: 12,
-                ),
-              ),
-              const Spacer(),
               Text(
                 timeAgo,
                 style: TextStyle(
@@ -161,28 +172,6 @@ class _RepostContentState extends State<RepostContent> {
         ],
       ),
     );
-  }
-
-  // This function is copied from time_utils.dart to avoid the dependency
-  String getTimeAgo(DateTime dateTime) {
-    final now = DateTime.now();
-    final difference = now.difference(dateTime);
-
-    if (difference.inDays > 365) {
-      final years = (difference.inDays / 365).floor();
-      return '$years ${years == 1 ? 'year' : 'years'} ago';
-    } else if (difference.inDays > 30) {
-      final months = (difference.inDays / 30).floor();
-      return '$months ${months == 1 ? 'month' : 'months'} ago';
-    } else if (difference.inDays > 0) {
-      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
-    } else {
-      return 'Just now';
-    }
   }
 
   Widget _buildMediaGrid(List<dynamic> media) {
