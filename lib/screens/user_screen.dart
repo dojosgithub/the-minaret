@@ -17,13 +17,41 @@ class _UserScreenState extends State<UserScreen> {
   Map<String, dynamic>? userData;
   List<Map<String, dynamic>> userPosts = [];
   List<Map<String, dynamic>> savedPosts = [];
-  bool isLoading = true;
+  bool isLoadingProfile = true;
+  bool isLoadingPosts = false;
+  bool isLoadingSaved = false;
+  bool isLoadingMorePosts = false;
+  bool isLoadingMoreSaved = false;
+  bool hasMorePosts = true;
+  bool hasMoreSaved = true;
   String? error;
+  int postsPage = 1;
+  int savedPage = 1;
+  final int postsPerPage = 10;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUserProfile();
+    _scrollController.addListener(_scrollListener);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollListener() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      if (selectedTab == 0 && !isLoadingMorePosts && hasMorePosts) {
+        _loadMorePosts();
+      } else if (selectedTab == 1 && !isLoadingMoreSaved && hasMoreSaved) {
+        _loadMoreSavedPosts();
+      }
+    }
   }
 
   @override
@@ -32,13 +60,13 @@ class _UserScreenState extends State<UserScreen> {
     // This will refresh data when coming back from Followers screen
     final route = ModalRoute.of(context);
     if (route != null && route.isCurrent) {
-      _loadUserData();
+      _loadUserProfile();
     }
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _loadUserProfile() async {
     setState(() {
-      isLoading = true;
+      isLoadingProfile = true;
       error = null;
     });
 
@@ -53,70 +81,295 @@ class _UserScreenState extends State<UserScreen> {
       final data = await ApiService.getUserProfile();
       debugPrint('User data received: $data');
 
-      // Load posts
-      final posts = await ApiService.getUserPosts();
-      debugPrint('User posts received: ${posts.length}');
-
-      // Load saved posts
-      final saved = await ApiService.getSavedPosts();
-      debugPrint('Saved posts received: ${saved.length}');
-
-      // Check vote and save status for all posts
-      for (var post in posts) {
-        final status = await ApiService.getPostVoteStatus(post['_id']);
-        final isSaved = await ApiService.isPostSaved(post['_id']);
-        post['isUpvoted'] = status['isUpvoted'] ?? false;
-        post['isDownvoted'] = status['isDownvoted'] ?? false;
-        post['isSaved'] = isSaved;
-
-        // If this is a repost, fetch the original post data
-        if (post['isRepost'] == true && post['originalPost'] is String) {
-          try {
-            final originalPost = await ApiService.getPost(post['originalPost']);
-            post['originalPost'] = originalPost;
-          } catch (e) {
-            debugPrint('Error fetching original post: $e');
-            post['originalPost'] = null;
-          }
-        }
-      }
-
-      // Check vote and save status for saved posts
-      for (var post in saved) {
-        final status = await ApiService.getPostVoteStatus(post['_id']);
-        final isSaved = await ApiService.isPostSaved(post['_id']);
-        post['isUpvoted'] = status['isUpvoted'] ?? false;
-        post['isDownvoted'] = status['isDownvoted'] ?? false;
-        post['isSaved'] = isSaved;
-
-        // If this is a repost, fetch the original post data
-        if (post['isRepost'] == true && post['originalPost'] is String) {
-          try {
-            final originalPost = await ApiService.getPost(post['originalPost']);
-            post['originalPost'] = originalPost;
-          } catch (e) {
-            debugPrint('Error fetching original post: $e');
-            post['originalPost'] = null;
-          }
-        }
-      }
-      
       if (mounted) {
         setState(() {
           userData = data;
-          userPosts = posts;
-          savedPosts = saved;
-          isLoading = false;
+          isLoadingProfile = false;
         });
+        
+        // Load initial posts only if the Posts tab is selected
+        if (selectedTab == 0) {
+          _loadUserPosts();
+        }
       }
     } catch (e) {
       debugPrint('Error loading user data: $e');
       if (mounted) {
         setState(() {
           error = e.toString();
-          isLoading = false;
+          isLoadingProfile = false;
         });
       }
+    }
+  }
+
+  Future<void> _loadUserPosts() async {
+    if (isLoadingPosts) return;
+    
+    setState(() {
+      isLoadingPosts = true;
+    });
+
+    try {
+      // Load posts with pagination
+      final posts = await ApiService.getUserPosts(page: postsPage, limit: postsPerPage);
+      debugPrint('User posts received: ${posts.length}');
+      
+      // Check if we have fewer posts than requested, meaning no more to load
+      if (posts.length < postsPerPage) {
+        hasMorePosts = false;
+      }
+
+      // Process posts in parallel for better performance
+      await Future.wait(
+        posts.map((post) async {
+          try {
+            final status = await ApiService.getPostVoteStatus(post['_id']);
+            final isSaved = await ApiService.isPostSaved(post['_id']);
+            post['isUpvoted'] = status['isUpvoted'] ?? false;
+            post['isDownvoted'] = status['isDownvoted'] ?? false;
+            post['isSaved'] = isSaved;
+
+            // If this is a repost, fetch the original post data
+            if (post['isRepost'] == true && post['originalPost'] is String) {
+              try {
+                final originalPost = await ApiService.getPost(post['originalPost']);
+                post['originalPost'] = originalPost;
+              } catch (e) {
+                debugPrint('Error fetching original post: $e');
+                post['originalPost'] = null;
+              }
+            }
+          } catch (e) {
+            debugPrint('Error processing post: $e');
+          }
+        })
+      );
+      
+      if (mounted) {
+        setState(() {
+          userPosts = posts;
+          isLoadingPosts = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading user posts: $e');
+      if (mounted) {
+        setState(() {
+          isLoadingPosts = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadMorePosts() async {
+    if (isLoadingMorePosts || !hasMorePosts) return;
+    
+    setState(() {
+      isLoadingMorePosts = true;
+    });
+
+    try {
+      final nextPage = postsPage + 1;
+      final morePosts = await ApiService.getUserPosts(page: nextPage, limit: postsPerPage);
+      
+      // Check if we have fewer posts than requested, meaning no more to load
+      if (morePosts.length < postsPerPage) {
+        hasMorePosts = false;
+      }
+
+      // Process posts in parallel for better performance
+      await Future.wait(
+        morePosts.map((post) async {
+          try {
+            final status = await ApiService.getPostVoteStatus(post['_id']);
+            final isSaved = await ApiService.isPostSaved(post['_id']);
+            post['isUpvoted'] = status['isUpvoted'] ?? false;
+            post['isDownvoted'] = status['isDownvoted'] ?? false;
+            post['isSaved'] = isSaved;
+
+            // If this is a repost, fetch the original post data
+            if (post['isRepost'] == true && post['originalPost'] is String) {
+              try {
+                final originalPost = await ApiService.getPost(post['originalPost']);
+                post['originalPost'] = originalPost;
+              } catch (e) {
+                debugPrint('Error fetching original post: $e');
+                post['originalPost'] = null;
+              }
+            }
+          } catch (e) {
+            debugPrint('Error processing post: $e');
+          }
+        })
+      );
+      
+      if (mounted) {
+        setState(() {
+          userPosts.addAll(morePosts);
+          postsPage = nextPage;
+          isLoadingMorePosts = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading more posts: $e');
+      if (mounted) {
+        setState(() {
+          isLoadingMorePosts = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadSavedPosts() async {
+    if (isLoadingSaved) return;
+    
+    setState(() {
+      isLoadingSaved = true;
+    });
+
+    try {
+      // Load saved posts with pagination
+      final saved = await ApiService.getSavedPosts(page: savedPage, limit: postsPerPage);
+      debugPrint('Saved posts received: ${saved.length}');
+      
+      // Check if we have fewer posts than requested, meaning no more to load
+      if (saved.length < postsPerPage) {
+        hasMoreSaved = false;
+      }
+
+      // Process posts in parallel for better performance
+      await Future.wait(
+        saved.map((post) async {
+          try {
+            final status = await ApiService.getPostVoteStatus(post['_id']);
+            post['isUpvoted'] = status['isUpvoted'] ?? false;
+            post['isDownvoted'] = status['isDownvoted'] ?? false;
+            post['isSaved'] = true;
+
+            // If this is a repost, fetch the original post data
+            if (post['isRepost'] == true && post['originalPost'] is String) {
+              try {
+                final originalPost = await ApiService.getPost(post['originalPost']);
+                post['originalPost'] = originalPost;
+              } catch (e) {
+                debugPrint('Error fetching original post: $e');
+                post['originalPost'] = null;
+              }
+            }
+          } catch (e) {
+            debugPrint('Error processing saved post: $e');
+          }
+        })
+      );
+      
+      if (mounted) {
+        setState(() {
+          savedPosts = saved;
+          isLoadingSaved = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading saved posts: $e');
+      if (mounted) {
+        setState(() {
+          isLoadingSaved = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadMoreSavedPosts() async {
+    if (isLoadingMoreSaved || !hasMoreSaved) return;
+    
+    setState(() {
+      isLoadingMoreSaved = true;
+    });
+
+    try {
+      final nextPage = savedPage + 1;
+      final moreSaved = await ApiService.getSavedPosts(page: nextPage, limit: postsPerPage);
+      
+      // Check if we have fewer posts than requested, meaning no more to load
+      if (moreSaved.length < postsPerPage) {
+        hasMoreSaved = false;
+      }
+
+      // Process posts in parallel for better performance
+      await Future.wait(
+        moreSaved.map((post) async {
+          try {
+            final status = await ApiService.getPostVoteStatus(post['_id']);
+            post['isUpvoted'] = status['isUpvoted'] ?? false;
+            post['isDownvoted'] = status['isDownvoted'] ?? false;
+            post['isSaved'] = true;
+
+            // If this is a repost, fetch the original post data
+            if (post['isRepost'] == true && post['originalPost'] is String) {
+              try {
+                final originalPost = await ApiService.getPost(post['originalPost']);
+                post['originalPost'] = originalPost;
+              } catch (e) {
+                debugPrint('Error fetching original post: $e');
+                post['originalPost'] = null;
+              }
+            }
+          } catch (e) {
+            debugPrint('Error processing saved post: $e');
+          }
+        })
+      );
+      
+      if (mounted) {
+        setState(() {
+          savedPosts.addAll(moreSaved);
+          savedPage = nextPage;
+          isLoadingMoreSaved = false;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error loading more saved posts: $e');
+      if (mounted) {
+        setState(() {
+          isLoadingMoreSaved = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handleTabChange(int index) async {
+    if (selectedTab == index) return;
+    
+    setState(() {
+      selectedTab = index;
+    });
+    
+    if (index == 0 && userPosts.isEmpty) {
+      _loadUserPosts();
+    } else if (index == 1 && savedPosts.isEmpty) {
+      _loadSavedPosts();
+    }
+  }
+
+  Future<void> _refreshData() async {
+    // Reset pagination
+    setState(() {
+      postsPage = 1;
+      savedPage = 1;
+      hasMorePosts = true;
+      hasMoreSaved = true;
+    });
+    
+    // Load profile first
+    await _loadUserProfile();
+    
+    // Then load posts based on selected tab
+    if (selectedTab == 0) {
+      userPosts = [];
+      await _loadUserPosts();
+    } else {
+      savedPosts = [];
+      await _loadSavedPosts();
     }
   }
 
@@ -185,44 +438,60 @@ class _UserScreenState extends State<UserScreen> {
         preferredSize: Size.zero,
         child: Container(), // Empty container with zero height
       ),
-      body: isLoading
+      body: isLoadingProfile && userData == null
           ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
               ),
             )
-          : error != null
+          : error != null && userData == null
               ? ConnectionErrorWidget(
-                  onRetry: _loadUserData,
+                  onRetry: _loadUserProfile,
                 )
               : RefreshIndicator(
-                  onRefresh: _loadUserData,
+                  onRefresh: _refreshData,
                   color: const Color(0xFFFDCC87),
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildUserHeader(),
-                          const SizedBox(height: 10),
-                          Text(
-                            userData?['bio'] ?? 'No bio available',
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                            softWrap: true,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildFollowCounts(),
-                          const SizedBox(height: 20),
-                          _buildTabs(),
-                          const SizedBox(height: 10),
-                          _buildPosts(),
-                        ],
+                  child: ListView(
+                    controller: _scrollController,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildUserHeader(),
+                            const SizedBox(height: 10),
+                            Text(
+                              userData?['bio'] ?? 'No bio available',
+                              style: const TextStyle(color: Colors.white, fontSize: 14),
+                              softWrap: true,
+                            ),
+                            const SizedBox(height: 20),
+                            _buildFollowCounts(),
+                            const SizedBox(height: 20),
+                            _buildTabs(),
+                            const SizedBox(height: 10),
+                          ],
                         ),
                       ),
-                    ),
+                      _buildPosts(),
+                      // Show loading indicator at bottom when loading more posts
+                      if ((selectedTab == 0 && isLoadingMorePosts) || 
+                          (selectedTab == 1 && isLoadingMoreSaved))
+                        const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(10.0),
+                            child: CircularProgressIndicator(
+                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                            ),
+                          ),
+                        ),
+                      // Add bottom padding to prevent content from being hidden under the nav bar
+                      const SizedBox(height: 80),
+                    ],
                   ),
                 ),
+            ),
     );
   }
 
@@ -328,7 +597,7 @@ class _UserScreenState extends State<UserScreen> {
 
   Widget _buildTabButton(int index, String title) {
     return GestureDetector(
-      onTap: () => setState(() => selectedTab = index),
+      onTap: () => _handleTabChange(index),
       child: Column(
         children: [
           Text(
@@ -353,12 +622,27 @@ class _UserScreenState extends State<UserScreen> {
 
   Widget _buildPosts() {
     final posts = selectedTab == 0 ? userPosts : savedPosts;
+    final isLoading = (selectedTab == 0 && isLoadingPosts) || (selectedTab == 1 && isLoadingSaved);
+    
+    if (isLoading && posts.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+          ),
+        ),
+      );
+    }
     
     if (posts.isEmpty) {
       return Center(
-        child: Text(
-          selectedTab == 0 ? 'No posts yet' : 'No saved posts',
-          style: const TextStyle(color: Colors.grey, fontSize: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Text(
+            selectedTab == 0 ? 'No posts yet' : 'No saved posts',
+            style: const TextStyle(color: Colors.grey, fontSize: 16),
+          ),
         ),
       );
     }
@@ -422,7 +706,7 @@ class _UserScreenState extends State<UserScreen> {
             ),
           );
           if (result == true) {
-            _loadUserData();
+            _loadUserProfile();
           }
         },
         child: Row(
@@ -459,7 +743,7 @@ class _UserScreenState extends State<UserScreen> {
             ),
           );
           if (result == true) {
-            _loadUserData();
+            _loadUserProfile();
           }
         },
         child: Row(

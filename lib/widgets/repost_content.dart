@@ -1,114 +1,157 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import '../services/api_service.dart';
+import '../utils/time_utils.dart';
+import '../screens/profile_screen.dart';
 
-class RepostContent extends StatelessWidget {
+class RepostContent extends StatefulWidget {
   final Map<String, dynamic> originalPost;
-  final VoidCallback onAuthorTap;
-  final String? currentUserId;
+  final String authorId;
 
   const RepostContent({
     super.key,
     required this.originalPost,
-    required this.onAuthorTap,
-    required this.currentUserId,
+    required this.authorId,
   });
 
   @override
+  State<RepostContent> createState() => _RepostContentState();
+}
+
+class _RepostContentState extends State<RepostContent> {
+  final List<bool> _loadingImages = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeImageLoading();
+  }
+
+  void _initializeImageLoading() {
+    // Initialize all images as loading by default
+    _loadingImages.clear();
+    if (widget.originalPost['media'] != null) {
+      for (int i = 0; i < widget.originalPost['media'].length; i++) {
+        _loadingImages.add(true); // Set to true to load images automatically
+      }
+    }
+  }
+
+  @override
+  void didUpdateWidget(RepostContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.originalPost['media']?.length != widget.originalPost['media']?.length) {
+      _initializeImageLoading();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final author = originalPost['author'];
-    final isCurrentUser = currentUserId == author['_id'];
+    final originalPost = widget.originalPost;
+    final originalAuthor = originalPost['author'];
+    final timeAgo = getTimeAgo(DateTime.parse(originalPost['createdAt']));
 
     return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
+      margin: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF4F245A),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFDCC87), width: 1),
+        color: const Color(0xFF4F245A), // Slightly lighter than the parent post
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFFDCC87).withOpacity(0.5)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Original author info
+          // Original post author and time
           Row(
             children: [
               GestureDetector(
                 onTap: () {
-                  if (isCurrentUser) {
-                    // Don't navigate if it's the current user
-                    return;
+                  if (originalAuthor['_id'] != widget.authorId) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(
+                          userId: originalAuthor['_id'],
+                        ),
+                      ),
+                    );
                   }
-                  onAuthorTap();
                 },
-                child: Container(
-                  padding: const EdgeInsets.all(2),
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Color(0xFFFDCC87),
-                  ),
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(ApiService.resolveImageUrl(author['profileImage'])),
-                    radius: 15,
-                  ),
+                child: CircleAvatar(
+                  radius: 14,
+                  backgroundImage: originalAuthor['profileImage'] != null
+                      ? NetworkImage(ApiService.resolveImageUrl(originalAuthor['profileImage']))
+                      : const AssetImage('assets/default_profile.png') as ImageProvider,
                 ),
               ),
               const SizedBox(width: 8),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (isCurrentUser) {
-                        // Don't navigate if it's the current user
-                        return;
-                      }
-                      onAuthorTap();
-                    },
-                    child: Text(
-                      '${author['firstName']} ${author['lastName']}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+              GestureDetector(
+                onTap: () {
+                  if (originalAuthor['_id'] != widget.authorId) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(
+                          userId: originalAuthor['_id'],
+                        ),
                       ),
-                    ),
+                    );
+                  }
+                },
+                child: Text(
+                  originalAuthor['firstName'] != null && originalAuthor['lastName'] != null
+                      ? '${originalAuthor['firstName']} ${originalAuthor['lastName']}'
+                      : originalAuthor['username'] ?? 'Unknown User',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      if (isCurrentUser) {
-                        // Don't navigate if it's the current user
-                        return;
-                      }
-                      onAuthorTap();
-                    },
-                    child: Text(
-                      '@${author['username']}',
-                      style: const TextStyle(
-                        color: Color(0xFFFDCC87),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                '@${originalAuthor['username']}',
+                style: TextStyle(
+                  color: Color(0xFFFDCC87),
+                  fontSize: 12,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                timeAgo,
+                style: TextStyle(
+                  color: Colors.white.withOpacity(0.6),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
           // Original post content
-          Text(
-            originalPost['title'],
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+          if (originalPost['title'] != null && originalPost['title'].isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                originalPost['title'],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            originalPost['body'],
-            style: const TextStyle(
-              color: Colors.white,
+          if (originalPost['body'] != null && originalPost['body'].isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                originalPost['body'],
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 14,
+                ),
+              ),
             ),
-          ),
           // Original post media
           if (originalPost['media'] != null && originalPost['media'].isNotEmpty)
             _buildMediaGrid(originalPost['media']),
@@ -120,6 +163,28 @@ class RepostContent extends StatelessWidget {
     );
   }
 
+  // This function is copied from time_utils.dart to avoid the dependency
+  String getTimeAgo(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inDays > 365) {
+      final years = (difference.inDays / 365).floor();
+      return '$years ${years == 1 ? 'year' : 'years'} ago';
+    } else if (difference.inDays > 30) {
+      final months = (difference.inDays / 30).floor();
+      return '$months ${months == 1 ? 'month' : 'months'} ago';
+    } else if (difference.inDays > 0) {
+      return '${difference.inDays} ${difference.inDays == 1 ? 'day' : 'days'} ago';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours} ${difference.inHours == 1 ? 'hour' : 'hours'} ago';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes} ${difference.inMinutes == 1 ? 'minute' : 'minutes'} ago';
+    } else {
+      return 'Just now';
+    }
+  }
+
   Widget _buildMediaGrid(List<dynamic> media) {
     if (media.isEmpty) return const SizedBox.shrink();
 
@@ -128,29 +193,42 @@ class RepostContent extends StatelessWidget {
         margin: const EdgeInsets.only(top: 8),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Center(
-            child: Image.network(
-              ApiService.resolveImageUrl(media[0]['url']),
-              fit: BoxFit.contain,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Center(
-                  child: CircularProgressIndicator(
-                    value: loadingProgress.expectedTotalBytes != null
-                        ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                        : null,
-                    valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.error),
-                );
-              },
-            ),
+          child: Image.network(
+            ApiService.resolveImageUrl(media[0]['url']),
+            fit: BoxFit.contain,
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value: loadingProgress.expectedTotalBytes != null
+                      ? loadingProgress.cumulativeBytesLoaded /
+                          loadingProgress.expectedTotalBytes!
+                      : null,
+                  valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                ),
+              );
+            },
+            errorBuilder: (context, error, stackTrace) {
+              return Container(
+                color: const Color(0xFF4F245A),
+                padding: const EdgeInsets.all(8),
+                child: const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.broken_image, color: Color(0xFFFDCC87), size: 24),
+                    SizedBox(height: 4),
+                    Text(
+                      'Failed to load image',
+                      style: TextStyle(
+                        color: Color(0xFFFDCC87),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       );
@@ -173,43 +251,54 @@ class RepostContent extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Center(
-                child: Image.network(
-                  ApiService.resolveImageUrl(media[index]['url']),
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+              child: Image.network(
+                ApiService.resolveImageUrl(media[index]['url']),
+                fit: BoxFit.cover,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                    ),
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return Container(
+                    color: const Color(0xFF4F245A),
+                    child: const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.broken_image, color: Color(0xFFFDCC87), size: 16),
+                          SizedBox(height: 4),
+                          Text(
+                            'Image not found',
+                            style: TextStyle(
+                              color: Color(0xFFFDCC87),
+                              fontSize: 10,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
                       ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.error),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             ),
             if (isLastItem)
               Container(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 128),
-                  borderRadius: BorderRadius.circular(8),
-                ),
+                color: Colors.black.withOpacity(0.7),
                 child: Center(
                   child: Text(
                     '+${media.length - 4}',
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 24,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -222,37 +311,66 @@ class RepostContent extends StatelessWidget {
   }
 
   Widget _buildLinks(List<dynamic> links) {
+    if (links.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: links.map((link) {
         return Padding(
-          padding: const EdgeInsets.only(top: 8),
-          child: Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3D1B45),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFFDCC87), width: 1),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.link, color: Color(0xFFFDCC87)),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    link['title'] ?? link['url'],
-                    style: const TextStyle(
-                      color: Color(0xFFFDCC87),
+          padding: const EdgeInsets.only(bottom: 8, top: 8),
+          child: InkWell(
+            onTap: () => _launchURL(link['url']),
+            child: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF4F245A),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFDCC87), width: 1),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.link, color: Color(0xFFFDCC87)),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      link['title'] ?? link['url'],
+                      style: const TextStyle(
+                        color: Color(0xFFFDCC87),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
       }).toList(),
     );
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      // Ensure the URL has a scheme
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://$url';
+      }
+
+      // Try to launch the URL
+      if (await canLaunchUrlString(url)) {
+        await launchUrlString(url, mode: LaunchMode.externalApplication);
+      } else {
+        throw 'Could not launch $url';
+      }
+    } catch (e) {
+      debugPrint('Error launching URL: $e');
+      // Show error message to user if context is available
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open link: $url')),
+        );
+      }
+    }
   }
 } 

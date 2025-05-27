@@ -53,11 +53,22 @@ class ApiService {
   }
 
   // Get all posts
-  static Future<List<Map<String, dynamic>>> getPosts({String? type}) async {
+  static Future<List<Map<String, dynamic>>> getPosts({String? type, int? page, int? limit}) async {
     try {
-      final url = type != null && type != 'all' 
+      // Build base URL
+      String url = type != null && type != 'all' 
           ? '$baseUrl/posts/type/$type'
           : '$baseUrl/posts';
+      
+      // Add pagination parameters if provided
+      final Map<String, String> queryParams = {};
+      if (page != null) queryParams['page'] = page.toString();
+      if (limit != null) queryParams['limit'] = limit.toString();
+      
+      // Append query parameters if any
+      if (queryParams.isNotEmpty) {
+        url = Uri.parse(url).replace(queryParameters: queryParams).toString();
+      }
           
       final response = await http.get(
         Uri.parse(url),
@@ -388,10 +399,21 @@ class ApiService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> getUserPosts() async {
+  static Future<List<Map<String, dynamic>>> getUserPosts({int? page, int? limit}) async {
     try {
+      // Build URL with pagination
+      String url = '$baseUrl/users/posts';
+      final Map<String, String> queryParams = {};
+      if (page != null) queryParams['page'] = page.toString();
+      if (limit != null) queryParams['limit'] = limit.toString();
+      
+      // Append query parameters if any
+      if (queryParams.isNotEmpty) {
+        url = Uri.parse(url).replace(queryParameters: queryParams).toString();
+      }
+      
       final response = await http.get(
-        Uri.parse('$baseUrl/users/posts'),
+        Uri.parse(url),
         headers: await getHeaders(),
       );
 
@@ -416,10 +438,21 @@ class ApiService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> getSavedPosts() async {
+  static Future<List<Map<String, dynamic>>> getSavedPosts({int? page, int? limit}) async {
     try {
+      // Build URL with pagination
+      String url = '$baseUrl/users/saved-posts';
+      final Map<String, String> queryParams = {};
+      if (page != null) queryParams['page'] = page.toString();
+      if (limit != null) queryParams['limit'] = limit.toString();
+      
+      // Append query parameters if any
+      if (queryParams.isNotEmpty) {
+        url = Uri.parse(url).replace(queryParameters: queryParams).toString();
+      }
+      
       final response = await http.get(
-        Uri.parse('$baseUrl/users/saved-posts'),
+        Uri.parse(url),
         headers: await getHeaders(),
       );
 

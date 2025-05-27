@@ -85,6 +85,9 @@ class _PostState extends State<Post> {
   static const int _commentsPerPage = 5;
   static const int _repliesPerPage = 5;
   final TextEditingController _repostController = TextEditingController();
+  bool _isExpanded = false;
+  bool _isCommentExpanded = false;
+  final List<bool> _loadingImages = [];
 
   @override
   void initState() {
@@ -98,6 +101,7 @@ class _PostState extends State<Post> {
     _repostCount = widget.repostCount;
     _commentCount = widget.commentCount;
     _isBookmarked = widget.isSaved;
+    _initializeImageLoading();
   }
 
   @override
@@ -146,6 +150,18 @@ class _PostState extends State<Post> {
       setState(() {
         _commentCount = widget.commentCount;
       });
+    }
+
+    if (oldWidget.media.length != widget.media.length) {
+      _initializeImageLoading();
+    }
+  }
+
+  void _initializeImageLoading() {
+    // Initialize all images as loading by default
+    _loadingImages.clear();
+    for (int i = 0; i < widget.media.length; i++) {
+      _loadingImages.add(true); // Set to true to load images automatically
     }
   }
 
@@ -878,7 +894,9 @@ class _PostState extends State<Post> {
         final bool isLastItem = index == displayCount - 1 && remainingCount > 0;
         
         return GestureDetector(
-          onTap: () => _showGalleryView(index),
+          onTap: () {
+            _showGalleryView(index);
+          },
           child: Stack(
             fit: StackFit.expand,
             children: [
@@ -927,16 +945,13 @@ class _PostState extends State<Post> {
               ),
               if (isLastItem)
                 Container(
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  color: Colors.black.withOpacity(0.5),
                   child: Center(
                     child: Text(
                       '+$remainingCount',
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -950,9 +965,11 @@ class _PostState extends State<Post> {
   }
 
   void _showGalleryView(int initialIndex) {
+    // All images are already loaded since _loadingImages is set to true by default
+    
     showDialog(
       context: context,
-      builder: (context) => Dialog(
+      builder: (context) => Dialog.fullscreen(
         backgroundColor: Colors.black,
         child: Stack(
           children: [
@@ -1230,17 +1247,7 @@ class _PostState extends State<Post> {
               },
               child: RepostContent(
                 originalPost: widget.originalPost!,
-                onAuthorTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ProfileScreen(
-                        userId: widget.originalPost!['author']['_id'],
-                      ),
-                    ),
-                  );
-                },
-                currentUserId: widget.authorId,
+                authorId: widget.authorId,
               ),
             ),
           Row(
