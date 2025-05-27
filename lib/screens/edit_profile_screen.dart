@@ -519,13 +519,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         Text(label, style: const TextStyle(color: Colors.white)),
         const SizedBox(height: 5),
         TextField(
-          maxLines: maxLines,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: const Color(0xFF3A1D47),
+        maxLines: maxLines,
+        style: const TextStyle(color: Colors.white),
+        decoration: InputDecoration(
+          filled: true,
+          fillColor: const Color(0xFF3A1D47),
             enabledBorder: OutlineInputBorder(
-              borderSide: BorderSide.none,
+            borderSide: BorderSide.none,
               borderRadius: BorderRadius.circular(25),
             ),
             focusedBorder: OutlineInputBorder(
@@ -533,9 +533,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               borderRadius: BorderRadius.circular(25),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          ),
-          controller: controller,
         ),
+        controller: controller,
+      ),
       ],
     );
   }

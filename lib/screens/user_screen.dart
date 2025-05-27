@@ -114,7 +114,7 @@ class _UserScreenState extends State<UserScreen> {
       // Load posts with pagination
       final posts = await ApiService.getUserPosts(page: postsPage, limit: postsPerPage);
       debugPrint('User posts received: ${posts.length}');
-      
+
       // Check if we have fewer posts than requested, meaning no more to load
       if (posts.length < postsPerPage) {
         hasMorePosts = false;
@@ -124,22 +124,22 @@ class _UserScreenState extends State<UserScreen> {
       await Future.wait(
         posts.map((post) async {
           try {
-            final status = await ApiService.getPostVoteStatus(post['_id']);
-            final isSaved = await ApiService.isPostSaved(post['_id']);
-            post['isUpvoted'] = status['isUpvoted'] ?? false;
-            post['isDownvoted'] = status['isDownvoted'] ?? false;
-            post['isSaved'] = isSaved;
+        final status = await ApiService.getPostVoteStatus(post['_id']);
+        final isSaved = await ApiService.isPostSaved(post['_id']);
+        post['isUpvoted'] = status['isUpvoted'] ?? false;
+        post['isDownvoted'] = status['isDownvoted'] ?? false;
+        post['isSaved'] = isSaved;
 
-            // If this is a repost, fetch the original post data
-            if (post['isRepost'] == true && post['originalPost'] is String) {
-              try {
-                final originalPost = await ApiService.getPost(post['originalPost']);
-                post['originalPost'] = originalPost;
-              } catch (e) {
-                debugPrint('Error fetching original post: $e');
-                post['originalPost'] = null;
-              }
-            }
+        // If this is a repost, fetch the original post data
+        if (post['isRepost'] == true && post['originalPost'] is String) {
+          try {
+            final originalPost = await ApiService.getPost(post['originalPost']);
+            post['originalPost'] = originalPost;
+          } catch (e) {
+            debugPrint('Error fetching original post: $e');
+            post['originalPost'] = null;
+          }
+        }
           } catch (e) {
             debugPrint('Error processing post: $e');
           }
@@ -182,22 +182,22 @@ class _UserScreenState extends State<UserScreen> {
       await Future.wait(
         morePosts.map((post) async {
           try {
-            final status = await ApiService.getPostVoteStatus(post['_id']);
-            final isSaved = await ApiService.isPostSaved(post['_id']);
-            post['isUpvoted'] = status['isUpvoted'] ?? false;
-            post['isDownvoted'] = status['isDownvoted'] ?? false;
-            post['isSaved'] = isSaved;
+        final status = await ApiService.getPostVoteStatus(post['_id']);
+        final isSaved = await ApiService.isPostSaved(post['_id']);
+        post['isUpvoted'] = status['isUpvoted'] ?? false;
+        post['isDownvoted'] = status['isDownvoted'] ?? false;
+        post['isSaved'] = isSaved;
 
-            // If this is a repost, fetch the original post data
-            if (post['isRepost'] == true && post['originalPost'] is String) {
-              try {
-                final originalPost = await ApiService.getPost(post['originalPost']);
-                post['originalPost'] = originalPost;
-              } catch (e) {
-                debugPrint('Error fetching original post: $e');
-                post['originalPost'] = null;
-              }
-            }
+        // If this is a repost, fetch the original post data
+        if (post['isRepost'] == true && post['originalPost'] is String) {
+          try {
+            final originalPost = await ApiService.getPost(post['originalPost']);
+            post['originalPost'] = originalPost;
+          } catch (e) {
+            debugPrint('Error fetching original post: $e');
+            post['originalPost'] = null;
+          }
+        }
           } catch (e) {
             debugPrint('Error processing post: $e');
           }
@@ -455,22 +455,22 @@ class _UserScreenState extends State<UserScreen> {
                     controller: _scrollController,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.all(15.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildUserHeader(),
-                            const SizedBox(height: 10),
-                            Text(
-                              userData?['bio'] ?? 'No bio available',
-                              style: const TextStyle(color: Colors.white, fontSize: 14),
-                              softWrap: true,
-                            ),
+                      padding: const EdgeInsets.all(15.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildUserHeader(),
+                          const SizedBox(height: 10),
+                          Text(
+                            userData?['bio'] ?? 'No bio available',
+                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                            softWrap: true,
+                          ),
                             const SizedBox(height: 20),
                             _buildFollowCounts(),
-                            const SizedBox(height: 20),
-                            _buildTabs(),
-                            const SizedBox(height: 10),
+                          const SizedBox(height: 20),
+                          _buildTabs(),
+                          const SizedBox(height: 10),
                           ],
                         ),
                       ),
@@ -485,13 +485,13 @@ class _UserScreenState extends State<UserScreen> {
                               valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
                             ),
                           ),
-                        ),
+                      ),
                       // Add bottom padding to prevent content from being hidden under the nav bar
                       const SizedBox(height: 80),
                     ],
+                    ),
                   ),
                 ),
-            ),
     );
   }
 
@@ -639,9 +639,9 @@ class _UserScreenState extends State<UserScreen> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
-          child: Text(
-            selectedTab == 0 ? 'No posts yet' : 'No saved posts',
-            style: const TextStyle(color: Colors.grey, fontSize: 16),
+        child: Text(
+          selectedTab == 0 ? 'No posts yet' : 'No saved posts',
+          style: const TextStyle(color: Colors.grey, fontSize: 16),
           ),
         ),
       );

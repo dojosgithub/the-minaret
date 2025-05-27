@@ -3,6 +3,7 @@ import '../models/message.dart';
 import '../services/message_service.dart';
 import '../services/api_service.dart';
 import '../screens/post_detail_screen.dart';
+import '../widgets/top_bar_without_menu.dart';
 
 class ConversationScreen extends StatefulWidget {
   final String conversationId;
@@ -149,7 +150,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
     }
   }
 
-
   void _handlePostTap(String postId) {
     Navigator.push(
       context,
@@ -163,53 +163,59 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFFFDCC87),
-                  width: 2,
-                ),
-              ),
-              child: CircleAvatar(
-                backgroundImage: widget.otherUser['profileImage'] != null
-                    ? NetworkImage(ApiService.resolveImageUrl(widget.otherUser['profileImage']))
-                    : const AssetImage('assets/images/default_profile.png') as ImageProvider,
-                radius: 24,
-              ),
-            ),
-            const SizedBox(width: 20),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: Column(
+        children: [
+          const TopBarWithoutMenu(),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
               children: [
-                Text(
-                  '${widget.otherUser['firstName']} ${widget.otherUser['lastName']}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+                IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+                  onPressed: () => Navigator.pop(context),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFFDCC87),
+                      width: 2,
+                    ),
+                  ),
+                  child: CircleAvatar(
+                    backgroundImage: widget.otherUser['profileImage'] != null
+                        ? NetworkImage(ApiService.resolveImageUrl(widget.otherUser['profileImage']))
+                        : const AssetImage('assets/images/default_profile.png') as ImageProvider,
+                    radius: 24,
                   ),
                 ),
-                Text(
-                  '@${widget.otherUser['username']}',
-                  style: TextStyle(
-                    color: const Color(0xFFFDCC87),
-                    fontSize: 12,
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${widget.otherUser['firstName']} ${widget.otherUser['lastName']}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        '@${widget.otherUser['username']}',
+                        style: const TextStyle(
+                          color: Color(0xFFFDCC87),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: Column(
-        children: [
+          ),
           Expanded(
             child: _isLoading
                 ? const Center(
@@ -300,7 +306,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                                   color: isMe ? const Color(0xFF9D3267) : const Color(0xFFFDCC87),
                                                   borderRadius: BorderRadius.circular(15),
                                                   border: Border.all(
-                                                    color: const Color(0xFFFDCC87).withValues(alpha: 72),
+                                                    color: const Color(0xFFFDCC87).withOpacity(0.5),
                                                     width: 1,
                                                   ),
                                                 ),

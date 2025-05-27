@@ -53,8 +53,8 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
                       padding: const EdgeInsets.only(bottom: 8),
                       child: SvgPicture.asset(
                         'assets/logo.svg',
-                        width: MediaQuery.of(context).size.width * 0.45,
-                        height: 36,
+                        width: MediaQuery.of(context).size.width * 0.5,
+                        height: 40,
                         fit: BoxFit.contain,
                       ),
                     ),
