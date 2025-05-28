@@ -656,11 +656,11 @@ class _PostState extends State<Post> {
                             },
                           ),
                           _buildShareOption(
-                            icon: Icons.share,
-                            label: 'More',
+                            icon: Icons.flag,
+                            label: 'Report',
                             onTap: () {
-                              // Implement native share functionality
                               Navigator.pop(context);
+                              _showReportDialog(context);
                             },
                           ),
                           GestureDetector(
@@ -1758,5 +1758,183 @@ class _PostState extends State<Post> {
           ),
       ],
     );
+  }
+
+  // Method to show the report dialog
+  void _showReportDialog(BuildContext context) {
+    final List<String> reportReasons = [
+      'Inappropriate Content',
+      'Misinformation',
+      'Hate Speech',
+      'Spam',
+      'Harassment',
+      'Violence',
+      'Copyright Violation',
+      'Other'
+    ];
+    
+    String? selectedReason;
+    final TextEditingController _otherReasonController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: const Color(0xFF3D1B45),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Report Post',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Why are you reporting this post?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.4,
+                      ),
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: reportReasons.map((reason) {
+                            return RadioListTile<String>(
+                              title: Text(
+                                reason,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                              value: reason,
+                              groupValue: selectedReason,
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedReason = value;
+                                });
+                              },
+                              activeColor: const Color(0xFFFDCC87),
+                              fillColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                                  if (states.contains(MaterialState.selected)) {
+                                    return const Color(0xFFFDCC87);
+                                  }
+                                  return Colors.white;
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    if (selectedReason == 'Other') ...[
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: _otherReasonController,
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Please specify...',
+                          hintStyle: const TextStyle(color: Colors.grey),
+                          filled: true,
+                          fillColor: const Color(0xFF4F245A),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        maxLines: 3,
+                      ),
+                    ],
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFDCC87),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: selectedReason == null
+                              ? null
+                              : () {
+                                  _submitReport(
+                                    context, 
+                                    selectedReason!, 
+                                    selectedReason == 'Other' ? _otherReasonController.text : null
+                                  );
+                                  Navigator.pop(context);
+                                },
+                          child: const Text(
+                            'Report Post',
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Method to handle submitting a report
+  Future<void> _submitReport(BuildContext context, String reason, String? additionalInfo) async {
+    // Show a success message for now
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Thank you for your report. We will review it shortly.'),
+        duration: Duration(seconds: 3),
+      ),
+    );
+    
+    // Here we would add API call to submit the report
+    // When backend is implemented, uncomment and modify the code below
+    
+    /* Example of how the API call might look:
+    try {
+      await ApiService.reportPost(
+        postId: widget.id,
+        reason: reason,
+        additionalInfo: additionalInfo,
+      );
+    } catch (e) {
+      debugPrint('Error reporting post: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit report: $e')),
+        );
+      }
+    }
+    */
   }
 }
