@@ -74,7 +74,7 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
-  Future<void> _performSearch() async {
+  Future<void> _performSearch({bool addToRecent = false}) async {
     if (_searchController.text.isEmpty) {
       setState(() {
         _posts = [];
@@ -99,9 +99,10 @@ class _SearchScreenState extends State<SearchScreen> {
         postedBy: _selectedPostedBy,
       );
 
-      // Add to recent searches
-      await ApiService.addRecentSearch(_searchController.text);
-      await _loadRecentSearches();
+      if (addToRecent) {
+        await ApiService.addRecentSearch(_searchController.text);
+        await _loadRecentSearches();
+      }
 
       // Check vote status for each post
       final posts = results['posts'] ?? [];
@@ -325,7 +326,12 @@ class _SearchScreenState extends State<SearchScreen> {
                       )
                     : const Icon(Icons.search, color: Colors.grey),
                 ),
-                // Remove onSubmitted since we're using the listener
+                // Add onSubmitted to handle Enter key press
+                onSubmitted: (value) {
+                  if (value.isNotEmpty) {
+                    _performSearch(addToRecent: true);
+                  }
+                },
               ),
             ),
           ),
@@ -372,7 +378,7 @@ class _SearchScreenState extends State<SearchScreen> {
                               ElevatedButton(
                                 onPressed: () {
                                   Navigator.pop(context);
-                                  _performSearch();
+                                  _performSearch(addToRecent: true);
                                 },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFFFDCC87),
@@ -462,7 +468,7 @@ class _SearchScreenState extends State<SearchScreen> {
                                     ),
                                     onTap: () {
                                       _searchController.text = search;
-                                      _performSearch();
+                                      _performSearch(addToRecent: true);
                                     },
                                   );
                                 },

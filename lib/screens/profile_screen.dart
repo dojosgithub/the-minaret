@@ -17,20 +17,22 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? userData;
   List<Map<String, dynamic>> userPosts = [];
-  bool isLoading = true;
-  String? error;
+  bool isLoadingUserInfo = true;
+  bool isLoadingPosts = true;
+  String? userInfoError;
+  String? postsError;
   bool isFollowing = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
+    _loadUserInfo();
   }
 
-  Future<void> _loadUserData() async {
+  Future<void> _loadUserInfo() async {
     setState(() {
-      isLoading = true;
-      error = null;
+      isLoadingUserInfo = true;
+      userInfoError = null;
     });
 
     try {
@@ -44,9 +46,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final data = await ApiService.getUserById(widget.userId);
       debugPrint('User data received: $data');
 
+      // Check if current user is following this user
+      final isFollowingUser = await ApiService.isFollowing(widget.userId);
+
+      if (mounted) {
+        setState(() {
+          userData = data;
+          isFollowing = isFollowingUser;
+          isLoadingUserInfo = false;
+        });
+        // Load posts after user info is loaded
+        _loadUserPosts();
+      }
+    } catch (e) {
+      debugPrint('Error loading user data: $e');
+      if (mounted) {
+        setState(() {
+          userInfoError = e.toString();
+          isLoadingUserInfo = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadUserPosts() async {
+    setState(() {
+      isLoadingPosts = true;
+      postsError = null;
+    });
+    try {
       // Load user's posts
       final posts = await ApiService.getUserPostsById(widget.userId);
-      debugPrint('User posts received: ${posts.length}');
+      debugPrint('User posts received: [38;5;2m${posts.length}[0m');
 
       // Check vote status for each post
       for (var post in posts) {
@@ -55,33 +86,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         post['isDownvoted'] = status['isDownvoted'] ?? false;
       }
 
-      // Check if current user is following this user
-      final isFollowingUser = await ApiService.isFollowing(widget.userId);
-      
       if (mounted) {
         setState(() {
-          userData = data;
           userPosts = posts;
-          isFollowing = isFollowingUser;
-          isLoading = false;
+          isLoadingPosts = false;
         });
       }
     } catch (e) {
-      debugPrint('Error loading user data: $e');
+      debugPrint('Error loading user posts: $e');
       if (mounted) {
         setState(() {
-          error = e.toString();
-          isLoading = false;
+          postsError = e.toString();
+          isLoadingPosts = false;
         });
       }
     }
   }
 
   Future<void> _toggleFollow() async {
-    if (isLoading) return;
+    if (isLoadingUserInfo) return;
 
     setState(() {
-      isLoading = true;
+      isLoadingUserInfo = true;
     });
 
     try {
@@ -135,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         // Only change the follow state after the operation completes successfully
         setState(() {
           isFollowing = !wasFollowing;
-          isLoading = false;
+          isLoadingUserInfo = false;
         });
       }
     } catch (e) {
@@ -145,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SnackBar(content: Text('Failed to ${isFollowing ? 'unfollow' : 'follow'} user')),
         );
         setState(() {
-          isLoading = false;
+          isLoadingUserInfo = false;
         });
       }
     }
@@ -156,18 +182,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
       appBar: const TopBarWithoutMenu(),
-      body: isLoading
+      body: isLoadingUserInfo
           ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
               ),
             )
-          : error != null
+          : userInfoError != null
               ? ConnectionErrorWidget(
-                  onRetry: _loadUserData,
+                  onRetry: _loadUserInfo,
                 )
               : RefreshIndicator(
-                  onRefresh: _loadUserData,
+                  onRefresh: _loadUserInfo,
                   color: const Color(0xFFFDCC87),
                   child: SingleChildScrollView(
                     child: Padding(
@@ -185,7 +211,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           const SizedBox(height: 20),
                           _buildFollowCounts(),
                           const SizedBox(height: 20),
-                          _buildPosts(),
+                          
+                          // Posts section with its own loading state
+                          isLoadingPosts
+                            ? const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 30.0),
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                  ),
+                                ),
+                              )
+                            : postsError != null
+                                ? Center(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                                      child: Column(
+                                        children: [
+                                          const Text(
+                                            'Failed to load posts',
+                                            style: TextStyle(color: Colors.white, fontSize: 16),
+                                          ),
+                                          const SizedBox(height: 10),
+                                          ElevatedButton(
+                                            onPressed: _loadUserPosts,
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: const Color(0xFFFDCC87),
+                                            ),
+                                            child: const Text('Retry', style: TextStyle(color: Colors.black)),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  )
+                                : _buildPosts(),
                         ],
                       ),
                     ),
@@ -274,7 +333,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
           if (result == true) {
-            _loadUserData();
+            _loadUserInfo();
           }
         },
         child: Row(
@@ -311,7 +370,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
           if (result == true) {
-            _loadUserData();
+            _loadUserInfo();
           }
         },
         child: Row(
