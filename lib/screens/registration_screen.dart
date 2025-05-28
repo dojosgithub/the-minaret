@@ -45,16 +45,23 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      final response = await ApiService.register({
+      // Create registration data
+      final registrationData = {
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
         'username': _usernameController.text,
         'email': _emailController.text,
-        'phoneNumber': _phoneController.text.isEmpty ? null : _phoneController.text,
         'password': _passwordController.text,
         'userType': _selectedType,
         'dateOfBirth': '$_selectedDay $_selectedMonth $_selectedYear',
-      });
+      };
+
+      // Only add phoneNumber if it's not empty
+      if (_phoneController.text.isNotEmpty) {
+        registrationData['phoneNumber'] = _phoneController.text;
+      }
+
+      final response = await ApiService.register(registrationData);
 
       if (!mounted) return;
 
