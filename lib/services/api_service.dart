@@ -1296,13 +1296,57 @@ class ApiService {
     }
   }
 
+  static Future<bool> reportPost({
+    required String postId,
+    required String reason,
+    String? additionalContext,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/reports'),
+        headers: await getHeaders(),
+        body: json.encode({
+          'postId': postId,
+          'reason': reason,
+          'additionalContext': additionalContext ?? '',
+        }),
+      );
+
+      if (response.statusCode == 201) {
+        return true;
+      } else if (response.statusCode == 400) {
+        // Check if error is because post was already reported
+        final error = json.decode(response.body);
+        if (error['message']?.contains('already reported') == true) {
+          throw Exception('You have already reported this post');
+        }
+        throw Exception(error['message'] ?? 'Failed to report post');
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to report post');
+      }
+    } catch (e) {
+      debugPrint('Error reporting post: $e');
+      rethrow;
+    }
+  }
+
   static String resolveImageUrl(String? url) {
     if (url == null || url.isEmpty) {
-      return baseUrl.replaceFirst('/api', '') + '/uploads/profiles/default_profile.png';
+      return 'assets/default_profile.png';
     }
+    
+    // If it's already a fully qualified URL, return it as is
     if (url.startsWith('http')) return url;
+    
+    // If it's a relative path, join it with the base URL
     final path = url.startsWith('/') ? url.substring(1) : url;
-    return baseUrl.replaceFirst('/api', '') + '/'+ path;
+    try {
+      return baseUrl.replaceFirst('/api', '') + '/' + path;
+    } catch (e) {
+      debugPrint('Error resolving image URL: $e');
+      return 'assets/default_profile.png';
+    }
   }
 
   static Future<List<Map<String, dynamic>>> getUserFollowers(String userId) async {

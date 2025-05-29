@@ -1094,6 +1094,12 @@ class _PostState extends State<Post> {
                       ? NetworkImage(ApiService.resolveImageUrl(widget.profilePic))
                       : AssetImage(widget.profilePic) as ImageProvider,
                   radius: 25,
+                  onBackgroundImageError: (_, __) {
+                    // This will be called if the profile image fails to load
+                    debugPrint('Failed to load profile image: ${widget.profilePic}');
+                  },
+                  child: widget.profilePic.isEmpty ? const Icon(Icons.person, size: 25, color: Color(0xFFFDCC87)) : null,
+                  backgroundColor: const Color(0xFF3D1B45),
             ),
                 ),
               ),
@@ -1774,7 +1780,8 @@ class _PostState extends State<Post> {
     ];
     
     String? selectedReason;
-    final TextEditingController _otherReasonController = TextEditingController();
+    final TextEditingController _additionalContextController = TextEditingController();
+    bool _isSubmitting = false;
     
     showDialog(
       context: context,
@@ -1788,68 +1795,77 @@ class _PostState extends State<Post> {
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Report Post',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'Why are you reporting this post?',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      constraints: BoxConstraints(
-                        maxHeight: MediaQuery.of(context).size.height * 0.4,
-                      ),
-                      child: SingleChildScrollView(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: reportReasons.map((reason) {
-                            return RadioListTile<String>(
-                              title: Text(
-                                reason,
-                                style: const TextStyle(color: Colors.white),
-                              ),
-                              value: reason,
-                              groupValue: selectedReason,
-                              onChanged: (value) {
-                                setState(() {
-                                  selectedReason = value;
-                                });
-                              },
-                              activeColor: const Color(0xFFFDCC87),
-                              fillColor: MaterialStateProperty.resolveWith<Color>(
-                                (Set<MaterialState> states) {
-                                  if (states.contains(MaterialState.selected)) {
-                                    return const Color(0xFFFDCC87);
-                                  }
-                                  return Colors.white;
-                                },
-                              ),
-                            );
-                          }).toList(),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Report Post',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                    if (selectedReason == 'Other') ...[
                       const SizedBox(height: 16),
+                      const Text(
+                        'Why are you reporting this post?',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.4,
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: reportReasons.map((reason) {
+                              return RadioListTile<String>(
+                                title: Text(
+                                  reason,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                                value: reason,
+                                groupValue: selectedReason,
+                                onChanged: (value) {
+                                  setState(() {
+                                    selectedReason = value;
+                                  });
+                                },
+                                activeColor: const Color(0xFFFDCC87),
+                                fillColor: MaterialStateProperty.resolveWith<Color>(
+                                  (Set<MaterialState> states) {
+                                    if (states.contains(MaterialState.selected)) {
+                                      return const Color(0xFFFDCC87);
+                                    }
+                                    return Colors.white;
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Additional Context (Optional)',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
                       TextField(
-                        controller: _otherReasonController,
+                        controller: _additionalContextController,
                         style: const TextStyle(color: Colors.white),
+                        maxLines: 3,
                         decoration: InputDecoration(
-                          hintText: 'Please specify...',
+                          hintText: 'Provide more details about this report...',
                           hintStyle: const TextStyle(color: Colors.grey),
                           filled: true,
                           fillColor: const Color(0xFF4F245A),
@@ -1858,46 +1874,71 @@ class _PostState extends State<Post> {
                             borderSide: BorderSide.none,
                           ),
                         ),
-                        maxLines: 3,
                       ),
-                    ],
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text(
-                            'Cancel',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFDCC87),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          TextButton(
+                            onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                            child: const Text(
+                              'Cancel',
+                              style: TextStyle(color: Colors.grey),
                             ),
                           ),
-                          onPressed: selectedReason == null
-                              ? null
-                              : () {
-                                  _submitReport(
-                                    context, 
-                                    selectedReason!, 
-                                    selectedReason == 'Other' ? _otherReasonController.text : null
-                                  );
-                                  Navigator.pop(context);
-                                },
-                          child: const Text(
-                            'Report Post',
-                            style: TextStyle(color: Colors.black),
+                          const SizedBox(width: 16),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFDCC87),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed: selectedReason == null || _isSubmitting
+                                ? null
+                                : () async {
+                                    setState(() {
+                                      _isSubmitting = true;
+                                    });
+                                    
+                                    try {
+                                      await _submitReport(
+                                        context, 
+                                        selectedReason!, 
+                                        _additionalContextController.text.trim()
+                                      );
+                                      
+                                      if (!context.mounted) return;
+                                      Navigator.pop(context);
+                                      
+                                      // Show unfollow prompt after successful report
+                                      _showUnfollowPrompt(context);
+                                    } catch (e) {
+                                      if (!context.mounted) return;
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text(e.toString())),
+                                      );
+                                    }
+                                  },
+                            child: _isSubmitting
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Report Post',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -1906,35 +1947,171 @@ class _PostState extends State<Post> {
       },
     );
   }
+  
+  // Method to show unfollow prompt after reporting
+  void _showUnfollowPrompt(BuildContext context) async {
+    // Check if the current user is following the post author
+    final isFollowing = await ApiService.isFollowing(widget.authorId);
+    
+    if (!context.mounted || !isFollowing) return;
+    
+    showDialog(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Unfollow Author?',
+                  style: TextStyle(
+                    color: Color(0xFFFDCC87),
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Would you like to unfollow this user?',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFFDCC87),
+                      ),
+                      child: CircleAvatar(
+                        backgroundImage: widget.profilePic.isNotEmpty && 
+                                         (widget.profilePic.startsWith('http') || 
+                                          widget.profilePic.startsWith('/'))
+                            ? NetworkImage(ApiService.resolveImageUrl(widget.profilePic))
+                            : const AssetImage('assets/default_profile.png') as ImageProvider,
+                        radius: 20,
+                        onBackgroundImageError: (_, __) {
+                          // Image failed to load
+                          debugPrint('Failed to load profile image in unfollow dialog');
+                        },
+                        backgroundColor: const Color(0xFF3D1B45),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            '@${widget.username}',
+                            style: const TextStyle(
+                              color: Color(0xFFFDCC87),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.grey,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      onPressed: () async {
+                        try {
+                          await ApiService.unfollowUser(widget.authorId);
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('User unfollowed successfully')),
+                          );
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Failed to unfollow user: $e')),
+                          );
+                        }
+                      },
+                      child: const Text(
+                        'Unfollow',
+                        style: TextStyle(color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text(
+                        'Not Now',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   // Method to handle submitting a report
-  Future<void> _submitReport(BuildContext context, String reason, String? additionalInfo) async {
-    // Show a success message for now
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Thank you for your report. We will review it shortly.'),
-        duration: Duration(seconds: 3),
-      ),
-    );
-    
-    // Here we would add API call to submit the report
-    // When backend is implemented, uncomment and modify the code below
-    
-    /* Example of how the API call might look:
+  Future<void> _submitReport(BuildContext context, String reason, String additionalContext) async {
     try {
       await ApiService.reportPost(
         postId: widget.id,
         reason: reason,
-        additionalInfo: additionalInfo,
+        additionalContext: additionalContext,
       );
+      
+      if (!context.mounted) return;
+      
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thank you for your report. We will review it shortly.'),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Show unfollow dialog after a short delay to let the snackbar be seen
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (context.mounted) {
+          _showUnfollowPrompt(context);
+        }
+      });
     } catch (e) {
       debugPrint('Error reporting post: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to submit report: $e')),
-        );
-      }
+      throw e;
     }
-    */
   }
 }

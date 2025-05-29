@@ -39,6 +39,10 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Calculate the box size based on screen width
+    final screenWidth = MediaQuery.of(context).size.width;
+    final boxSize = (screenWidth - 120) / 6; // 120 accounts for horizontal padding and gaps
+    
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
       appBar: PreferredSize(
@@ -57,7 +61,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
         ),
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 40),
+            padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -73,43 +77,52 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: List.generate(
-                    6,
-                    (index) => SizedBox(
-                      width: 45,
-                      height: 45,
-                      child: TextField(
-                        controller: controllers[index],
-                        focusNode: focusNodes[index],
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        maxLength: 1,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                        ),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: const Color(0xFF3A1E47),
-                          counterText: '',
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: BorderSide.none,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Color(0xFFFDCC87),
+                // Flexible row layout for verification boxes
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(
+                        6,
+                        (index) => Container(
+                          width: boxSize,
+                          height: boxSize,
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          child: TextField(
+                            controller: controllers[index],
+                            focusNode: focusNodes[index],
+                            textAlign: TextAlign.center,
+                            keyboardType: TextInputType.number,
+                            maxLength: 1,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: boxSize * 0.4, // Responsive font size
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: const Color(0xFF3A1E47),
+                              counterText: '',
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: BorderSide.none,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                  color: Color(0xFFFDCC87),
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: EdgeInsets.all(boxSize * 0.2),
+                            ),
+                            onChanged: (value) {
+                              if (value.isNotEmpty && index < 5) {
+                                focusNodes[index + 1].requestFocus();
+                              }
+                            },
                           ),
                         ),
-                        onChanged: (value) {
-                          if (value.isNotEmpty && index < 5) {
-                            focusNodes[index + 1].requestFocus();
-                          }
-                        },
                       ),
                     ),
                   ),
@@ -132,12 +145,12 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         ),
                       );
                     } else {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const MainScreen(),
-                        ),
-                      );
+                      // Navigator.push(
+                      //   context,
+                      //   MaterialPageRoute(
+                      //     builder: (context) => const MainScreen(),
+                      //   ),
+                      // );   //LOGIN LOGIC HERE
                     }
                   },
                   child: const Text(
