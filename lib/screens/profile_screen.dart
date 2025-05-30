@@ -22,11 +22,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? userInfoError;
   String? postsError;
   bool isFollowing = false;
+  bool isBlocked = false;
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
+    _checkBlockStatus();
+  }
+
+  Future<void> _checkBlockStatus() async {
+    try {
+      final blocked = await ApiService.isBlocked(widget.userId);
+      if (mounted) {
+        setState(() {
+          isBlocked = blocked;
+        });
+      }
+    } catch (e) {
+      debugPrint('Error checking block status: $e');
+    }
   }
 
   Future<void> _loadUserInfo() async {
@@ -77,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       // Load user's posts
       final posts = await ApiService.getUserPostsById(widget.userId);
-      debugPrint('User posts received: [38;5;2m${posts.length}[0m');
+      
 
       // Check vote status for each post
       for (var post in posts) {
@@ -177,6 +192,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<void> _toggleBlockUser() async {
+    final scaffoldContext = context;
+    
+    // Show confirmation dialog
+    final bool shouldBlock = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF3D1B45),
+        title: Text(
+          isBlocked ? 'Unblock User?' : 'Block User?',
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          isBlocked 
+            ? 'You will be able to see ${userData?['username'] ?? 'this user'}\'s posts again.'
+            : 'You will no longer see posts from ${userData?['username'] ?? 'this user'}, and they won\'t be able to see your profile or posts.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isBlocked ? const Color(0xFFFDCC87) : Colors.red,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              isBlocked ? 'Unblock' : 'Block',
+              style: TextStyle(
+                color: isBlocked ? Colors.black : Colors.white,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ) ?? false;
+    
+    if (!shouldBlock) return;
+    
+    try {
+      setState(() {
+        isLoadingUserInfo = true;
+      });
+      
+      if (isBlocked) {
+        await ApiService.unblockUser(widget.userId);
+        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+          const SnackBar(content: Text('User unblocked successfully')),
+        );
+      } else {
+        await ApiService.blockUser(widget.userId);
+        // If following, automatically unfollow when blocking
+        if (isFollowing) {
+          await ApiService.unfollowUser(widget.userId);
+          isFollowing = false;
+        }
+        ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+          const SnackBar(content: Text('User blocked successfully')),
+        );
+      }
+      
+      setState(() {
+        isBlocked = !isBlocked;
+        isLoadingUserInfo = false;
+      });
+    } catch (e) {
+      debugPrint('Error toggling block status: $e');
+      ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+        SnackBar(content: Text('Failed to ${isBlocked ? 'unblock' : 'block'} user: $e')),
+      );
+      setState(() {
+        isLoadingUserInfo = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -192,64 +285,113 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ? ConnectionErrorWidget(
                   onRetry: _loadUserInfo,
                 )
-              : RefreshIndicator(
-                  onRefresh: _loadUserInfo,
-                  color: const Color(0xFFFDCC87),
-                  child: SingleChildScrollView(
-                    child: Padding(
-                      padding: const EdgeInsets.all(15.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildUserHeader(),
-                          const SizedBox(height: 10),
-                          Text(
-                            userData?['bio'] ?? 'No bio available',
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                            softWrap: true,
-                          ),
-                          const SizedBox(height: 20),
-                          _buildFollowCounts(),
-                          const SizedBox(height: 20),
-                          
-                          // Posts section with its own loading state
-                          isLoadingPosts
-                            ? const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(vertical: 30.0),
-                                  child: CircularProgressIndicator(
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                                  ),
-                                ),
-                              )
-                            : postsError != null
-                                ? Center(
+              : isBlocked
+                  ? _buildBlockedUserView()
+                  : RefreshIndicator(
+                      onRefresh: _loadUserInfo,
+                      color: const Color(0xFFFDCC87),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.all(15.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildUserHeader(),
+                              const SizedBox(height: 10),
+                              Text(
+                                userData?['bio'] ?? 'No bio available',
+                                style: const TextStyle(color: Colors.white, fontSize: 14),
+                                softWrap: true,
+                              ),
+                              const SizedBox(height: 20),
+                              _buildFollowAndBlockRow(),
+                              const SizedBox(height: 20),
+                              
+                              // Posts section with its own loading state
+                              isLoadingPosts
+                                ? const Center(
                                     child: Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 20.0),
-                                      child: Column(
-                                        children: [
-                                          const Text(
-                                            'Failed to load posts',
-                                            style: TextStyle(color: Colors.white, fontSize: 16),
-                                          ),
-                                          const SizedBox(height: 10),
-                                          ElevatedButton(
-                                            onPressed: _loadUserPosts,
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: const Color(0xFFFDCC87),
-                                            ),
-                                            child: const Text('Retry', style: TextStyle(color: Colors.black)),
-                                          ),
-                                        ],
+                                      padding: EdgeInsets.symmetric(vertical: 30.0),
+                                      child: CircularProgressIndicator(
+                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
                                       ),
                                     ),
                                   )
-                                : _buildPosts(),
-                        ],
+                                : postsError != null
+                                    ? Center(
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(vertical: 20.0),
+                                          child: Column(
+                                            children: [
+                                              const Text(
+                                                'Failed to load posts',
+                                                style: TextStyle(color: Colors.white, fontSize: 16),
+                                              ),
+                                              const SizedBox(height: 10),
+                                              ElevatedButton(
+                                                onPressed: _loadUserPosts,
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor: const Color(0xFFFDCC87),
+                                                ),
+                                                child: const Text('Retry', style: TextStyle(color: Colors.black)),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
+                                    : _buildPosts(),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
+    );
+  }
+
+  Widget _buildBlockedUserView() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.block,
+              color: Colors.red,
+              size: 64,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'You have blocked ${userData?['username'] ?? 'this user'}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'You cannot see their profile or posts until you unblock them.',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 16,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFDCC87),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              ),
+              onPressed: _toggleBlockUser,
+              icon: const Icon(Icons.person_add, color: Colors.black),
+              label: const Text('Unblock User', style: TextStyle(color: Colors.black)),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -311,7 +453,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildFollowCounts() {
+  Widget _buildFollowAndBlockRow() {
     final screenWidth = MediaQuery.of(context).size.width;
     final isSmallScreen = screenWidth < 360;
     final isVerySmallScreen = screenWidth < 320;
@@ -393,12 +535,57 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     }
     
+    // Three-dot menu with block option
+    Widget buildOptionsMenu() {
+      return PopupMenuButton<String>(
+        color: const Color(0xFF3D1B45),
+        icon: const Icon(Icons.more_horiz, color: Colors.white, size: 20),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        padding: EdgeInsets.zero,
+        onSelected: (value) {
+          if (value == 'block') {
+            _toggleBlockUser();
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem<String>(
+            value: 'block',
+            child: Row(
+              children: [
+                Icon(
+                  isBlocked ? Icons.person_add : Icons.block,
+                  color: isBlocked ? const Color(0xFFFDCC87) : Colors.red,
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isBlocked ? 'Unblock User' : 'Block User',
+                  style: TextStyle(
+                    color: isBlocked ? const Color(0xFFFDCC87) : Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+    
     // Use Column layout for very small screens
     if (isVerySmallScreen) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          buildFollowersItem(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              buildFollowersItem(),
+              buildOptionsMenu(),
+            ],
+          ),
           const SizedBox(height: 4),
           buildFollowingItem(),
         ],
@@ -407,10 +594,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     
     // Use Row layout for larger screens
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        buildFollowersItem(),
-        SizedBox(width: isSmallScreen ? 12 : 15),
-        buildFollowingItem(),
+        Row(
+          children: [
+            buildFollowersItem(),
+            SizedBox(width: isSmallScreen ? 12 : 15),
+            buildFollowingItem(),
+          ],
+        ),
+        buildOptionsMenu(),
       ],
     );
   }
@@ -466,6 +659,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             } catch (e) {
               debugPrint('Error downvoting post: $e');
             }
+          },
+          onPostBlocked: (postId) {
+            // If a user blocks the author from a post, refresh the profile
+            _checkBlockStatus();
+            _loadUserInfo();
           },
         );
       },

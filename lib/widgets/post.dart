@@ -33,6 +33,7 @@ class Post extends StatefulWidget {
   final Function(String) onUpvote;
   final Function(String) onDownvote;
   final bool isSaved;
+  final Function(String)? onPostBlocked; // Callback when a post is from a blocked user
 
   const Post({
     super.key,
@@ -58,6 +59,7 @@ class Post extends StatefulWidget {
     required this.onUpvote,
     required this.onDownvote,
     this.isSaved = false,
+    this.onPostBlocked,
   });
 
   @override
@@ -88,6 +90,8 @@ class _PostState extends State<Post> {
   bool _isExpanded = false;
   bool _isCommentExpanded = false;
   final List<bool> _loadingImages = [];
+  bool _isUserBlocked = false;
+  final GlobalKey<ScaffoldMessengerState> _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
 
   @override
   void initState() {
@@ -102,6 +106,7 @@ class _PostState extends State<Post> {
     _commentCount = widget.commentCount;
     _isBookmarked = widget.isSaved;
     _initializeImageLoading();
+    _checkIfUserBlocked();
   }
 
   @override
@@ -154,6 +159,11 @@ class _PostState extends State<Post> {
 
     if (oldWidget.media.length != widget.media.length) {
       _initializeImageLoading();
+    }
+
+    // Check if author ID changed and recheck block status
+    if (oldWidget.authorId != widget.authorId) {
+      _checkIfUserBlocked();
     }
   }
 
@@ -259,16 +269,12 @@ class _PostState extends State<Post> {
               _isBookmarked = isSaved;
             });
             if (!isSaved && mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Failed to save post')),
-              );
+              _showSnackBar('Failed to save post');
             }
           } catch (checkError) {
             // If checking save status also fails, show original error
             if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Failed to save post: ${e.toString()}')),
-              );
+              _showSnackBar('Failed to save post: ${e.toString()}');
             }
           }
         }
@@ -313,9 +319,7 @@ class _PostState extends State<Post> {
       debugPrint('Error launching URL: $e');
       // Show error message to user
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open link: $url')),
-        );
+        _showSnackBar('Could not open link: $url');
       }
     }
   }
@@ -342,11 +346,23 @@ class _PostState extends State<Post> {
     }
   }
 
-  void _showSharePopup(BuildContext context) {
+  // Method to check if the current user is the author of the post
+  Future<bool> _isCurrentUserAuthor() async {
+    try {
+      final currentUser = await ApiService.getUserProfile();
+      return currentUser['_id'] == widget.authorId;
+    } catch (e) {
+      debugPrint('Error checking if current user is author: $e');
+      return false;
+    }
+  }
+
+  void _showSharePopup(BuildContext context) async {
     final TextEditingController _searchController = TextEditingController();
     List<Map<String, dynamic>> _searchResults = [];
     bool _isSearching = false;
     Timer? _debounce;
+    bool isAuthor = await _isCurrentUserAuthor();
 
     showModalBottomSheet(
       context: context,
@@ -437,15 +453,11 @@ class _PostState extends State<Post> {
                                 postId: widget.id,
                               );
                               if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Post shared successfully')),
-                                );
+                                _showSnackBar('Post shared successfully');
                               }
                             } catch (e) {
                               if (mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('Failed to share post: $e')),
-                                );
+                                _showSnackBar('Failed to share post: $e');
                               }
                             }
                           },
@@ -580,15 +592,11 @@ class _PostState extends State<Post> {
                                         postId: widget.id,
                                       );
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Post shared successfully')),
-                                        );
+                                        _showSnackBar('Post shared successfully');
                                       }
                                     } catch (e) {
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(content: Text('Failed to share post: $e')),
-                                        );
+                                        _showSnackBar('Failed to share post: $e');
                                       }
                                     }
                                   },
@@ -649,29 +657,26 @@ class _PostState extends State<Post> {
                               Clipboard.setData(ClipboardData(
                                 text: 'https://minaret.com/posts/${widget.id}',
                               ));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Link copied to clipboard')),
-                              );
+                              _showSnackBar('Link copied to clipboard');
                               Navigator.pop(context);
                             },
                           ),
-                          _buildShareOption(
-                            icon: Icons.flag,
-                            label: 'Report',
-                            onTap: () {
-                              Navigator.pop(context);
-                              _showReportDialog(context);
-                            },
-                          ),
+                          if (!isAuthor) // Only show report option if not the author
+                            _buildShareOption(
+                              icon: Icons.flag,
+                              label: 'Report',
+                              onTap: () {
+                                Navigator.pop(context);
+                                _showReportDialog(context);
+                              },
+                            ),
                           GestureDetector(
                             onTap: () async {
                               final url = 'https://wa.me/?text=Check out this post: https://minaret.com/posts/${widget.id}';
                               if (await canLaunchUrlString(url)) {
                                 await launchUrlString(url);
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Could not launch WhatsApp')),
-                                );
+                                _showSnackBar('Could not launch WhatsApp');
                               }
                               Navigator.pop(context);
                             },
@@ -707,11 +712,9 @@ class _PostState extends State<Post> {
                               if (await canLaunchUrlString(url)) {
                                 await launchUrlString(url);
                               } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Could not launch Telegram')),
-                                );
+                                _showSnackBar('Could not launch Telegram');
                               }
-                            Navigator.pop(context);
+                              Navigator.pop(context);
                             },
                           ),
                         ],
@@ -1202,6 +1205,10 @@ class _PostState extends State<Post> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isUserBlocked) {
+      return const SizedBox.shrink(); // Return an empty widget if the user is blocked
+    }
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
       padding: const EdgeInsets.all(10),
@@ -1526,15 +1533,11 @@ class _PostState extends State<Post> {
             _repostCount = updatedPost['repostCount'] ?? 0;
           });
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post reposted successfully')),
-        );
+        _showSnackBar('Post reposted successfully');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString())),
-        );
+        _showSnackBar('Failed to repost post: $e');
       }
     }
   }
@@ -1601,9 +1604,7 @@ class _PostState extends State<Post> {
     } catch (e) {
       debugPrint('Error adding reply: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add reply')),
-        );
+        _showSnackBar('Failed to add reply');
       }
     }
   }
@@ -1766,8 +1767,95 @@ class _PostState extends State<Post> {
     );
   }
 
+  // Safe method to show a snackbar
+  void _showSnackBar(String message) {
+    if (!mounted) {
+      debugPrint('Cannot show snackbar, widget not mounted: $message');
+      return;
+    }
+    
+    // Delay showing the snackbar to ensure it's shown on a valid context
+    Future.microtask(() {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
+    });
+  }
+
   // Method to show the report dialog
   void _showReportDialog(BuildContext context) {
+    // Store the BuildContext at the class level to ensure it remains valid
+    final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+    // Show the check dialog first without any async operations
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        // Check if user is the author in a separate function after dialog is shown
+        _checkIfUserCanReport(dialogContext);
+        
+        return Dialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Please Wait...',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Check if user can report, and then show appropriate dialog
+  void _checkIfUserCanReport(BuildContext dialogContext) {
+    ApiService.getUserProfile().then((currentUser) {
+      final currentUserId = currentUser['_id'];
+      
+      // Pop the loading dialog first
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext).pop();
+      }
+      
+      // If user is the author, show error message
+      if (widget.authorId == currentUserId) {
+        if (mounted) {
+          _showSnackBar('You cannot report your own post');
+        }
+        return;
+      }
+      
+      // If user can report, show the report dialog
+      if (mounted && dialogContext.mounted) {
+        _showFullReportDialogSync(dialogContext);
+      }
+    }).catchError((error) {
+      // Pop the loading dialog on error
+      if (dialogContext.mounted) {
+        Navigator.of(dialogContext).pop();
+      }
+      
+      if (mounted) {
+        _showSnackBar('Error checking user status: ${error.toString()}');
+      }
+    });
+  }
+
+  // Show the full report dialog synchronously (not using async/await)
+  void _showFullReportDialogSync(BuildContext contextToUse) {
     final List<String> reportReasons = [
       'Inappropriate Content',
       'Misinformation',
@@ -1784,10 +1872,10 @@ class _PostState extends State<Post> {
     bool _isSubmitting = false;
     
     showDialog(
-      context: context,
-      builder: (context) {
+      context: contextToUse,
+      builder: (dialogContext) {
         return StatefulBuilder(
-          builder: (context, setState) {
+          builder: (builderContext, setState) {
             return Dialog(
               backgroundColor: const Color(0xFF3D1B45),
               shape: RoundedRectangleBorder(
@@ -1819,7 +1907,7 @@ class _PostState extends State<Post> {
                       const SizedBox(height: 8),
                       Container(
                         constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.4,
+                          maxHeight: MediaQuery.of(builderContext).size.height * 0.4,
                         ),
                         child: SingleChildScrollView(
                           child: Column(
@@ -1880,7 +1968,7 @@ class _PostState extends State<Post> {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           TextButton(
-                            onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                            onPressed: _isSubmitting ? null : () => Navigator.pop(dialogContext),
                             child: const Text(
                               'Cancel',
                               style: TextStyle(color: Colors.grey),
@@ -1896,30 +1984,42 @@ class _PostState extends State<Post> {
                             ),
                             onPressed: selectedReason == null || _isSubmitting
                                 ? null
-                                : () async {
+                                : () {
                                     setState(() {
                                       _isSubmitting = true;
                                     });
                                     
-                                    try {
-                                      await _submitReport(
-                                        context, 
-                                        selectedReason!, 
-                                        _additionalContextController.text.trim()
-                                      );
+                                    // Submit the report
+                                    ApiService.reportPost(
+                                      postId: widget.id,
+                                      reason: selectedReason!,
+                                      additionalContext: _additionalContextController.text.trim()
+                                    ).then((_) {
+                                      // Success! Close dialog and show action prompt
+                                      Navigator.pop(dialogContext);
                                       
-                                      if (!context.mounted) return;
-                                      Navigator.pop(context);
+                                      // Show success message
+                                      if (mounted) {
+                                        _showSnackBar('Thank you for your report. We will review it shortly.');
                                       
-                                      // Show unfollow prompt after successful report
-                                      _showUnfollowPrompt(context);
-                                    } catch (e) {
-                                      if (!context.mounted) return;
-                                      Navigator.pop(context);
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text(e.toString())),
-                                      );
-                                    }
+                                        // Show action prompt with the context directly from widget tree
+                                        if (mounted) {
+                                          // Instead of using post-frame callback, directly call with a delay
+                                          // This allows the navigator transition to complete
+                                          Future.delayed(const Duration(milliseconds: 500), () {
+                                            if (mounted) {
+                                              _showActionPromptDirectly();
+                                            }
+                                          });
+                                        }
+                                      }
+                                    }).catchError((e) {
+                                      if (mounted && dialogContext.mounted) {
+                                        // Close dialog on error
+                                        Navigator.pop(dialogContext);
+                                        _showSnackBar('Error reporting post: ${e.toString()}');
+                                      }
+                                    });
                                   },
                             child: _isSubmitting
                                 ? const SizedBox(
@@ -1947,171 +2047,220 @@ class _PostState extends State<Post> {
       },
     );
   }
-  
-  // Method to show unfollow prompt after reporting
-  void _showUnfollowPrompt(BuildContext context) async {
-    // Check if the current user is following the post author
-    final isFollowing = await ApiService.isFollowing(widget.authorId);
+
+  // A direct implementation of the action prompt that doesn't use the "safer" version
+  void _showActionPromptDirectly() {
+    // Use a new build context from the current widget's context
+    // This ensures we're using a valid, current context from the widget tree
+    if (!mounted) return;
     
-    if (!context.mounted || !isFollowing) return;
-    
-    showDialog(
-      context: context,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: const Color(0xFF3D1B45),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Unfollow Author?',
-                  style: TextStyle(
-                    color: Color(0xFFFDCC87),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+    // Get current following and blocking status
+    Future.wait([
+      ApiService.isFollowing(widget.authorId),
+      ApiService.isBlocked(widget.authorId)
+    ]).then((results) {
+      if (!mounted) return;
+      
+      final isFollowing = results[0];
+      final isBlocked = results[1];
+      
+      // Now show the dialog with the fresh, valid context
+      showDialog(
+        context: context, // Using the widget's current context
+        builder: (dialogContext) {
+          return Dialog(
+            backgroundColor: const Color(0xFF3D1B45),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Thanks for reporting',
+                    style: TextStyle(
+                      color: Color(0xFFFDCC87),
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Would you like to unfollow this user?',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
+                  const SizedBox(height: 16),
+                  const Text(
+                    'What would you like to do about this user?',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(2),
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Color(0xFFFDCC87),
-                      ),
-                      child: CircleAvatar(
-                        backgroundImage: widget.profilePic.isNotEmpty && 
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFFFDCC87),
+                        ),
+                        child: CircleAvatar(
+                          backgroundImage: widget.profilePic.isNotEmpty && 
                                          (widget.profilePic.startsWith('http') || 
                                           widget.profilePic.startsWith('/'))
                             ? NetworkImage(ApiService.resolveImageUrl(widget.profilePic))
                             : const AssetImage('assets/default_profile.png') as ImageProvider,
-                        radius: 20,
-                        onBackgroundImageError: (_, __) {
-                          // Image failed to load
-                          debugPrint('Failed to load profile image in unfollow dialog');
-                        },
-                        backgroundColor: const Color(0xFF3D1B45),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.name,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          Text(
-                            '@${widget.username}',
-                            style: const TextStyle(
-                              color: Color(0xFFFDCC87),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          radius: 20,
+                          onBackgroundImageError: (_, __) {
+                            // Image failed to load
+                            debugPrint('Failed to load profile image in action dialog');
+                          },
+                          backgroundColor: const Color(0xFF3D1B45),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       ),
-                      onPressed: () async {
-                        try {
-                          await ApiService.unfollowUser(widget.authorId);
-                          if (!context.mounted) return;
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('User unfollowed successfully')),
-                          );
-                        } catch (e) {
-                          if (!context.mounted) return;
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Failed to unfollow user: $e')),
-                          );
-                        }
-                      },
-                      child: const Text(
-                        'Unfollow',
-                        style: TextStyle(color: Colors.white),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              widget.name,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              '@${widget.username}',
+                              style: const TextStyle(
+                                color: Color(0xFFFDCC87),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text(
-                        'Not Now',
-                        style: TextStyle(color: Colors.grey),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  Column(
+                    children: [
+                      if (isFollowing)
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.grey[700],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            minimumSize: const Size(double.infinity, 45),
+                          ),
+                          onPressed: () {
+                            ApiService.unfollowUser(widget.authorId).then((_) {
+                              if (mounted) {
+                                Navigator.pop(dialogContext);
+                                _showSnackBar('User unfollowed successfully');
+                              }
+                            }).catchError((error) {
+                              if (mounted) {
+                                Navigator.pop(dialogContext);
+                                _showSnackBar('Failed to unfollow user: $error');
+                              }
+                            });
+                          },
+                          child: const Text(
+                            'Unfollow',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      if (isFollowing)
+                        const SizedBox(height: 12),
+                      
+                      if (!isBlocked)
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            minimumSize: const Size(double.infinity, 45),
+                          ),
+                          onPressed: () {
+                            ApiService.blockUser(widget.authorId).then((_) {
+                              if (mounted) {
+                                Navigator.pop(dialogContext);
+                                _showSnackBar('User blocked successfully');
+                                
+                                // Notify parent if a user was blocked
+                                if (widget.onPostBlocked != null) {
+                                  widget.onPostBlocked!(widget.id);
+                                }
+                              }
+                            }).catchError((error) {
+                              if (mounted) {
+                                Navigator.pop(dialogContext);
+                                _showSnackBar('Failed to block user: $error');
+                              }
+                            });
+                          },
+                          child: const Text(
+                            'Block User',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      if (!isBlocked)
+                        const SizedBox(height: 12),
+                      
+                      OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          side: const BorderSide(color: Color(0xFFFDCC87)),
+                          minimumSize: const Size(double.infinity, 45),
+                        ),
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text(
+                          'Keep Following',
+                          style: TextStyle(color: Color(0xFFFDCC87)),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Method to handle submitting a report
-  Future<void> _submitReport(BuildContext context, String reason, String additionalContext) async {
-    try {
-      await ApiService.reportPost(
-        postId: widget.id,
-        reason: reason,
-        additionalContext: additionalContext,
-      );
-      
-      if (!context.mounted) return;
-      
-      // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Thank you for your report. We will review it shortly.'),
-          duration: Duration(seconds: 3),
-          backgroundColor: Colors.green,
-        ),
-      );
-      
-      // Show unfollow dialog after a short delay to let the snackbar be seen
-      Future.delayed(const Duration(milliseconds: 300), () {
-        if (context.mounted) {
-          _showUnfollowPrompt(context);
+          );
+        },
+      ).catchError((e) {
+        debugPrint('Error showing action dialog: $e');
+        if (mounted) {
+          _showSnackBar('Error showing options. Please try again.');
         }
       });
+    }).catchError((e) {
+      debugPrint('Error checking user status: $e');
+      if (mounted) {
+        _showSnackBar('Error checking user status. Please try again.');
+      }
+    });
+  }
+
+  Future<void> _checkIfUserBlocked() async {
+    try {
+      final isBlocked = await ApiService.isBlocked(widget.authorId);
+      if (mounted) {
+        setState(() {
+          _isUserBlocked = isBlocked;
+        });
+        
+        // Notify parent if post is from blocked user
+        if (isBlocked && widget.onPostBlocked != null) {
+          widget.onPostBlocked!(widget.id);
+        }
+      }
     } catch (e) {
-      debugPrint('Error reporting post: $e');
-      throw e;
+      debugPrint('Error checking if user is blocked: $e');
     }
   }
 }

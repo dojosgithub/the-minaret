@@ -861,6 +861,59 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('Error checking follow status: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> isBlocked(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/is-blocked/$userId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['isBlocked'] ?? false;
+      } else {
+        throw Exception('Failed to check block status');
+      }
+    } catch (e) {
+      debugPrint('Error checking block status: $e');
+      return false;
+    }
+  }
+
+  static Future<void> blockUser(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/block/$userId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        final data = json.decode(response.body);
+        throw Exception(data['message'] ?? 'Failed to block user');
+      }
+    } catch (e) {
+      debugPrint('Error blocking user: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> unblockUser(String userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/unblock/$userId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        final data = json.decode(response.body);
+        throw Exception(data['message'] ?? 'Failed to unblock user');
+      }
+    } catch (e) {
+      debugPrint('Error unblocking user: $e');
       rethrow;
     }
   }
