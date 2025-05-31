@@ -149,6 +149,7 @@ class _SearchScreenState extends State<SearchScreen> {
     return GestureDetector(
       onTap: () => setState(() => _selectedTab = index),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             title,
@@ -158,13 +159,12 @@ class _SearchScreenState extends State<SearchScreen> {
               fontSize: 16,
             ),
           ),
-          if (_selectedTab == index)
-            Container(
-              margin: const EdgeInsets.only(top: 2),
-              height: 2,
-              width: 40,
-              color: const Color(0xFFFDCC87),
-            ),
+          const SizedBox(height: 4),
+          Container(
+            height: 2,
+            width: 40,
+            color: _selectedTab == index ? const Color(0xFFFDCC87) : Colors.transparent,
+          ),
         ],
       ),
     );
@@ -297,7 +297,14 @@ class _SearchScreenState extends State<SearchScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
             onPressed: () {
-              widget.onIndexChanged(0);
+              // Dismiss keyboard before navigation to avoid layout issues
+              FocusScope.of(context).unfocus();
+              // Short delay to ensure keyboard is dismissed before navigation
+              Future.delayed(const Duration(milliseconds: 50), () {
+                if (mounted) {
+                  widget.onIndexChanged(0);
+                }
+              });
             },
           ),
           title: Padding(
@@ -410,6 +417,7 @@ class _SearchScreenState extends State<SearchScreen> {
                   )
                 : _posts.isNotEmpty || _users.isNotEmpty
                     ? Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(height: 10),
                           _buildTabs(),

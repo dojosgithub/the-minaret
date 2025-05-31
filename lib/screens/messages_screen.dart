@@ -92,9 +92,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
+      appBar: const TopBarWithoutMenu(),
       body: Column(
         children: [
-          const TopBarWithoutMenu(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(

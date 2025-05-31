@@ -163,9 +163,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF4F245A),
+      appBar: const TopBarWithoutMenu(),
       body: Column(
         children: [
-          const TopBarWithoutMenu(),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Row(
