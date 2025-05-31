@@ -3,6 +3,7 @@ import '../main.dart';
 import '../widgets/top_bar_without_menu.dart';
 import 'dart:ui';
 import '../services/api_service.dart';
+import 'terms_and_conditions_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
   const RegistrationScreen({super.key});
@@ -75,10 +76,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           throw Exception('Failed to verify token after registration');
         }
 
-        // Navigate to main screen
+        // Navigate to terms and conditions screen instead of main screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

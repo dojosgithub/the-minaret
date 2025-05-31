@@ -174,9 +174,28 @@ class _PostPageState extends State<PostScreen> {
       return;
     }
 
+    // Check for inappropriate content before proceeding
     setState(() => _isLoading = true);
 
     try {
+      // Combine title and body for content check
+      final String fullContent = '${_titleController.text} ${_bodyController.text}';
+      final contentCheckResult = await ApiService.checkInappropriateContent(fullContent);
+
+      if (contentCheckResult['isInappropriate']) {
+        // Show warning dialog for inappropriate content
+        if (!mounted) return;
+        
+        final shouldProceed = await _showInappropriateContentWarning(
+          contentCheckResult['foundTerms'],
+        );
+        
+        if (!shouldProceed) {
+          setState(() => _isLoading = false);
+          return;
+        }
+      }
+
       final success = await ApiService.createPostWithXFiles(
         selectedType!,
         _titleController.text,
@@ -214,6 +233,94 @@ class _PostPageState extends State<PostScreen> {
         setState(() => _isLoading = false);
       }
     }
+  }
+
+  Future<bool> _showInappropriateContentWarning(List<String> terms) async {
+    return await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text(
+            'Content Warning',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Your post may contain inappropriate content that violates our community guidelines.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Potential issues:',
+                  style: TextStyle(
+                    color: Color(0xFFFDCC87),
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...terms.map((term) => Padding(
+                  padding: const EdgeInsets.only(left: 16, bottom: 4),
+                  child: Text(
+                    '• Contains potentially inappropriate term: "$term"',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                    ),
+                  ),
+                )).toList(),
+                const SizedBox(height: 16),
+                const Text(
+                  'Please review our community guidelines and ensure your content complies before posting.',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text(
+                'Edit Post',
+                style: TextStyle(
+                  color: Color(0xFFFDCC87),
+                  fontSize: 16,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text(
+                'Post Anyway',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontSize: 16,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    ) ?? false;
   }
 
   void _showOptionsPopup() {

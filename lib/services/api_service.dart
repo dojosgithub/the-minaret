@@ -535,6 +535,9 @@ class ApiService {
 
   static Future<void> updateProfile(Map<String, dynamic> data) async {
     try {
+      // Log what data is being sent
+      debugPrint('Updating profile with data: $data');
+      
       final response = await http.put(
         Uri.parse('$baseUrl/users/profile'),
         headers: {
@@ -545,8 +548,14 @@ class ApiService {
       );
 
       if (response.statusCode != 200) {
-        throw Exception('Failed to update profile: ${response.body}');
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to update profile: ${response.body}');
       }
+      
+      // Update local cache of user data
+      final userData = json.decode(response.body);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('user', json.encode(userData));
     } catch (e) {
       debugPrint('Error updating profile: $e');
       rethrow;
@@ -1545,6 +1554,48 @@ class ApiService {
     } catch (e) {
       debugPrint('Error creating post: $e');
       rethrow;
+    }
+  }
+
+  // Add a method to check for inappropriate content
+  static Future<Map<String, dynamic>> checkInappropriateContent(String text) async {
+    try {
+      // List of common inappropriate terms
+      // This is a simple implementation - in production, you'd want a more sophisticated solution
+      // such as a server-side AI model or third-party content moderation API
+      final List<String> inappropriateTerms = [
+        'hate', 'kill', 'violence', 'racist', 'terrorism', 'bomb', 
+        'explicit', 'obscene', 'porn', 'sex', 'nude', 'racist', 'nazi',
+        'slur', 'assault', 'attack', 'threat', 'harmful', 'illegal',
+        // Add more terms as needed
+      ];
+      
+      // Check for exact matches (would be better with more advanced text analysis)
+      final String lowerText = text.toLowerCase();
+      final List<String> foundTerms = [];
+      
+      for (final term in inappropriateTerms) {
+        if (lowerText.contains(term)) {
+          foundTerms.add(term);
+        }
+      }
+      
+      final bool isInappropriate = foundTerms.isNotEmpty;
+      
+      return {
+        'isInappropriate': isInappropriate,
+        'foundTerms': foundTerms,
+        'suggestedAction': isInappropriate ? 'review' : 'approve'
+      };
+    } catch (e) {
+      debugPrint('Error checking inappropriate content: $e');
+      // Default to requiring review if there's an error, to be safe
+      return {
+        'isInappropriate': true,
+        'foundTerms': [],
+        'suggestedAction': 'review',
+        'error': e.toString()
+      };
     }
   }
 } 

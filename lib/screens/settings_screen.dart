@@ -5,6 +5,7 @@ import 'feedback_screen.dart';
 import 'community_guidelines_screen.dart';
 import 'privacy_and_safety_screen.dart';
 import 'about_screen.dart';
+import 'content_filter_screen.dart';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import 'welcome_screen.dart';
@@ -115,6 +116,12 @@ class SettingsScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const NotificationsMenuScreen()),
+                    );
+                  }),
+                  _buildMenuItem(context, "Content Filter", Icons.filter_list, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ContentFilterScreen()),
                     );
                   }),
                   _buildMenuItem(context, "Language", Icons.language_outlined, () {

@@ -3,6 +3,7 @@ import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 import '../utils/post_type.dart';
+import '../utils/content_filter.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -13,6 +14,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Map<String, dynamic>> _posts = [];
+  List<Map<String, dynamic>> _filteredPosts = [];
   List<String> _followedUsers = [];
   bool _isLoading = true;
   bool _isLoadingMore = false;
@@ -21,13 +23,26 @@ class _HomeScreenState extends State<HomeScreen> {
   int _page = 1;
   final int _postsPerPage = 10;
   final ScrollController _scrollController = ScrollController();
+  ContentFilterLevel _contentFilterLevel = ContentFilterLevel.moderate; // Default filter level
 
   @override
   void initState() {
     super.initState();
+    _loadContentFilterPreference();
     _loadFollowedUsers();
     _scrollController.addListener(_scrollListener);
     PostType.typeNotifier.addListener(_handleTypeChange);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Refresh content filter preference when navigating back to this screen
+    _loadContentFilterPreference().then((_) {
+      if (mounted && _posts.isNotEmpty) {
+        _applyContentFiltering();
+      }
+    });
   }
 
   @override
@@ -36,6 +51,40 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollController.dispose();
     PostType.typeNotifier.removeListener(_handleTypeChange);
     super.dispose();
+  }
+
+  Future<void> _loadContentFilterPreference() async {
+    try {
+      // In a real implementation, this would come from a user preferences service
+      // or user profile data
+      final userData = await ApiService.getUserProfile();
+      final filterLevelString = userData['contentFilterLevel'] ?? 'moderate';
+      
+      setState(() {
+        _contentFilterLevel = _stringToFilterLevel(filterLevelString);
+      });
+    } catch (e) {
+      debugPrint('Error loading content filter preference: $e');
+      // Default to moderate if there's an error
+      setState(() {
+        _contentFilterLevel = ContentFilterLevel.moderate;
+      });
+    }
+  }
+
+  ContentFilterLevel _stringToFilterLevel(String level) {
+    switch (level.toLowerCase()) {
+      case 'strict':
+        return ContentFilterLevel.strict;
+      case 'moderate':
+        return ContentFilterLevel.moderate;
+      case 'minimal':
+        return ContentFilterLevel.minimal;
+      case 'none':
+        return ContentFilterLevel.none;
+      default:
+        return ContentFilterLevel.moderate;
+    }
   }
 
   void _scrollListener() {
@@ -49,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleTypeChange() {
     setState(() {
       _posts = [];
+      _filteredPosts = [];
       _page = 1;
       _hasMorePosts = true;
       _isLoading = true;
@@ -76,6 +126,7 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           setState(() {
             _posts = [];
+            _filteredPosts = [];
             _isLoading = false;
           });
         }
@@ -134,6 +185,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _posts = filteredPosts;
+          // Apply content filtering
+          _applyContentFiltering();
           _isLoading = false;
         });
       }
@@ -146,6 +199,66 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       debugPrint('Error loading posts: $e');
     }
+  }
+
+  void _applyContentFiltering() {
+    // This is a simplified implementation of content filtering
+    // In a real app, you'd use more sophisticated methods or server-side filtering
+    
+    _filteredPosts = _posts.where((post) {
+      // Check post title and body for inappropriate content
+      final String title = post['title'] ?? '';
+      final String body = post['body'] ?? '';
+      final String combinedText = '$title $body'.toLowerCase();
+      
+      // Get filtered words based on filter level
+      final List<String> filteredWords = _getFilteredWords();
+      
+      // For strict filtering, check for any filtered words
+      if (_contentFilterLevel == ContentFilterLevel.strict) {
+        return !filteredWords.any((word) => combinedText.contains(word));
+      }
+      
+      // For moderate filtering, check for more severe terms
+      else if (_contentFilterLevel == ContentFilterLevel.moderate) {
+        final moderateFilterWords = filteredWords.where((word) => 
+          _getSeverityLevel(word) >= 2
+        ).toList();
+        return !moderateFilterWords.any((word) => combinedText.contains(word));
+      }
+      
+      // For minimal filtering, only filter the most severe content
+      else if (_contentFilterLevel == ContentFilterLevel.minimal) {
+        final minimalFilterWords = filteredWords.where((word) => 
+          _getSeverityLevel(word) >= 3
+        ).toList();
+        return !minimalFilterWords.any((word) => combinedText.contains(word));
+      }
+      
+      // If none (no filtering), return all posts
+      return true;
+    }).toList();
+  }
+
+  List<String> _getFilteredWords() {
+    // This would ideally come from a server or be updated regularly
+    return [
+      'hate', 'kill', 'violence', 'racist', 'terrorism', 'bomb', 
+      'explicit', 'obscene', 'porn', 'sex', 'nude', 'nazi',
+      'slur', 'assault', 'attack', 'threat', 'harmful', 'illegal',
+    ];
+  }
+  
+  // Simple severity rating for filtered words (1-3, with 3 being most severe)
+  int _getSeverityLevel(String word) {
+    const Map<String, int> severityMap = {
+      'terrorism': 3, 'bomb': 3, 'kill': 3, 'porn': 3, 'nazi': 3,
+      'violence': 2, 'racist': 2, 'explicit': 2, 'obscene': 2, 'sex': 2,
+      'hate': 1, 'nude': 1, 'slur': 2, 'assault': 2, 'attack': 2,
+      'threat': 2, 'harmful': 1, 'illegal': 2,
+    };
+    
+    return severityMap[word] ?? 1;
   }
 
   Future<void> _loadMorePosts() async {
@@ -206,6 +319,8 @@ class _HomeScreenState extends State<HomeScreen> {
       if (mounted) {
         setState(() {
           _posts.addAll(uniqueNewPosts);
+          // Apply content filtering to all posts
+          _applyContentFiltering();
           _page = nextPage;
           _isLoadingMore = false;
         });
@@ -221,8 +336,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refreshPosts() async {
+    await _loadContentFilterPreference();
     setState(() {
       _posts = [];
+      _filteredPosts = [];
       _page = 1;
       _hasMorePosts = true;
     });
@@ -241,6 +358,8 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           }
         }
+        // Make sure to update filtered posts as well
+        _applyContentFiltering();
       });
     } catch (e) {
       debugPrint('Error upvoting post: $e');
@@ -259,6 +378,8 @@ class _HomeScreenState extends State<HomeScreen> {
             }
           }
         }
+        // Make sure to update filtered posts as well
+        _applyContentFiltering();
       });
     } catch (e) {
       debugPrint('Error downvoting post: $e');
@@ -305,7 +426,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           controller: _scrollController,
                           physics: const AlwaysScrollableScrollPhysics(),
                           children: [
-                            ...(_posts.map((post) => Post(
+                            ...(_filteredPosts.map((post) => Post(
                                   id: post['_id'],
                                   name: post['author']['firstName'] != null && post['author']['lastName'] != null
                                       ? '${post['author']['firstName']} ${post['author']['lastName']}'
