@@ -534,7 +534,7 @@ class _UserScreenState extends State<UserScreen> {
                     '${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: isSmallScreen ? 18 : 22,
+                      fontSize: isSmallScreen ? 16 : 20,
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
@@ -543,7 +543,7 @@ class _UserScreenState extends State<UserScreen> {
                   Text(
                     '@${userData?['username'] ?? ''}',
                     style: TextStyle(
-                      color: Colors.grey, 
+                      color: const Color(0xFFFDCC87), 
                       fontSize: isSmallScreen ? 14 : 16
                     ),
                     maxLines: 1,

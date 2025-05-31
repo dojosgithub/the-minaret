@@ -420,13 +420,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 '${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 22,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               Text(
                 '@${userData?['username'] ?? ''}',
-                style: const TextStyle(color: Colors.grey, fontSize: 16),
+                style: const TextStyle(color: const Color(0xFFFDCC87), fontSize: 16),
               ),
             ],
           ),
