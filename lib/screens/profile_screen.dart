@@ -272,42 +272,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF4F245A),
-      appBar: const TopBarWithoutMenu(),
-      body: isLoadingUserInfo
-          ? const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-              ),
-            )
-          : userInfoError != null
-              ? ConnectionErrorWidget(
-                  onRetry: _loadUserInfo,
-                )
-              : isBlocked
-                  ? _buildBlockedUserView()
-                  : RefreshIndicator(
-                      onRefresh: _loadUserInfo,
-                      color: const Color(0xFFFDCC87),
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.all(15.0),
+    return PopScope(
+      canPop: true,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF4F245A),
+        appBar: const TopBarWithoutMenu(),
+        body: isLoadingUserInfo
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                ),
+              )
+            : userInfoError != null
+                ? ConnectionErrorWidget(
+                    onRetry: _loadUserInfo,
+                  )
+                : isBlocked
+                    ? _buildBlockedUserView()
+                    : RefreshIndicator(
+                        onRefresh: _loadUserInfo,
+                        color: const Color(0xFFFDCC87),
+                        child: SingleChildScrollView(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildUserHeader(),
-                              const SizedBox(height: 10),
-                              Text(
-                                userData?['bio'] ?? 'No bio available',
-                                style: const TextStyle(color: Colors.white, fontSize: 14),
-                                softWrap: true,
+                              Padding(
+                                padding: const EdgeInsets.all(15.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _buildUserHeader(),
+                                    const SizedBox(height: 10),
+                                    Text(
+                                      userData?['bio'] ?? 'No bio available',
+                                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                                      softWrap: true,
+                                    ),
+                                    const SizedBox(height: 20),
+                                    _buildFollowAndBlockRow(),
+                                    const SizedBox(height: 20),
+                                  ],
+                                ),
                               ),
-                              const SizedBox(height: 20),
-                              _buildFollowAndBlockRow(),
-                              const SizedBox(height: 20),
                               
-                              // Posts section with its own loading state
+                              // Posts section with its own loading state - full width
                               isLoadingPosts
                                 ? const Center(
                                     child: Padding(
@@ -344,7 +352,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                       ),
-                    ),
+      ),
     );
   }
 

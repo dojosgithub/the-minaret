@@ -634,7 +634,10 @@ class _PostPageState extends State<PostScreen> {
                             hintStyle: TextStyle(color: Color(0xB3FDCC87), fontSize: 14),
                           ),
                         ),
-                        const Divider(color: Color(0xFFFDCC87)),
+                        const Divider(
+                          color: Color(0xFFFDCC87),
+                          thickness: 1.0,
+                        ),
                         TextField(
                           controller: _bodyController,
                           maxLines: 5,

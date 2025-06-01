@@ -123,33 +123,49 @@ class _FollowersScreenState extends State<FollowersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        // When user manually pops this screen, return whether any follow status changed
-        Navigator.pop(context, _hasChangedFollowStatus);
-        return false; // We handle the pop ourselves
+    return PopScope(
+      canPop: true,
+      onPopInvoked: (bool didPop) async {
+        if (!didPop) {
+          Navigator.pop(context, _hasChangedFollowStatus);
+        }
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF4F245A),
         appBar: const TopBarWithoutMenu(),
         body: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-              child: Text(
-                widget.title,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+            // Second app bar with back button and title
+            Container(
+              color: const Color(0xFF4F245A),
+              child: Column(
+                children: [
+                  AppBar(
+                    backgroundColor: const Color(0xFF4F245A),
+                    elevation: 0,
+                    leading: IconButton(
+                      icon: const Icon(Icons.arrow_back, color: Color(0xFFFDCC87)),
+                      onPressed: () {
+                        Navigator.pop(context, _hasChangedFollowStatus);
+                      },
+                    ),
+                    title: Text(
+                      widget.title,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  Divider(
+                    color: Colors.grey.shade700,
+                    thickness: 0.5,
+                  ),
+                ],
               ),
             ),
-            Divider(
-              color: Colors.grey.shade700,
-              thickness: 0.5,
-            ),
+            // Main content
             Expanded(
               child: isLoading
                   ? const Center(
