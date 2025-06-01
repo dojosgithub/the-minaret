@@ -35,6 +35,9 @@ class _PostPageState extends State<PostScreen> {
     _titleController.addListener(_onChangesMade);
     _bodyController.addListener(_onChangesMade);
     _loadUserData();
+    
+    // Remove automatic login check that might cause logout loop
+    // We'll handle auth errors in the API responses instead
   }
 
   Future<void> _loadUserData() async {
@@ -628,7 +631,7 @@ class _PostPageState extends State<PostScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Title of Post',
-                            hintStyle: TextStyle(color: Color(0xFFFDCC87)),
+                            hintStyle: TextStyle(color: Color(0xB3FDCC87), fontSize: 14),
                           ),
                         ),
                         const Divider(color: Color(0xFFFDCC87)),
@@ -639,7 +642,7 @@ class _PostPageState extends State<PostScreen> {
                           decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Body Text',
-                            hintStyle: TextStyle(color: Color(0xFFFDCC87)),
+                            hintStyle: TextStyle(color: Color(0xB3FDCC87), fontSize: 13),
                           ),
                         ),
                       ],

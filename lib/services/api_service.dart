@@ -7,6 +7,8 @@ import 'package:http_parser/http_parser.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/material.dart';
+import '../screens/welcome_screen.dart';
 
 class ApiService {
   static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://the-minaret-f6e46d4294b5.herokuapp.com/api';
@@ -25,12 +27,35 @@ class ApiService {
 
   static Future<bool> isLoggedIn() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
-      return token != null;
+      final token = await getToken();
+      if (token == null || token.isEmpty) {
+        return false;
+      }
+      
+      // Don't make API call to validate-token here as that endpoint might not exist
+      // Just check if we have a token for now
+      return true;
     } catch (e) {
       debugPrint('Error checking login status: $e');
       return false;
+    }
+  }
+
+  static Future<void> checkLoginAndRedirect(BuildContext context) async {
+    try {
+      // Only check if token exists
+      final token = await getToken();
+      if (token == null || token.isEmpty) {
+        if (context.mounted) {
+          // Navigate to welcome screen if no token
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+            (route) => false,
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('Error in checkLoginAndRedirect: $e');
     }
   }
 
@@ -360,7 +385,8 @@ class ApiService {
   }
 
   static Future<bool> verifyToken() async {
-    if (_authToken == null) return false;
+    final token = await getToken();
+    if (token == null || token.isEmpty) return false;
     
     try {
       final response = await http.get(
@@ -376,6 +402,7 @@ class ApiService {
         return true;
       } else {
         debugPrint('Token verification failed with status: ${response.statusCode}');
+        // Don't log out automatically here
         return false;
       }
     } catch (e) {
@@ -386,14 +413,22 @@ class ApiService {
 
   static Future<Map<String, dynamic>> getUserProfile() async {
     try {
+      final token = await getToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('No token, please log in again');
+      }
+      
       final response = await http.get(
         Uri.parse('$baseUrl/users/profile'),
         headers: {
-          'Authorization': 'Bearer ${await getToken()}',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
         },
       );
 
-      if (response.statusCode != 200) {
+      if (response.statusCode == 401) {
+        throw Exception('Your session has expired, please log in again');
+      } else if (response.statusCode != 200) {
         throw Exception('Failed to get user profile: ${response.body}');
       }
 
@@ -1113,7 +1148,6 @@ class ApiService {
       
       if (userJson == null || token == null) {
         debugPrint('No user data or token found in SharedPreferences');
-        await logout(); // Clear any invalid data
         return null;
       }
       
@@ -1121,34 +1155,22 @@ class ApiService {
         final userData = json.decode(userJson);
         if (userData is! Map<String, dynamic>) {
           debugPrint('Invalid user data format: not a map');
-          await logout();
           return null;
         }
         
         final userId = userData['_id'];
         if (userId == null) {
           debugPrint('No _id field found in user data');
-          await logout();
-          return null;
-        }
-        
-        // Verify token is still valid
-        final isValid = await verifyToken();
-        if (!isValid) {
-          debugPrint('Token is invalid');
-          await logout();
           return null;
         }
         
         return userId.toString();
       } catch (e) {
         debugPrint('Error parsing user data: $e');
-        await logout();
         return null;
       }
     } catch (e) {
       debugPrint('Error getting current user ID: $e');
-      await logout();
       return null;
     }
   }

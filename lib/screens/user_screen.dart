@@ -34,6 +34,12 @@ class _UserScreenState extends State<UserScreen> {
   void initState() {
     super.initState();
     _loadUserProfile();
+    
+    // Check login validity and redirect if needed
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ApiService.checkLoginAndRedirect(context);
+    });
+
     _scrollController.addListener(_scrollListener);
   }
 
@@ -71,13 +77,7 @@ class _UserScreenState extends State<UserScreen> {
     });
 
     try {
-      // Verify token first
-      final isValid = await ApiService.verifyToken();
-      if (!isValid) {
-        throw Exception('Please log in again');
-      }
-
-      // Load user profile
+      // Load user profile directly without token verification
       final data = await ApiService.getUserProfile();
       debugPrint('User data received: $data');
 
@@ -99,6 +99,16 @@ class _UserScreenState extends State<UserScreen> {
           error = e.toString();
           isLoadingProfile = false;
         });
+        
+        // Only redirect if it's an authentication error
+        if (e.toString().contains('No token') || 
+            e.toString().contains('Token is not valid') || 
+            e.toString().contains('Please log in again')) {
+          // Use a short delay to prevent immediate navigation during build
+          Future.delayed(Duration.zero, () {
+            ApiService.checkLoginAndRedirect(context);
+          });
+        }
       }
     }
   }

@@ -32,17 +32,18 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadFollowedUsers();
     _scrollController.addListener(_scrollListener);
     PostType.typeNotifier.addListener(_handleTypeChange);
+    
+    // Remove automatic login check that might cause logout loop
+    // We'll handle auth errors in the API responses instead
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     // Refresh content filter preference when navigating back to this screen
-    _loadContentFilterPreference().then((_) {
-      if (mounted && _posts.isNotEmpty) {
-        _applyContentFiltering();
-      }
-    });
+    if (mounted) {
+      _loadContentFilterPreference();
+    }
   }
 
   @override
@@ -60,15 +61,19 @@ class _HomeScreenState extends State<HomeScreen> {
       final userData = await ApiService.getUserProfile();
       final filterLevelString = userData['contentFilterLevel'] ?? 'moderate';
       
-      setState(() {
-        _contentFilterLevel = _stringToFilterLevel(filterLevelString);
-      });
+      if (mounted) {
+        setState(() {
+          _contentFilterLevel = _stringToFilterLevel(filterLevelString);
+        });
+      }
     } catch (e) {
       debugPrint('Error loading content filter preference: $e');
       // Default to moderate if there's an error
-      setState(() {
-        _contentFilterLevel = ContentFilterLevel.moderate;
-      });
+      if (mounted) {
+        setState(() {
+          _contentFilterLevel = ContentFilterLevel.moderate;
+        });
+      }
     }
   }
 
@@ -137,6 +142,16 @@ class _HomeScreenState extends State<HomeScreen> {
           _error = e.toString();
           _isLoading = false;
         });
+        
+        // Only redirect if it's an authentication error
+        if (e.toString().contains('No token') || 
+            e.toString().contains('Token is not valid') || 
+            e.toString().contains('Please log in again')) {
+          // Use a short delay to prevent immediate navigation during build
+          Future.delayed(Duration.zero, () {
+            ApiService.checkLoginAndRedirect(context);
+          });
+        }
       }
       debugPrint('Error loading followed users: $e');
     }

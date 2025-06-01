@@ -88,6 +88,7 @@ class MyApp extends StatelessWidget {
           }
           
           final isLoggedIn = snapshot.data ?? false;
+          debugPrint('Initial login state: $isLoggedIn');
           return isLoggedIn ? const MainScreen() : const WelcomeScreen();
         },
       ),
@@ -96,7 +97,11 @@ class MyApp extends StatelessWidget {
   
   Future<bool> _checkLoginState() async {
     try {
-      return await ApiService.isLoggedIn();
+      // Just check if token exists without validation
+      final token = await ApiService.getToken();
+      final hasToken = token != null && token.isNotEmpty;
+      debugPrint('Token exists: $hasToken');
+      return hasToken;
     } catch (e) {
       debugPrint('Error checking login state: $e');
       return false;
