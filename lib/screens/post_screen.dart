@@ -248,7 +248,7 @@ class _PostPageState extends State<PostScreen> {
           title: const Text(
             'Content Warning',
             style: TextStyle(
-              color: Colors.white,
+              color: Colors.red,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -280,7 +280,7 @@ class _PostPageState extends State<PostScreen> {
                   child: Text(
                     '• Contains potentially inappropriate term: "$term"',
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: Colors.red,
                       fontSize: 14,
                     ),
                   ),
@@ -312,7 +312,7 @@ class _PostPageState extends State<PostScreen> {
               child: const Text(
                 'Post Anyway',
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: Colors.red,
                   fontSize: 16,
                 ),
               ),

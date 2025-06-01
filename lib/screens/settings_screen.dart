@@ -167,20 +167,20 @@ class SettingsScreen extends StatelessWidget {
   }
 
   // Function to build menu item
-  Widget _buildMenuItem(BuildContext context, String title, IconData icon, VoidCallback onTap) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: ListTile(
-        leading: Icon(icon, color: Colors.white), 
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white, 
-            fontSize: 18,
-          ),
+Widget _buildMenuItem(BuildContext context, String title, IconData icon, VoidCallback onTap) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: ListTile(
+      leading: Icon(icon, color: title == "Logout" ? Colors.red : Colors.white),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: title == "Logout" ? Colors.red : Colors.white,
+          fontSize: 18,
         ),
-        onTap: onTap,
       ),
-    );
-  }
+      onTap: onTap,
+    ),
+  );
+}
 }
