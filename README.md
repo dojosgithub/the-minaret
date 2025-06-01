@@ -23,15 +23,6 @@ flutter pub get
 flutter run
 ```
 
-## Development Setup
-
-### Backend Development
-```bash
-cd minaret-backend
-npm install
-npm run dev  # Runs with nodemon for hot reload
-```
-
 ### Frontend Development
 ```bash
 # Run with hot reload
@@ -51,35 +42,6 @@ API_BASE_URL= https://the-minaret-f6e46d4294b5.herokuapp.com/api
 ```
 
 Replace the value with your backend URL as needed (see below for device-specific URLs).
-
-The app uses [flutter_dotenv](https://pub.dev/packages/flutter_dotenv) to load environment variables. Make sure to add it to your `pubspec.yaml` dependencies:
-
-```
-dependencies:
-  flutter_dotenv: ^5.0.2
-```
-
-Then run:
-
-```
-flutter pub get
-```
-`
-
-Update the value of `API_BASE_URL` in your `.env` file accordingly.
-
-## Testing
-
-### Backend Tests
-```bash
-cd minaret-backend
-npm test
-```
-
-### Flutter Tests
-```bash
-flutter test
-```
 
 
 ## License
