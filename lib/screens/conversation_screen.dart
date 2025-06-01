@@ -403,7 +403,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       ),
           ),
           Container(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 35),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 50),
             decoration: BoxDecoration(
               color: const Color(0xFF4F245A),
             ),
@@ -435,8 +435,10 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   icon: const Icon(Icons.send, color: Color(0xFFFDCC87)),
                   onPressed: _sendMessage,
                 ),
+                
               ],
             ),
+            
           ),
         ],
       ),
