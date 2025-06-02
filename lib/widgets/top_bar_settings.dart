@@ -78,6 +78,11 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
                         width: 200,
                         height: 45,
                         fit: BoxFit.contain,
+                        placeholderBuilder: (context) => Container(
+                          width: 200,
+                          height: 45,
+                          color: Colors.transparent,
+                        ),
                       ),
                     ),
                   ),

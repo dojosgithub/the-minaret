@@ -1891,7 +1891,7 @@ class _PostState extends State<Post> {
                       const Text(
                         'Report Post',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: Colors.red,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
@@ -2146,7 +2146,7 @@ class _PostState extends State<Post> {
                   const SizedBox(height: 24),
                   Column(
                     children: [
-                      if (isFollowing)
+                      if (isFollowing) ...[
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.grey[700],
@@ -2173,8 +2173,8 @@ class _PostState extends State<Post> {
                             style: TextStyle(color: Colors.white),
                           ),
                         ),
-                      if (isFollowing)
                         const SizedBox(height: 12),
+                      ],
                       
                       if (!isBlocked)
                         ElevatedButton(
@@ -2211,20 +2211,36 @@ class _PostState extends State<Post> {
                       if (!isBlocked)
                         const SizedBox(height: 12),
                       
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      if (isFollowing)
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            side: const BorderSide(color: Color(0xFFFDCC87)),
+                            minimumSize: const Size(double.infinity, 45),
                           ),
-                          side: const BorderSide(color: Color(0xFFFDCC87)),
-                          minimumSize: const Size(double.infinity, 45),
+                          onPressed: () => Navigator.pop(dialogContext),
+                          child: const Text(
+                            'Keep Following',
+                            style: TextStyle(color: Color(0xFFFDCC87)),
+                          ),
                         ),
-                        onPressed: () => Navigator.pop(dialogContext),
-                        child: const Text(
-                          'Keep Following',
-                          style: TextStyle(color: Color(0xFFFDCC87)),
+                      if (!isFollowing)
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            side: const BorderSide(color: Color(0xFFFDCC87)),
+                            minimumSize: const Size(double.infinity, 45),
+                          ),
+                          onPressed: () => Navigator.pop(dialogContext),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Color(0xFFFDCC87)),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ],

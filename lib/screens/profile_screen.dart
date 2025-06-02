@@ -428,7 +428,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 '${userData?['firstName'] ?? ''} ${userData?['lastName'] ?? ''}',
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 18,
+                  fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),

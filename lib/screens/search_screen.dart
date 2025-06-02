@@ -329,6 +329,7 @@ class _SearchScreenState extends State<SearchScreen> {
                         icon: const Icon(Icons.clear, color: Colors.grey),
                         onPressed: () {
                           _searchController.clear();
+                          FocusScope.of(context).unfocus(); // Dismiss keyboard
                         },
                       )
                     : const Icon(Icons.search, color: Colors.grey),
