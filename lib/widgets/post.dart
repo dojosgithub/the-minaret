@@ -1128,7 +1128,6 @@ class _PostState extends State<Post> {
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                               color: Colors.white,
-                              decoration: TextDecoration.underline,
                             ),
                           ),
                         ),
@@ -1139,7 +1138,6 @@ class _PostState extends State<Post> {
                             style: const TextStyle(
                               color: Color(0xFFFDCC87),
                               fontSize: 14,
-                              decoration: TextDecoration.underline,
                             ),
                           ),
                         ),
