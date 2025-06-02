@@ -198,23 +198,27 @@ class _RepostContentState extends State<RepostContent> {
               );
             },
             errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: const Color(0xFF4F245A),
-                padding: const EdgeInsets.all(8),
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.broken_image, color: Color(0xFFFDCC87), size: 24),
-                    SizedBox(height: 4),
-                    Text(
-                      'Failed to load image',
-                      style: TextStyle(
-                        color: Color(0xFFFDCC87),
-                        fontSize: 12,
+              return SizedBox(
+                width: double.infinity,
+                height: 150,
+                child: Container(
+                  color: const Color(0xFF4F245A),
+                  padding: const EdgeInsets.all(8),
+                  child: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.broken_image, color: Color(0xFFFDCC87), size: 24),
+                      SizedBox(height: 4),
+                      Text(
+                        'Failed to load image',
+                        style: TextStyle(
+                          color: Color(0xFFFDCC87),
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             },

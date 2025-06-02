@@ -697,7 +697,7 @@ class _PostPageState extends State<PostScreen> {
                       children: [
                         Icon(Icons.collections, color: Colors.white),
                         SizedBox(width: 10),
-                        Text('Photos / Videos', style: TextStyle(color: Colors.white)),
+                        Text('Photos', style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),
@@ -716,7 +716,7 @@ class _PostPageState extends State<PostScreen> {
                       children: [
                         Icon(Icons.link, color: Colors.white),
                         SizedBox(width: 10),
-                        Text('Link', style: TextStyle(color: Colors.white)),
+                        Text('Links', style: TextStyle(color: Colors.white)),
                       ],
                     ),
                   ),

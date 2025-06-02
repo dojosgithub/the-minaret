@@ -1084,9 +1084,11 @@ class _PostState extends State<Post> {
     return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onTap: () => _navigateToProfile(context),
-            child: Container(
+          Container(
+            margin: const EdgeInsets.only(top: 6), // Add margin to align with the middle of name/username
+            child: GestureDetector(
+              onTap: () => _navigateToProfile(context),
+              child: Container(
                 padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
@@ -1104,13 +1106,13 @@ class _PostState extends State<Post> {
                   child: widget.profilePic.isEmpty ? const Icon(Icons.person, size: 17, color: Color(0xFFFDCC87)) : null,
                   backgroundColor: const Color(0xFF3D1B45),
                 ),
+              ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1167,9 +1169,9 @@ class _PostState extends State<Post> {
                                       ),
                                     )
                                   : Icon(
-                              _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                              color: const Color(0xFFFDCC87),
-                            ),
+                                      _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                                      color: const Color(0xFFFDCC87),
+                                    ),
                               onPressed: _toggleSave,
                             ),
                           ],
@@ -1178,25 +1180,6 @@ class _PostState extends State<Post> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 1),
-                if (!widget.isRepost) ...[
-                  Text(
-                    widget.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    widget.text,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
@@ -1230,9 +1213,33 @@ class _PostState extends State<Post> {
           _buildUserInfo(),
           if (!widget.isRepost) ...[
             const SizedBox(height: 5),
-            _buildLinks(),
+            if (widget.title.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            if (widget.text.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 5),
+                child: Text(
+                  widget.text,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             const SizedBox(height: 5),
             _buildMediaGrid(),
+            const SizedBox(height: 5),
+            _buildLinks(),
           ],
           if (widget.isRepost && widget.repostCaption != null && widget.repostCaption!.isNotEmpty) ...[
             const SizedBox(height: 8),

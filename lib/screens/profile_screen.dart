@@ -439,7 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               Text(
                 '@${userData?['username'] ?? ''}',
-                style: const TextStyle(color: const Color(0xFFFDCC87), fontSize: 16),
+                style: const TextStyle(color: const Color(0xFFFDCC87), fontSize: 14),
               ),
             ],
           ),
@@ -457,7 +457,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             isFollowing ? 'Following' : 'Follow',
             style: const TextStyle(
               color: Colors.black,
-              fontSize: 14,
+              fontSize: 12,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -598,7 +598,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Text(
                   isBlocked ? 'Unblock User' : 'Block User',
                   style: TextStyle(
-                    color: isBlocked ? const Color(0xFFFDCC87) : Colors.white,
+                    color: isBlocked ? const Color(0xFFFDCC87) : Colors.red,
                     fontSize: 14,
                   ),
                 ),
