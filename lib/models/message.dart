@@ -6,9 +6,9 @@ class Message {
   final String recipientId;
   final String content;
   final DateTime createdAt;
-  final bool isRead;
-  final List<MessageMedia>? media;
+  final bool read;
   final String? postId;
+  final String? profileId;
 
   Message({
     required this.id,
@@ -16,49 +16,64 @@ class Message {
     required this.recipientId,
     required this.content,
     required this.createdAt,
-    required this.isRead,
-    this.media,
+    required this.read,
     this.postId,
+    this.profileId,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
-    debugPrint('Parsing message JSON: $json');
     try {
-      // Handle sender ID - it could be a string or a populated object
+      // Handle sender which can be either an object or a string ID
       String senderId;
-      if (json['sender'] is Map<String, dynamic>) {
-        senderId = json['sender']['_id']?.toString() ?? '';
+      if (json['sender'] is Map) {
+        senderId = json['sender']['_id'] ?? '';
       } else {
         senderId = json['sender']?.toString() ?? '';
       }
-
-      // Handle post - it could be a string ID or a populated object
+      
+      // Handle recipient which can be either an object or a string ID
+      String recipientId;
+      if (json['recipient'] is Map) {
+        recipientId = json['recipient']['_id'] ?? '';
+      } else {
+        recipientId = json['recipient']?.toString() ?? '';
+      }
+      
+      // Handle post which can be either an object or a string ID
       String? postId;
       if (json['post'] != null) {
-        if (json['post'] is Map<String, dynamic>) {
-          postId = json['post']['_id']?.toString();
+        if (json['post'] is Map) {
+          postId = json['post']['_id'];
         } else {
-          postId = json['post']?.toString();
+          postId = json['post'].toString();
         }
       }
-
+      
+      // Handle profile which can be either an object or a string ID
+      String? profileId;
+      if (json['profile'] != null) {
+        if (json['profile'] is Map) {
+          profileId = json['profile']['_id'];
+        } else {
+          profileId = json['profile'].toString();
+        }
+      }
+      
       return Message(
-        id: json['_id']?.toString() ?? '',
+        id: json['_id'] ?? '',
         senderId: senderId,
-        recipientId: json['recipient']?.toString() ?? '',
-        content: json['content']?.toString() ?? '',
-        createdAt: json['createdAt'] != null 
+        recipientId: recipientId,
+        content: json['content'] ?? '',
+        createdAt: json['createdAt'] != null
             ? DateTime.parse(json['createdAt'].toString())
             : DateTime.now(),
-        isRead: json['read'] ?? false,
-        media: json['media'] != null 
-            ? (json['media'] as List).map((m) => MessageMedia.fromJson(m)).toList()
-            : null,
+        read: json['read'] ?? false,
         postId: postId,
+        profileId: profileId,
       );
     } catch (e) {
-      debugPrint('Error parsing message: $e');
-      debugPrint('Problematic JSON: $json');
+      debugPrint('Error parsing Message: $e');
+      debugPrint('JSON data: $json');
       rethrow;
     }
   }
@@ -66,13 +81,13 @@ class Message {
   Map<String, dynamic> toJson() {
     return {
       '_id': id,
-      'sender': senderId,
-      'recipient': recipientId,
+      'sender': {'_id': senderId},
+      'recipient': {'_id': recipientId},
       'content': content,
       'createdAt': createdAt.toIso8601String(),
-      'read': isRead,
-      'media': media?.map((m) => m.toJson()).toList(),
-      'post': postId,
+      'read': read,
+      if (postId != null) 'post': postId,
+      if (profileId != null) 'profile': profileId,
     };
   }
 }

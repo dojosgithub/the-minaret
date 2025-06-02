@@ -1232,7 +1232,7 @@ class ApiService {
     }
   }
 
-  static Future<void> sendMessage(String recipientId, String content, {String? postId}) async {
+  static Future<void> sendMessage(String recipientId, String content, {String? postId, String? profileId}) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/messages'),
@@ -1241,6 +1241,7 @@ class ApiService {
           'recipient': recipientId,
           'content': content,
           if (postId != null) 'postId': postId,
+          if (profileId != null) 'profileId': profileId,
         }),
       );
 

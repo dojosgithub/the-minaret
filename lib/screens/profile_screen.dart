@@ -4,6 +4,11 @@ import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 import '../screens/followers_screen.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'dart:async';
+import '../services/message_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -555,9 +560,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onSelected: (value) {
           if (value == 'block') {
             _toggleBlockUser();
+          } else if (value == 'share') {
+            _showShareProfileDialog();
           }
         },
         itemBuilder: (context) => [
+          PopupMenuItem<String>(
+            value: 'share',
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.share,
+                  color: Color(0xFFFDCC87),
+                  size: 18,
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  'Share Profile',
+                  style: TextStyle(
+                    color: Color(0xFFFDCC87),
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
+          ),
           PopupMenuItem<String>(
             value: 'block',
             child: Row(
@@ -676,5 +703,431 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       },
     );
+  }
+
+  // Add a method to show the share profile dialog
+  void _showShareProfileDialog() {
+    final TextEditingController _searchController = TextEditingController();
+    List<Map<String, dynamic>> _searchResults = [];
+    bool _isSearching = false;
+    Timer? _debounce;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF4F245A),
+      isScrollControlled: true,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            void searchUsers(String query) {
+              if (_debounce?.isActive ?? false) _debounce?.cancel();
+              
+              _debounce = Timer(const Duration(milliseconds: 500), () async {
+                if (query.isEmpty) {
+                  setState(() {
+                    _isSearching = false;
+                    _searchResults = [];
+                  });
+                  return;
+                }
+
+                setState(() {
+                  _isSearching = true;
+                });
+
+                try {
+                  final searchResults = await ApiService.searchUsers(query);
+                  final currentUserId = await ApiService.currentUserId;
+                  // Filter out current user and the profile being viewed from API results
+                  final filteredResults = searchResults.where((user) => 
+                    user['_id'] != currentUserId && user['_id'] != widget.userId
+                  ).toList();
+                  setState(() {
+                    _searchResults = filteredResults;
+                    _isSearching = false;
+                  });
+                } catch (e) {
+                  debugPrint('Error searching users: $e');
+                  setState(() {
+                    _isSearching = false;
+                  });
+                }
+              });
+            }
+
+            Widget buildSearchResults() {
+              if (_isSearching) {
+                return const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                    ),
+                  ),
+                );
+              }
+              
+              if (_searchResults.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8.0, top: 16.0, bottom: 8.0),
+                    child: Text(
+                      'Search Results',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _searchResults.length,
+                      itemBuilder: (context, index) {
+                        final user = _searchResults[index];
+                        return GestureDetector(
+                          onTap: () async {
+                            Navigator.pop(context);
+                            try {
+                              // Get profile name for the message
+                              final profileName = userData?['firstName'] != null && userData?['lastName'] != null
+                                  ? '${userData?['firstName']} ${userData?['lastName']}'
+                                  : userData?['username'] ?? 'this profile';
+                              
+                              await ApiService.sendMessage(
+                                user['_id'],
+                                'Check out ${profileName}\'s profile',
+                                profileId: widget.userId,
+                              );
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Profile shared successfully')),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Failed to share profile: $e')),
+                                );
+                              }
+                            }
+                          },
+                          child: Container(
+                            width: 80,
+                            margin: const EdgeInsets.only(right: 16),
+                            child: Column(
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: const Color(0xFFFDCC87),
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: ClipOval(
+                                    child: Image.network(
+                                      ApiService.resolveImageUrl(user['profileImage'] ?? ''),
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) {
+                                        return const Icon(Icons.person, size: 30, color: Color(0xFFFDCC87));
+                                      },
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  user['username'] ?? '',
+                                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(16),
+              // Make sure the bottom sheet is tall enough to accommodate the search
+              height: MediaQuery.of(context).size.height * 0.7,
+              decoration: BoxDecoration(
+                color: const Color(0xFF3D1B45),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(15), 
+                  topRight: Radius.circular(15)
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'Share Profile',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // User search field
+                  TextField(
+                    controller: _searchController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Search users...',
+                      hintStyle: const TextStyle(color: Colors.grey),
+                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      filled: true,
+                      fillColor: const Color(0xFF4F245A),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    onChanged: searchUsers,
+                  ),
+                  
+                  // Search results
+                  buildSearchResults(),
+                  
+                  if (_searchResults.isNotEmpty)
+                    const Divider(color: Color(0xFFFDCC87), height: 32),
+                  
+                  // Recent users section - load only once
+                  FutureBuilder<List<dynamic>>(
+                    future: _loadRecentUsers(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator(color: Color(0xFFFDCC87)));
+                      }
+                      if (snapshot.hasError) {
+                        return const Center(child: Text('Error loading recent users', style: TextStyle(color: Colors.white)));
+                      }
+                      final users = snapshot.data ?? [];
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Send To',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            height: 100,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: users.length,
+                              itemBuilder: (context, index) {
+                                final user = users[index];
+                                return GestureDetector(
+                                  onTap: () async {
+                                    Navigator.pop(context);
+                                    try {
+                                      // Get profile name for the message
+                                      final profileName = userData?['firstName'] != null && userData?['lastName'] != null
+                                          ? '${userData?['firstName']} ${userData?['lastName']}'
+                                          : userData?['username'] ?? 'this profile';
+                                      
+                                      await ApiService.sendMessage(
+                                        user['id'],
+                                        'Check out ${profileName}\'s profile',
+                                        profileId: widget.userId,
+                                      );
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Profile shared successfully')),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(content: Text('Failed to share profile: $e')),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 80,
+                                    margin: const EdgeInsets.only(right: 16),
+                                    child: Column(
+                                      children: [
+                                        Container(
+                                          width: 60,
+                                          height: 60,
+                                          decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: const Color(0xFFFDCC87),
+                                              width: 2,
+                                            ),
+                                          ),
+                                          child: ClipOval(
+                                            child: Image.network(
+                                              ApiService.resolveImageUrl(user['profilePicture'] ?? ''),
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return const Icon(Icons.person, size: 30, color: Color(0xFFFDCC87));
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          user['username'] ?? '',
+                                          style: const TextStyle(color: Colors.white, fontSize: 12),
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  // Share options section
+                  Expanded(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildShareOption(
+                          icon: Icons.copy,
+                          label: 'Copy Link',
+                          onTap: () {
+                            final username = userData?['username'] ?? '';
+                            Clipboard.setData(ClipboardData(
+                              text: 'https://minaret.com/profile/$username',
+                            ));
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Profile link copied to clipboard')),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildShareOption({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: const Color(0xFF4F245A),
+              shape: BoxShape.circle,
+              border: Border.all(color: const Color(0xFFFDCC87)),
+            ),
+            child: Icon(icon, color: const Color(0xFFFDCC87)),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<List<dynamic>> _loadRecentUsers() async {
+    try {
+      final List<dynamic> uniqueUsers = [];
+      final Set<String> addedUserIds = {};
+      
+      // First try to get recent conversations
+      final conversations = await MessageService.getConversations();
+      if (conversations.isNotEmpty) {
+        // Get current user's ID
+        final currentUserId = await ApiService.currentUserId;
+        if (currentUserId == null) return [];
+
+        for (final conv in conversations) {
+          // Find the other participant
+          final otherParticipant = conv.participants.firstWhere(
+            (p) => p['_id'] != currentUserId,
+            orElse: () => conv.participants.first,
+          );
+          
+          final userId = otherParticipant['_id'];
+          if (userId != null && !addedUserIds.contains(userId) && userId != widget.userId) {
+            addedUserIds.add(userId);
+            uniqueUsers.add({
+              'id': userId,
+              'username': otherParticipant['username'],
+              'firstName': otherParticipant['firstName'],
+              'lastName': otherParticipant['lastName'],
+              'profilePicture': otherParticipant['profileImage'],
+            });
+          }
+        }
+      }
+      
+      // Then add followed users that haven't been added yet
+      try {
+        final followedUsers = await ApiService.getFollowedUsers();
+        for (final user in followedUsers) {
+          final userId = user['_id'];
+          if (userId != null && !addedUserIds.contains(userId) && userId != widget.userId) {
+            addedUserIds.add(userId);
+            uniqueUsers.add({
+              'id': userId,
+              'username': user['username'],
+              'firstName': user['firstName'],
+              'lastName': user['lastName'],
+              'profilePicture': user['profileImage'],
+            });
+          }
+        }
+      } catch (e) {
+        debugPrint('Error loading followed users: $e');
+      }
+      
+      return uniqueUsers;
+    } catch (e) {
+      debugPrint('Error loading recent users: $e');
+      return [];
+    }
   }
 } 

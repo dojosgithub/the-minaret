@@ -3,6 +3,7 @@ import '../models/message.dart';
 import '../services/message_service.dart';
 import '../services/api_service.dart';
 import '../screens/post_detail_screen.dart';
+import '../screens/profile_screen.dart';
 import '../widgets/top_bar_without_menu.dart';
 
 class ConversationScreen extends StatefulWidget {
@@ -95,8 +96,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
       final messages = await MessageService.getMessages(widget.conversationId);
       debugPrint('Loaded ${messages.length} messages');
       
+      // Ensure we have valid message objects
+      List<Message> validMessages = [];
+      for (final message in messages) {
+        try {
+          // Just accessing these properties to see if they're properly typed
+          final senderId = message.senderId;
+          final recipientId = message.recipientId;
+          validMessages.add(message);
+        } catch (e) {
+          debugPrint('Skipping invalid message: $e');
+        }
+      }
+      
       setState(() {
-        _messages = messages;
+        _messages = validMessages;
         _isLoading = false;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
@@ -155,6 +169,15 @@ class _ConversationScreenState extends State<ConversationScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => PostDetailScreen(postId: postId),
+      ),
+    );
+  }
+
+  void _handleProfileTap(String profileId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProfileScreen(userId: profileId),
       ),
     );
   }
@@ -372,6 +395,97 @@ class _ConversationScreenState extends State<ConversationScreen> {
                                                               overflow: TextOverflow.ellipsis,
                                                             ),
                                                           ],
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          if (message.profileId != null)
+                                            GestureDetector(
+                                              onTap: () => _handleProfileTap(message.profileId!),
+                                              child: Container(
+                                                width: MediaQuery.of(context).size.width * 0.5,
+                                                padding: const EdgeInsets.all(12),
+                                                margin: const EdgeInsets.symmetric(vertical: 8),
+                                                decoration: BoxDecoration(
+                                                  color: isMe ? const Color(0xFF9D3267) : const Color(0xFFFDCC87),
+                                                  borderRadius: BorderRadius.circular(15),
+                                                  border: Border.all(
+                                                    color: const Color(0xFFFDCC87).withOpacity(0.5),
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Center(
+                                                  child: FutureBuilder<Map<String, dynamic>>(
+                                                    future: ApiService.getUserById(message.profileId!),
+                                                    builder: (context, snapshot) {
+                                                      if (snapshot.connectionState == ConnectionState.waiting) {
+                                                        return const Center(
+                                                          child: CircularProgressIndicator(
+                                                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                                          ),
+                                                        );
+                                                      }
+                                                      if (snapshot.hasError) {
+                                                        return const Center(
+                                                          child: Text(
+                                                            'Profile is Unavailable',
+                                                            style: TextStyle(
+                                                              color: Colors.white70,
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                      final profile = snapshot.data;
+                                                      if (profile == null) {
+                                                        return const Center(
+                                                          child: Text(
+                                                            'Profile not found',
+                                                            style: TextStyle(
+                                                              color: Colors.white70,
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                        );
+                                                      }
+                                                      return Row(
+                                                        children: [
+                                                          CircleAvatar(
+                                                            radius: 20,
+                                                            backgroundImage: profile['profileImage'] != null && profile['profileImage'].isNotEmpty
+                                                                ? NetworkImage(ApiService.resolveImageUrl(profile['profileImage']))
+                                                                : const AssetImage('assets/default_profile.png') as ImageProvider,
+                                                          ),
+                                                          const SizedBox(width: 8),
+                                                          Expanded(
+                                                            child: Column(
+                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                              children: [
+                                                                Text(
+                                                                  '${profile['firstName'] ?? ''} ${profile['lastName'] ?? ''}',
+                                                                  style: TextStyle(
+                                                                    color: isMe ? Colors.white : Colors.black,
+                                                                    fontWeight: FontWeight.bold,
+                                                                    fontSize: 14,
+                                                                  ),
+                                                                  maxLines: 1,
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                ),
+                                                                Text(
+                                                                  '@${profile['username'] ?? ''}',
+                                                                  style: TextStyle(
+                                                                    color: isMe ? Colors.white70 : Colors.black87,
+                                                                    fontSize: 12,
+                                                                  ),
+                                                                  maxLines: 1,
+                                                                  overflow: TextOverflow.ellipsis,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
                                                         ],
                                                       );
                                                     },

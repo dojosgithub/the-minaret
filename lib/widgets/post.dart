@@ -1084,10 +1084,10 @@ class _PostState extends State<Post> {
     return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-        GestureDetector(
-          onTap: () => _navigateToProfile(context),
-          child: Container(
-                padding: const EdgeInsets.all(3),
+          GestureDetector(
+            onTap: () => _navigateToProfile(context),
+            child: Container(
+                padding: const EdgeInsets.all(2),
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: Color(0xFFFDCC87),
@@ -1096,110 +1096,111 @@ class _PostState extends State<Post> {
                   backgroundImage: widget.profilePic.startsWith('http') || widget.profilePic.startsWith('/')
                       ? NetworkImage(ApiService.resolveImageUrl(widget.profilePic))
                       : AssetImage(widget.profilePic) as ImageProvider,
-                  radius: 25,
+                  radius: 17,
                   onBackgroundImageError: (_, __) {
                     // This will be called if the profile image fails to load
                     debugPrint('Failed to load profile image: ${widget.profilePic}');
                   },
-                  child: widget.profilePic.isEmpty ? const Icon(Icons.person, size: 25, color: Color(0xFFFDCC87)) : null,
+                  child: widget.profilePic.isEmpty ? const Icon(Icons.person, size: 17, color: Color(0xFFFDCC87)) : null,
                   backgroundColor: const Color(0xFF3D1B45),
-            ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                        onTap: () => _navigateToProfile(context),
-                              child: Text(
-                                widget.name,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
+                        GestureDetector(
+                          onTap: () => _navigateToProfile(context),
+                          child: Text(
+                            widget.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                              color: Colors.white,
+                              decoration: TextDecoration.underline,
                             ),
-                            GestureDetector(
-                        onTap: () => _navigateToProfile(context),
-                              child: Text(
-                                '@${widget.username}',
-                                style: const TextStyle(
-                                  color: Color(0xFFFDCC87),
-                                  fontSize: 14,
-                                  decoration: TextDecoration.underline,
-                                ),
-                              ),
-                            ),
-                          ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            getTimeAgo(DateTime.parse(widget.createdAt)),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.6),
-                              fontSize: 12,
-                            ),
+                          ),
                         ),
-                        IconButton(
-                            icon: _isLoading
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                                    ),
-                                  )
-                                : Icon(
-                            _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
-                            color: const Color(0xFFFDCC87),
+                        GestureDetector(
+                          onTap: () => _navigateToProfile(context),
+                          child: Text(
+                            '@${widget.username}',
+                            style: const TextStyle(
+                              color: Color(0xFFFDCC87),
+                              fontSize: 14,
+                              decoration: TextDecoration.underline,
+                            ),
                           ),
-                            onPressed: _toggleSave,
-                          ),
-                        ],
-                      ),
-                    ],
                         ),
                       ],
                     ),
-              const SizedBox(height: 1),
-              if (!widget.isRepost) ...[
-                Text(
-                  widget.title,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              getTimeAgo(DateTime.parse(widget.createdAt)),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.6),
+                                fontSize: 12,
+                              ),
+                            ),
+                            IconButton(
+                              icon: _isLoading
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                                      ),
+                                    )
+                                  : Icon(
+                              _isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+                              color: const Color(0xFFFDCC87),
+                            ),
+                              onPressed: _toggleSave,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 5),
-                    Text(
-                      widget.text,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-              ],
                   ],
                 ),
-              ),
-            ],
+                const SizedBox(height: 1),
+                if (!widget.isRepost) ...[
+                  Text(
+                    widget.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    widget.text,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
     );
   }
 
@@ -1281,7 +1282,7 @@ class _PostState extends State<Post> {
                     _upvoteCount.toString(),
                     style: TextStyle(
                       color: _isUpvoted ? const Color(0xFFFDCC87) : Colors.white,
-                  ),
+                    ),
                   ),
                 ],
               ),
@@ -2110,7 +2111,7 @@ class _PostState extends State<Post> {
                                           widget.profilePic.startsWith('/'))
                             ? NetworkImage(ApiService.resolveImageUrl(widget.profilePic))
                             : const AssetImage('assets/default_profile.png') as ImageProvider,
-                          radius: 20,
+                          radius: 17,
                           onBackgroundImageError: (_, __) {
                             // Image failed to load
                             debugPrint('Failed to load profile image in action dialog');
