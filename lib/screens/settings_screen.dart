@@ -9,6 +9,7 @@ import 'content_filter_screen.dart';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import 'welcome_screen.dart';
+import 'account_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -112,6 +113,12 @@ class SettingsScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
+                  _buildMenuItem(context, "Account", Icons.manage_accounts, () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const AccountSettingsScreen()),
+                    );
+                  }),
                   _buildMenuItem(context, "Notifications", Icons.notifications_outlined, () {
                     Navigator.push(
                       context,
@@ -168,14 +175,17 @@ class SettingsScreen extends StatelessWidget {
 
   // Function to build menu item
 Widget _buildMenuItem(BuildContext context, String title, IconData icon, VoidCallback onTap) {
+  final bool isDangerous = title == "Logout" ;
+  final Color textColor = isDangerous ? Colors.red : Colors.white;
+  
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 10),
     child: ListTile(
-      leading: Icon(icon, color: title == "Logout" ? Colors.red : Colors.white),
+      leading: Icon(icon, color: textColor),
       title: Text(
         title,
         style: TextStyle(
-          color: title == "Logout" ? Colors.red : Colors.white,
+          color: textColor,
           fontSize: 18,
         ),
       ),

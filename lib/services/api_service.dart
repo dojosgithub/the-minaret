@@ -1271,6 +1271,41 @@ class ApiService {
     }
   }
 
+  static Future<void> deleteAccount(String userId, String password) async {
+    try {
+      // Make sure the request has proper content-type
+      final headers = await getHeaders();
+      headers['Content-Type'] = 'application/json';
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/users/delete-account/$userId'),
+        headers: headers,
+        body: json.encode({
+          'password': password,
+        }),
+      );
+
+      // Add better error handling
+      if (response.statusCode != 200) {
+        try {
+          final error = json.decode(response.body);
+          throw Exception(error['message'] ?? 'Failed to delete account');
+        } catch (jsonError) {
+          // If response is not valid JSON
+          throw Exception('Failed to delete account: ${response.body.substring(0, 100)}...');
+        }
+      }
+      
+      // Clear all local user data
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear(); // Clear all stored preferences
+      _authToken = null;
+    } catch (e) {
+      debugPrint('Error deleting account: $e');
+      rethrow;
+    }
+  }
+
   static Future<void> repostPost(String postId, String caption) async {
     try {
       final response = await http.post(
