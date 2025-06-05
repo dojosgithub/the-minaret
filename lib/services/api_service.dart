@@ -1277,6 +1277,12 @@ class ApiService {
       final headers = await getHeaders();
       headers['Content-Type'] = 'application/json';
       
+      // First, clear the token locally to prevent showing errors later if the server returns an error
+      _authToken = null;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('token');
+      await prefs.remove('user');
+      
       final response = await http.post(
         Uri.parse('$baseUrl/users/delete-account/$userId'),
         headers: headers,
@@ -1296,10 +1302,8 @@ class ApiService {
         }
       }
       
-      // Clear all local user data
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.clear(); // Clear all stored preferences
-      _authToken = null;
+      // Complete clearing of local data if not done already
+      await prefs.clear();
     } catch (e) {
       debugPrint('Error deleting account: $e');
       rethrow;

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import 'welcome_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountSettingsScreen extends StatelessWidget {
   const AccountSettingsScreen({super.key});
@@ -236,33 +237,16 @@ class AccountSettingsScreen extends StatelessWidget {
                                 (route) => false,
                               );
                             }
-                          } catch (e) {
-                            if (context.mounted) {
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Failed to delete account: ${e.toString()}'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
 
-                          try {
-                            setState(() {
-                              isLoading = true;
-                            });
-                            
-                            final user = await ApiService.getUserProfile();
-                            final userId = user['_id'];
-                            
                             await ApiService.deleteAccount(
                               userId,
                               passwordController.text,
                             );
                             
-                            // Clear all user data and navigate to welcome screen
-                            await ApiService.logout();
+                            // No need to call logout separately - account deletion already clears tokens
+                            // Just clear local storage
+                            final prefs = await SharedPreferences.getInstance();
+                            await prefs.clear();
                             
                             if (context.mounted) {
                               Navigator.pushAndRemoveUntil(

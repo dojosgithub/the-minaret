@@ -51,15 +51,13 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
                     alignment: Alignment.bottomCenter,
                     child: Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: SvgPicture.asset(
-                        'assets/logo.svg',
+                      child: SizedBox(
                         width: 200,
                         height: 45,
-                        fit: BoxFit.contain,
-                        placeholderBuilder: (context) => Container(
-                          width: 200,
-                          height: 45,
-                          color: Colors.transparent,
+                        child: SvgPicture.asset(
+                          'assets/logo.svg',
+                          fit: BoxFit.contain,
+                          semanticsLabel: 'Minaret Logo',
                         ),
                       ),
                     ),
