@@ -1420,58 +1420,50 @@ class ApiService {
     }
   }
 
-  static Future<bool> reportContent({
+  static Future<void> reportContent({
     String? postId,
-    String? userId,
     String? commentId,
+    String? userId,
     required String contentType,
     required String reason,
-    String? additionalContext,
+    String additionalContext = '',
   }) async {
     try {
-      // Create report payload based on content type
-      final Map<String, dynamic> payload = {
-        'contentType': contentType, // 'post', 'user', or 'comment'
-        'reason': reason,
-        'additionalContext': additionalContext ?? '',
-      };
+      final url = '$baseUrl/reports';
+      final token = await getToken();
       
-      // Add the appropriate ID based on content type
-      if (contentType == 'post' && postId != null) {
-        payload['postId'] = postId;
-      } else if (contentType == 'user' && userId != null) {
-        payload['userId'] = userId;
-      } else if (contentType == 'comment' && commentId != null) {
-        payload['commentId'] = commentId;
-        // For comments, we need the postId too if available
-        if (postId != null) {
-          payload['postId'] = postId;
-        }
-      } else {
-        throw Exception('Invalid content type or missing ID');
+      // Validate parameters based on content type
+      if (contentType == 'post' && postId == null) {
+        throw Exception('Post ID is required for reporting a post');
       }
-
+      if (contentType == 'comment' && (commentId == null || postId == null)) {
+        throw Exception('Comment ID and Post ID are required for reporting a comment');
+      }
+      if (contentType == 'user' && userId == null) {
+        throw Exception('User ID is required for reporting a user');
+      }
+      
       final response = await http.post(
-        Uri.parse('$baseUrl/reports'),
-        headers: await getHeaders(),
-        body: json.encode(payload),
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({
+          'postId': postId,
+          'commentId': commentId,
+          'userId': userId,
+          'contentType': contentType,
+          'reason': reason,
+          'additionalContext': additionalContext,
+        }),
       );
-
-      if (response.statusCode == 201) {
-        return true;
-      } else if (response.statusCode == 400) {
-        // Check if error is because content was already reported
-        final error = json.decode(response.body);
-        if (error['message']?.contains('already reported') == true) {
-          throw Exception('You have already reported this content');
-        }
-        throw Exception(error['message'] ?? 'Failed to report content');
-      } else {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Failed to report content');
+      
+      if (response.statusCode != 201) {
+        final errorData = jsonDecode(response.body);
+        throw Exception(errorData['message'] ?? 'Failed to report content');
       }
     } catch (e) {
-      debugPrint('Error reporting content: $e');
       rethrow;
     }
   }
