@@ -1673,6 +1673,8 @@ class _PostState extends State<Post> {
                     _showReplies[comment['_id']] = true;
                   });
                 },
+                commentId: comment['_id'],
+                postId: widget.id,
               ),
               if (replies.isNotEmpty) ...[
                 Padding(
@@ -1792,76 +1794,6 @@ class _PostState extends State<Post> {
 
   // Method to show the report dialog
   void _showReportDialog(BuildContext context) {
-    // Store the BuildContext at the class level to ensure it remains valid
-    final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-    // Show the check dialog first without any async operations
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        // Check if user is the author in a separate function after dialog is shown
-        _checkIfUserCanReport(dialogContext);
-        
-        return Dialog(
-          backgroundColor: const Color(0xFF3D1B45),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Please Wait...',
-                  style: TextStyle(color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  // Check if user can report, and then show appropriate dialog
-  void _checkIfUserCanReport(BuildContext dialogContext) {
-    ApiService.getUserProfile().then((currentUser) {
-      final currentUserId = currentUser['_id'];
-      
-      // Pop the loading dialog first
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-      
-      // If user is the author, show error message
-      if (widget.authorId == currentUserId) {
-        if (mounted) {
-          _showSnackBar('You cannot report your own post');
-        }
-        return;
-      }
-      
-      // If user can report, show the report dialog
-      if (mounted && dialogContext.mounted) {
-        _showFullReportDialogSync(dialogContext);
-      }
-    }).catchError((error) {
-      // Pop the loading dialog on error
-      if (dialogContext.mounted) {
-        Navigator.of(dialogContext).pop();
-      }
-      
-      if (mounted) {
-        _showSnackBar('Error checking user status: ${error.toString()}');
-      }
-    });
-  }
-
-  // Show the full report dialog synchronously (not using async/await)
-  void _showFullReportDialogSync(BuildContext contextToUse) {
     final List<String> reportReasons = [
       'Inappropriate Content',
       'Misinformation',
@@ -1876,9 +1808,9 @@ class _PostState extends State<Post> {
     String? selectedReason;
     final TextEditingController _additionalContextController = TextEditingController();
     bool _isSubmitting = false;
-    
+
     showDialog(
-      context: contextToUse,
+      context: context,
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (builderContext, setState) {
@@ -1996,12 +1928,13 @@ class _PostState extends State<Post> {
                                     });
                                     
                                     // Submit the report
-                                    ApiService.reportPost(
+                                    ApiService.reportContent(
                                       postId: widget.id,
+                                      contentType: 'post',
                                       reason: selectedReason!,
                                       additionalContext: _additionalContextController.text.trim()
                                     ).then((_) {
-                                      // Success! Close dialog and show action prompt
+                                      // Success! Close dialog
                                       Navigator.pop(dialogContext);
                                       
                                       // Show success message
@@ -2010,8 +1943,7 @@ class _PostState extends State<Post> {
                                       
                                         // Show action prompt with the context directly from widget tree
                                         if (mounted) {
-                                          // Instead of using post-frame callback, directly call with a delay
-                                          // This allows the navigator transition to complete
+                                          // Use a delay to ensure the dialog transition is complete
                                           Future.delayed(const Duration(milliseconds: 500), () {
                                             if (mounted) {
                                               _showActionPromptDirectly();

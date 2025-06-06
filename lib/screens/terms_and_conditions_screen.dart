@@ -11,6 +11,30 @@ class TermsAndConditionsScreen extends StatefulWidget {
 
 class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
   bool _isAccepted = false;
+  bool _hasScrolledToBottom = false;
+  final ScrollController _scrollController = ScrollController();
+  
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_scrollListener);
+  }
+  
+  @override
+  void dispose() {
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    super.dispose();
+  }
+  
+  void _scrollListener() {
+    if (_scrollController.offset >= _scrollController.position.maxScrollExtent &&
+        !_scrollController.position.outOfRange) {
+      setState(() {
+        _hasScrolledToBottom = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,6 +88,7 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                     border: Border.all(color: const Color(0xFFFDCC87), width: 1),
                   ),
                   child: SingleChildScrollView(
+                    controller: _scrollController,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -72,6 +97,18 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                           "By using Minaret, you agree to be bound by this End User License Agreement. "
                           "This agreement grants you a non-exclusive, non-transferable license to use the app for personal, "
                           "non-commercial purposes."
+                        ),
+                        
+                        _buildSectionTitle("ZERO TOLERANCE FOR OBJECTIONABLE CONTENT"),
+                        _buildParagraph(
+                          "Minaret has a ZERO TOLERANCE policy for objectionable content. Users who post, share, or engage "
+                          "with content that violates our guidelines will face immediate consequences, including but not limited "
+                          "to content removal, account suspension, or permanent account termination."
+                        ),
+                        _buildParagraph(
+                          "We take our community standards seriously and actively monitor content to maintain a safe and respectful "
+                          "environment for all users. By accepting these terms, you acknowledge your responsibility to help maintain "
+                          "these standards and agree to report any objectionable content you encounter."
                         ),
                         
                         _buildSectionTitle("Content Policy"),
@@ -94,11 +131,15 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                         _buildBulletPoint("Impersonation of others or misrepresentation"),
                         _buildBulletPoint("Spam, phishing, or other disruptive behaviors"),
                         
-                        _buildSectionTitle("Content Moderation"),
+                        _buildSectionTitle("Content Moderation and Reporting"),
                         _buildParagraph(
                           "Minaret employs automated and manual content moderation. Content that violates our policies will be removed, "
-                          "and accounts that repeatedly violate our terms may be suspended or terminated. "
-                          "Users can report objectionable content, which will be reviewed promptly."
+                          "and accounts that repeatedly violate our terms may be suspended or terminated."
+                        ),
+                        _buildParagraph(
+                          "All users have the ability and responsibility to report objectionable content through the app's reporting features. "
+                          "When you encounter content that violates our guidelines, please use the report function available on posts, comments, "
+                          "and user profiles. Your reports will be reviewed promptly by our moderation team."
                         ),
                         
                         _buildSectionTitle("Privacy Policy"),
@@ -137,13 +178,18 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                       children: [
                         Checkbox(
                           value: _isAccepted,
-                          onChanged: (value) {
-                            setState(() {
-                              _isAccepted = value ?? false;
-                            });
-                          },
+                          onChanged: _hasScrolledToBottom 
+                            ? (value) {
+                                setState(() {
+                                  _isAccepted = value ?? false;
+                                });
+                              }
+                            : null,
                           fillColor: MaterialStateProperty.resolveWith<Color>(
                             (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.disabled)) {
+                                return Colors.grey.withOpacity(0.5);
+                              }
                               if (states.contains(MaterialState.selected)) {
                                 return const Color(0xFFFDCC87);
                               }
@@ -151,24 +197,35 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                             },
                           ),
                         ),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            "I have read and agree to the Terms and Conditions, Content Policy, and Privacy Policy",
-                            style: TextStyle(color: Colors.white, fontSize: 14),
+                            "I have read and agree to the Terms and Conditions, Content Policy, and Privacy Policy. I understand that there is ZERO TOLERANCE for objectionable content.",
+                            style: TextStyle(
+                              color: _hasScrolledToBottom ? Colors.white : Colors.white.withOpacity(0.5),
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],
                     ),
+                    if (!_hasScrolledToBottom)
+                      const Padding(
+                        padding: EdgeInsets.only(top: 8.0, left: 42.0),
+                        child: Text(
+                          "Please scroll through the entire document to continue",
+                          style: TextStyle(color: Colors.redAccent, fontSize: 12),
+                        ),
+                      ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _isAccepted ? const Color(0xFFFDCC87) : Colors.grey,
+                        backgroundColor: (_isAccepted && _hasScrolledToBottom) ? const Color(0xFFFDCC87) : Colors.grey,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(25),
                         ),
                       ),
-                      onPressed: _isAccepted
+                      onPressed: (_isAccepted && _hasScrolledToBottom)
                           ? () {
                               Navigator.pushReplacement(
                                 context,

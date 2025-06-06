@@ -1420,37 +1420,58 @@ class ApiService {
     }
   }
 
-  static Future<bool> reportPost({
-    required String postId,
+  static Future<bool> reportContent({
+    String? postId,
+    String? userId,
+    String? commentId,
+    required String contentType,
     required String reason,
     String? additionalContext,
   }) async {
     try {
+      // Create report payload based on content type
+      final Map<String, dynamic> payload = {
+        'contentType': contentType, // 'post', 'user', or 'comment'
+        'reason': reason,
+        'additionalContext': additionalContext ?? '',
+      };
+      
+      // Add the appropriate ID based on content type
+      if (contentType == 'post' && postId != null) {
+        payload['postId'] = postId;
+      } else if (contentType == 'user' && userId != null) {
+        payload['userId'] = userId;
+      } else if (contentType == 'comment' && commentId != null) {
+        payload['commentId'] = commentId;
+        // For comments, we need the postId too if available
+        if (postId != null) {
+          payload['postId'] = postId;
+        }
+      } else {
+        throw Exception('Invalid content type or missing ID');
+      }
+
       final response = await http.post(
         Uri.parse('$baseUrl/reports'),
         headers: await getHeaders(),
-        body: json.encode({
-          'postId': postId,
-          'reason': reason,
-          'additionalContext': additionalContext ?? '',
-        }),
+        body: json.encode(payload),
       );
 
       if (response.statusCode == 201) {
         return true;
       } else if (response.statusCode == 400) {
-        // Check if error is because post was already reported
+        // Check if error is because content was already reported
         final error = json.decode(response.body);
         if (error['message']?.contains('already reported') == true) {
-          throw Exception('You have already reported this post');
+          throw Exception('You have already reported this content');
         }
-        throw Exception(error['message'] ?? 'Failed to report post');
+        throw Exception(error['message'] ?? 'Failed to report content');
       } else {
         final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Failed to report post');
+        throw Exception(error['message'] ?? 'Failed to report content');
       }
     } catch (e) {
-      debugPrint('Error reporting post: $e');
+      debugPrint('Error reporting content: $e');
       rethrow;
     }
   }
