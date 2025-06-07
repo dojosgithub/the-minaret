@@ -1420,6 +1420,48 @@ class ApiService {
     }
   }
 
+  // Edit a post
+  static Future<Map<String, dynamic>> editPost(String postId, {required String title, required String text}) async {
+    try {
+      final response = await http.put(
+        Uri.parse('$baseUrl/posts/$postId'),
+        headers: await getHeaders(),
+        body: json.encode({
+          'title': title,
+          'body': text
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to edit post');
+      }
+    } catch (e) {
+      debugPrint('Error editing post: $e');
+      rethrow;
+    }
+  }
+  
+  // Delete a post
+  static Future<void> deletePost(String postId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/posts/$postId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to delete post');
+      }
+    } catch (e) {
+      debugPrint('Error deleting post: $e');
+      rethrow;
+    }
+  }
+
   static Future<void> reportContent({
     String? postId,
     String? commentId,

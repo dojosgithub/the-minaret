@@ -34,6 +34,7 @@ class Post extends StatefulWidget {
   final Function(String) onDownvote;
   final bool isSaved;
   final Function(String)? onPostBlocked; // Callback when a post is from a blocked user
+  final Function(String)? onPostDeleted; // Callback when a post is deleted
 
   const Post({
     super.key,
@@ -60,6 +61,7 @@ class Post extends StatefulWidget {
     required this.onDownvote,
     this.isSaved = false,
     this.onPostBlocked,
+    this.onPostDeleted,
   });
 
   @override
@@ -92,6 +94,10 @@ class _PostState extends State<Post> {
   final List<bool> _loadingImages = [];
   bool _isUserBlocked = false;
   final GlobalKey<ScaffoldMessengerState> _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
+  
+  // Added state variables for title and text that can be updated
+  String _title = '';
+  String _text = '';
 
   @override
   void initState() {
@@ -107,6 +113,10 @@ class _PostState extends State<Post> {
     _isBookmarked = widget.isSaved;
     _initializeImageLoading();
     _checkIfUserBlocked();
+    
+    // Initialize title and text from widget
+    _title = widget.title;
+    _text = widget.text;
   }
 
   @override
@@ -519,7 +529,7 @@ class _PostState extends State<Post> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Share Post',
+                    'Options',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -527,6 +537,32 @@ class _PostState extends State<Post> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  
+                  // Author-specific options
+                  if (isAuthor) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildShareOption(
+                          icon: Icons.edit,
+                          label: 'Edit Post',
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showEditDialog(context);
+                          },
+                        ),
+                        _buildShareOption(
+                          icon: Icons.delete,
+                          label: 'Delete Post',
+                          onTap: () {
+                            Navigator.pop(context);
+                            _showDeleteConfirmationDialog(context);
+                          },
+                        ),
+                      ],
+                    ),
+                    const Divider(color: Color(0xFFFDCC87), height: 32),
+                  ],
                   
                   // User search field
                   TextField(
@@ -1211,11 +1247,11 @@ class _PostState extends State<Post> {
           _buildUserInfo(),
           if (!widget.isRepost) ...[
             const SizedBox(height: 5),
-            if (widget.title.isNotEmpty)
+            if (_title.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 5),
                 child: Text(
-                  widget.title,
+                  _title,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -1223,11 +1259,11 @@ class _PostState extends State<Post> {
                   ),
                 ),
               ),
-            if (widget.text.isNotEmpty)
+            if (_text.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(top: 5),
                 child: Text(
-                  widget.text,
+                  _text,
                   style: const TextStyle(
                     fontSize: 14,
                     color: Colors.white,
@@ -1347,7 +1383,7 @@ class _PostState extends State<Post> {
                 ],
               ),
               IconButton(
-                icon: const Icon(Icons.share, color: Colors.white),
+                icon: const Icon(Icons.more_horiz, color: Colors.white),
                 onPressed: () => _showSharePopup(context),
               ),
             ],
@@ -2216,5 +2252,256 @@ class _PostState extends State<Post> {
     } catch (e) {
       debugPrint('Error checking if user is blocked: $e');
     }
+  }
+
+  // Show dialog to edit post
+  void _showEditDialog(BuildContext context) {
+    final TextEditingController _titleController = TextEditingController(text: widget.title);
+    final TextEditingController _textController = TextEditingController(text: widget.text);
+    bool _isSubmitting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: const Color(0xFF3D1B45),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Edit Post',
+                      style: TextStyle(
+                        color: Color(0xFFFDCC87),
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _titleController,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Title',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        filled: true,
+                        fillColor: const Color(0xFF4F245A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: _textController,
+                      style: const TextStyle(color: Colors.white),
+                      maxLines: 5,
+                      decoration: InputDecoration(
+                        hintText: 'Content',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        filled: true,
+                        fillColor: const Color(0xFF4F245A),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: _isSubmitting ? null : () => Navigator.pop(dialogContext),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFDCC87),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: _isSubmitting
+                              ? null
+                              : () async {
+                                  if (_titleController.text.trim().isEmpty) {
+                                    _showSnackBar('Title cannot be empty');
+                                    return;
+                                  }
+
+                                  setState(() {
+                                    _isSubmitting = true;
+                                  });
+
+                                  try {
+                                    final updatedPost = await ApiService.editPost(
+                                      widget.id,
+                                      title: _titleController.text,
+                                      text: _textController.text,
+                                    );
+
+                                    Navigator.pop(dialogContext);
+
+                                    if (mounted) {
+                                      // Update the post state with new values
+                                      this.setState(() {
+                                        // Since we can't directly update widget properties,
+                                        // we'll use callback to notify parent about the change
+                                        // For local UI update, refresh the screen
+                                        _title = _titleController.text;
+                                        _text = _textController.text;
+                                      });
+                                      _showSnackBar('Post updated successfully');
+                                    }
+                                  } catch (e) {
+                                    setState(() {
+                                      _isSubmitting = false;
+                                    });
+                                    _showSnackBar('Failed to update post: $e');
+                                  }
+                                },
+                          child: _isSubmitting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Save Changes',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Show confirmation dialog before deleting post
+  void _showDeleteConfirmationDialog(BuildContext context) {
+    bool _isDeleting = false;
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: const Color(0xFF3D1B45),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Delete Post',
+                      style: TextStyle(
+                        color: Colors.red,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Are you sure you want to delete this post? This action cannot be undone.',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: _isDeleting ? null : () => Navigator.pop(dialogContext),
+                          child: const Text(
+                            'Cancel',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          onPressed: _isDeleting
+                              ? null
+                              : () async {
+                                  setState(() {
+                                    _isDeleting = true;
+                                  });
+
+                                  try {
+                                    await ApiService.deletePost(widget.id);
+                                    Navigator.pop(dialogContext);
+
+                                    if (mounted) {
+                                      // Notify parent that the post was deleted
+                                      if (widget.onPostDeleted != null) {
+                                        widget.onPostDeleted!(widget.id);
+                                      }
+                                      _showSnackBar('Post deleted successfully');
+                                    }
+                                  } catch (e) {
+                                    setState(() {
+                                      _isDeleting = false;
+                                    });
+                                    _showSnackBar('Failed to delete post: $e');
+                                  }
+                                },
+                          child: _isDeleting
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : const Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }
