@@ -8,6 +8,7 @@ import 'screens/post_screen.dart';
 import 'screens/user_screen.dart';
 import 'screens/search_screen.dart';
 import 'screens/welcome_screen.dart';
+import 'screens/splash_screen.dart';
 import 'services/api_service.dart';
 import 'widgets/screen_wrapper.dart';
 import 'dart:async';
@@ -77,16 +78,8 @@ class MyApp extends StatelessWidget {
         future: _checkLoginState(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              backgroundColor: Color(0xFF4F245A),
-              body: Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                ),
-              ),
-            );
+            return const SplashScreen();
           }
-          
           final isLoggedIn = snapshot.data ?? false;
           debugPrint('Initial login state: $isLoggedIn');
           return isLoggedIn ? const MainScreen() : const WelcomeScreen();

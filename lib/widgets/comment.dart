@@ -107,7 +107,6 @@ class Comment extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
                     ),
-                    const SizedBox(height: 4),
                     Text(
                       text,
                       style: const TextStyle(
