@@ -4,6 +4,7 @@ import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 import '../utils/post_type.dart';
 import '../utils/content_filter.dart';
+import '../screens/welcome_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,8 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
     _scrollController.addListener(_scrollListener);
     PostType.typeNotifier.addListener(_handleTypeChange);
     
-    // Remove automatic login check that might cause logout loop
-    // We'll handle auth errors in the API responses instead
+    // Check session on init
+    _checkSession();
   }
 
   @override
@@ -138,20 +139,19 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (e) {
       if (mounted) {
+        // Check if it's an auth error and redirect immediately
+        if (e.toString().contains('No token') || 
+            e.toString().contains('Token is not valid') || 
+            e.toString().contains('Please log in again') ||
+            e.toString().contains('session has expired')) {
+          _redirectToWelcome();
+          return;
+        }
+        
         setState(() {
           _error = e.toString();
           _isLoading = false;
         });
-        
-        // Only redirect if it's an authentication error
-        if (e.toString().contains('No token') || 
-            e.toString().contains('Token is not valid') || 
-            e.toString().contains('Please log in again')) {
-          // Use a short delay to prevent immediate navigation during build
-          Future.delayed(Duration.zero, () {
-            ApiService.checkLoginAndRedirect(context);
-          });
-        }
       }
       debugPrint('Error loading followed users: $e');
     }
@@ -399,6 +399,42 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       debugPrint('Error downvoting post: $e');
     }
+  }
+
+  // Simple method to check session and redirect if needed
+  Future<void> _checkSession() async {
+    try {
+      final token = await ApiService.getToken();
+      if (token == null || token.isEmpty) {
+        _redirectToWelcome();
+        return;
+      }
+      
+      // Verify token validity with a simple request
+      final isValid = await ApiService.verifyToken();
+      if (!isValid && mounted) {
+        _redirectToWelcome();
+      }
+    } catch (e) {
+      debugPrint('Error checking session: $e');
+      if (mounted && e.toString().contains('Token is not valid')) {
+        _redirectToWelcome();
+      }
+    }
+  }
+  
+  // Helper method to redirect to welcome screen
+  void _redirectToWelcome() {
+    if (!mounted) return;
+    
+    // Clear token
+    ApiService.logout().then((_) {
+      // Navigate to welcome screen
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const WelcomeScreen()),
+        (route) => false,
+      );
+    });
   }
 
   @override

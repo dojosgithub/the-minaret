@@ -309,12 +309,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   children: [
                                     _buildUserHeader(),
                                     const SizedBox(height: 10),
-                                    Text(
-                                      userData?['bio'] ?? 'No bio available',
-                                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                                      softWrap: true,
-                                    ),
-                                    const SizedBox(height: 20),
+                                    if (userData?.containsKey('bio') == true && 
+                                        userData?['bio'] != null && 
+                                        userData!['bio'].toString().isNotEmpty)
+                                      Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            userData!['bio'],
+                                            style: const TextStyle(color: Colors.white, fontSize: 14),
+                                            softWrap: true,
+                                          ),
+                                          const SizedBox(height: 20),
+                                        ],
+                                      ),
                                     _buildFollowAndBlockRow(),
                                     const SizedBox(height: 20),
                                   ],

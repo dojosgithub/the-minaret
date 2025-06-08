@@ -471,13 +471,21 @@ class _UserScreenState extends State<UserScreen> {
                         children: [
                           _buildUserHeader(),
                           const SizedBox(height: 10),
-                          Text(
-                            userData?['bio'] ?? 'No bio available',
-                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                            softWrap: true,
-                          ),
-                            const SizedBox(height: 20),
-                            _buildFollowCounts(),
+                          if (userData?.containsKey('bio') == true && 
+                              userData?['bio'] != null && 
+                              userData!['bio'].toString().isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  userData!['bio'],
+                                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                                  softWrap: true,
+                                ),
+                                const SizedBox(height: 20),
+                              ],
+                            ),
+                          _buildFollowCounts(),
                           const SizedBox(height: 20),
                           _buildTabs(),
                           const SizedBox(height: 10),
