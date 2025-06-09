@@ -1,11 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+import 'dart:math';
+import '../services/api_service.dart';
 import 'registration_screen.dart'; 
 import 'phone_screen.dart';
 import 'login_screen.dart';
 
 class ContinueWithScreen extends StatelessWidget {
   const ContinueWithScreen({super.key});
+
+  /// Generates a cryptographically secure random nonce, to be included in a
+  /// credential request.
+  String _generateNonce([int length = 32]) {
+    const charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVXYZabcdefghijklmnopqrstuvwxyz-._';
+    final random = Random.secure();
+    return List.generate(length, (_) => charset[random.nextInt(charset.length)]).join();
+  }
+
+  /// Returns the sha256 hash of [input] in hex notation.
+  String _sha256ofString(String input) {
+    final bytes = utf8.encode(input);
+    final digest = sha256.convert(bytes);
+    return digest.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,11 +77,8 @@ class ContinueWithScreen extends StatelessWidget {
 
             SizedBox(height: screenHeight * 0.02),
 
-            _buildOption(context, 'Continue with Telegram', () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const PhoneScreen()),
-              );
+            _buildOption(context, 'Continue with Apple', () {
+              _signInWithApple(context);
             }, screenWidth),
 
             const Spacer(flex: 1), // Push login text downward
@@ -117,5 +134,71 @@ class ContinueWithScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _signInWithApple(BuildContext context) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+            ),
+          );
+        },
+      );
+      
+      // Generate a nonce and its SHA-256 hash for Apple Sign In
+      final rawNonce = _generateNonce();
+      final nonce = _sha256ofString(rawNonce);
+      
+      // Request credential for the sign-in
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        nonce: nonce,
+      );
+      
+      // Use the credential to authenticate with your backend
+      final authResult = await ApiService.loginWithApple(
+        idToken: appleCredential.identityToken!,
+        firstName: appleCredential.givenName,
+        lastName: appleCredential.familyName,
+        email: appleCredential.email,
+      );
+      
+      // Navigate to login screen on success
+      if (!context.mounted) return;
+      Navigator.pop(context); // Remove loading indicator
+      
+      if (authResult) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to authenticate with server'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Hide loading indicator and show error
+      if (!context.mounted) return;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sign in with Apple failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 }
