@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'dart:math';
 import '../services/api_service.dart';
+import '../main.dart';
 import 'registration_screen.dart'; 
 import 'phone_screen.dart';
 import 'login_screen.dart';
@@ -179,7 +180,7 @@ class ContinueWithScreen extends StatelessWidget {
       if (authResult) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          MaterialPageRoute(builder: (context) => const MainScreen()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
