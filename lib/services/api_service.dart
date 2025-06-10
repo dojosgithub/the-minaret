@@ -274,6 +274,32 @@ class ApiService {
     }
   }
 
+  static Future<bool> updateProfile(Map<String, dynamic> profileData) async {
+    try {
+      // Log what data is being sent
+      debugPrint('Updating profile with data: $profileData');
+      
+      final response = await http.put(
+        Uri.parse('$baseUrl/users/profile'),
+        headers: await getHeaders(),
+        body: jsonEncode(profileData),
+      );
+
+      if (response.statusCode == 200) {
+        // Update local user data
+        final userData = jsonDecode(response.body);
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('user', jsonEncode(userData));
+        return true;
+      } else {
+        throw Exception('Failed to update profile: ${response.body}');
+      }
+    } catch (e) {
+      debugPrint('Profile update error: $e');
+      throw Exception('Failed to update profile: $e');
+    }
+  }
+
   static Future<void> logout() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -620,35 +646,6 @@ class ApiService {
       }
     } catch (e) {
       debugPrint('Error uploading profile image: $e');
-      rethrow;
-    }
-  }
-
-  static Future<void> updateProfile(Map<String, dynamic> data) async {
-    try {
-      // Log what data is being sent
-      debugPrint('Updating profile with data: $data');
-      
-      final response = await http.put(
-        Uri.parse('$baseUrl/users/profile'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${await getToken()}',
-        },
-        body: jsonEncode(data),
-      );
-
-      if (response.statusCode != 200) {
-        final error = json.decode(response.body);
-        throw Exception(error['message'] ?? 'Failed to update profile: ${response.body}');
-      }
-      
-      // Update local cache of user data
-      final userData = json.decode(response.body);
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('user', json.encode(userData));
-    } catch (e) {
-      debugPrint('Error updating profile: $e');
       rethrow;
     }
   }

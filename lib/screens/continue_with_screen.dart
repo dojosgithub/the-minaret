@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'dart:math';
 import '../services/api_service.dart';
-import '../main.dart';
+import 'apple_registration_screen.dart';
 import 'registration_screen.dart'; 
 import 'phone_screen.dart';
 import 'login_screen.dart';
@@ -178,9 +178,10 @@ class ContinueWithScreen extends StatelessWidget {
       Navigator.pop(context); // Remove loading indicator
       
       if (authResult) {
+        // Navigate to Apple Registration screen to collect additional info
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
+          MaterialPageRoute(builder: (context) => const AppleRegistrationScreen()),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
