@@ -81,6 +81,7 @@ flutter:
     - assets/whatsapp.png
     - assets/telegram.png
     - assets/logo.svg
+    - assets/logo.png
     - assets/app_icon.png
     - assets/name.svg
     - assets/slogan.svg

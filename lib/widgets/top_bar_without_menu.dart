@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
   const TopBarWithoutMenu({super.key});
@@ -50,20 +49,19 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
                   child: Align(
                     alignment: Alignment.bottomCenter,
                     child: Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: 14),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final logoWidth = (constraints.maxWidth * 0.5).clamp(120.0, 220.0);
-                          final logoHeight = (constraints.maxHeight * 0.45).clamp(36.0, 60.0);
+                          final logoWidth = (constraints.maxWidth * 0.6).clamp(144.0, 264.0);
+                          final logoHeight = (constraints.maxHeight * 0.54).clamp(43.0, 72.0);
                           return Center(
                             child: FittedBox(
                               fit: BoxFit.contain,
-                              child: SvgPicture.asset(
-                                'assets/logo.svg',
+                              child: Image.asset(
+                                'assets/logo.png',
                                 width: logoWidth,
                                 height: logoHeight,
                                 fit: BoxFit.contain,
-                                semanticsLabel: 'Minaret Logo',
                               ),
                             ),
                           );
