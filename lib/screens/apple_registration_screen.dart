@@ -51,13 +51,14 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
     setState(() => _isLoading = true);
 
     try {
-      // Create update data
+      // Create update data with needsProfileCompletion set to false
       final updateData = {
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
         'username': _usernameController.text,
         'userType': _selectedType,
         'dateOfBirth': '$_selectedDay $_selectedMonth $_selectedYear',
+        'needsProfileCompletion': false,
       };
 
       // Update the user profile
@@ -66,11 +67,23 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
       if (!mounted) return;
 
       if (response) {
-        // Navigate to Terms and Conditions screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
-        );
+        // Check if user has accepted terms and conditions
+        final userProfile = await ApiService.getUserProfile();
+        final acceptedTerms = userProfile['acceptedTermsandConditions'] ?? false;
+        
+        if (!acceptedTerms) {
+          // Navigate to Terms and Conditions screen if terms haven't been accepted
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
+          );
+        } else {
+          // Navigate directly to main screen if terms have been accepted
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Profile update failed')),

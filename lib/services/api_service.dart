@@ -25,6 +25,74 @@ class ApiService {
     }
   }
 
+  // Apple Sign In
+  static Future<Map<String, dynamic>> loginWithApple({
+    required String idToken,
+    String? firstName,
+    String? lastName,
+    String? email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/auth/apple'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'idToken': idToken,
+          'firstName': firstName,
+          'lastName': lastName,
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final token = data['token'] as String;
+        final needsProfileCompletion = data['needsProfileCompletion'] ?? false;
+        final acceptedTerms = data['acceptedTermsandConditions'] ?? false;
+        
+        // Save the token
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', token);
+        _authToken = token;
+        
+        // Fetch user data using the token
+        final userResponse = await http.get(
+          Uri.parse('$baseUrl/users/profile'),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+        
+        if (userResponse.statusCode == 200) {
+          final userData = jsonDecode(userResponse.body);
+          await prefs.setString('user', jsonEncode(userData));
+        } else {
+          debugPrint('Warning: Failed to fetch user data after Apple login');
+        }
+        
+        return {
+          'success': true,
+          'needsProfileCompletion': needsProfileCompletion,
+          'acceptedTermsandConditions': acceptedTerms,
+        };
+      } else {
+        final error = jsonDecode(response.body);
+        debugPrint('Apple login error: ${error['message']}');
+        return {
+          'success': false,
+          'message': error['message'] ?? 'Failed to authenticate with Apple',
+        };
+      }
+    } catch (e) {
+      debugPrint('Apple login exception: $e');
+      return {
+        'success': false,
+        'message': 'An error occurred during Apple sign in',
+      };
+    }
+  }
+
   static Future<bool> isLoggedIn() async {
     try {
       final token = await getToken();
@@ -215,62 +283,6 @@ class ApiService {
     } catch (e) {
       debugPrint('Login error: $e');
       throw Exception('Failed to login: $e');
-    }
-  }
-
-  static Future<bool> loginWithApple({
-    required String idToken,
-    String? firstName,
-    String? lastName,
-    String? email,
-  }) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/auth/apple'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'idToken': idToken,
-          'firstName': firstName,
-          'lastName': lastName,
-          'email': email,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final token = data['token'];
-        
-        if (token == null) {
-          throw Exception('Invalid Apple login response format: missing token');
-        }
-        
-        // Store token
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('token', token);
-        _authToken = token;
-        
-        // Fetch user data using the token
-        final userResponse = await http.get(
-          Uri.parse('$baseUrl/users/profile'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer $token',
-          },
-        );
-        
-        if (userResponse.statusCode == 200) {
-          final userData = jsonDecode(userResponse.body);
-          await prefs.setString('user', jsonEncode(userData));
-          return true;
-        } else {
-          throw Exception('Failed to fetch user data after Apple login');
-        }
-      } else {
-        throw Exception('Failed to login with Apple: ${response.body}');
-      }
-    } catch (e) {
-      debugPrint('Apple login error: $e');
-      throw Exception('Failed to login with Apple: $e');
     }
   }
 

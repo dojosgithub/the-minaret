@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../main.dart';
 import '../widgets/top_bar_without_menu.dart';
 import 'apple_registration_screen.dart';
+import '../services/api_service.dart';
 
 class TermsAndConditionsScreen extends StatefulWidget {
   const TermsAndConditionsScreen({super.key});
@@ -227,11 +228,29 @@ class _TermsAndConditionsScreenState extends State<TermsAndConditionsScreen> {
                         ),
                       ),
                       onPressed: (_isAccepted && _hasScrolledToBottom)
-                          ? () {
-                              Navigator.pushReplacement(
-                                context,
-                                MaterialPageRoute(builder: (context) => const MainScreen()),
-                              );
+                          ? () async {
+                              try {
+                                // Update user profile to set terms acceptance flag
+                                await ApiService.updateProfile({
+                                  'acceptedTermsandConditions': true
+                                });
+                                
+                                if (!mounted) return;
+                                
+                                // Navigate to main screen after accepting terms
+                                Navigator.pushReplacement(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => const MainScreen()),
+                                );
+                              } catch (e) {
+                                if (!mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Failed to update terms acceptance: $e'),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
                             }
                           : null,
                       child: const Text(

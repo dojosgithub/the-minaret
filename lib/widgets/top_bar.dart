@@ -99,17 +99,14 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                       padding: const EdgeInsets.only(bottom: 14),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final logoWidth = (constraints.maxWidth * 0.6).clamp(144.0, 264.0);
-                          final logoHeight = (constraints.maxHeight * 0.54).clamp(43.0, 72.0);
-                          return Center(
-                            child: FittedBox(
+                          final logoWidth = (constraints.maxWidth * 0.7).clamp(180.0, 300.0);
+                          final logoHeight = (constraints.maxHeight * 0.7).clamp(54.0, 90.0);
+                          return SizedBox(
+                            width: logoWidth,
+                            height: logoHeight,
+                            child: Image.asset(
+                              'assets/logo.png',
                               fit: BoxFit.contain,
-                              child: Image.asset(
-                                'assets/logo.png',
-                                width: logoWidth,
-                                height: logoHeight,
-                                fit: BoxFit.contain,
-                              ),
                             ),
                           );
                         },

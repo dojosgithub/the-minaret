@@ -9,6 +9,8 @@ import 'apple_registration_screen.dart';
 import 'registration_screen.dart'; 
 import 'phone_screen.dart';
 import 'login_screen.dart';
+import 'terms_and_conditions_screen.dart';
+import '../main.dart';
 
 class ContinueWithScreen extends StatelessWidget {
   const ContinueWithScreen({super.key});
@@ -173,23 +175,40 @@ class ContinueWithScreen extends StatelessWidget {
         email: appleCredential.email,
       );
       
-      // Navigate to login screen on success
+      // Navigate based on authentication result
       if (!context.mounted) return;
       Navigator.pop(context); // Remove loading indicator
       
-      if (authResult) {
-        // Navigate to Apple Registration screen to collect additional info
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const AppleRegistrationScreen()),
-        );
+      if (authResult['success'] == true) {
+        if (authResult['needsProfileCompletion'] == true) {
+          // First time user, navigate to Apple Registration screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AppleRegistrationScreen()),
+          );
+        } else if (authResult['acceptedTermsandConditions'] != true) {
+          // Profile complete but terms not accepted, navigate to Terms screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
+          );
+        } else {
+          // User is fully registered and has accepted terms, navigate to main app
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Failed to authenticate with server'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Show error message if authentication failed
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(authResult['message'] ?? 'Failed to authenticate with Apple'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       // Hide loading indicator and show error
