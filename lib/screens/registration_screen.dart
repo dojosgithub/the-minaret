@@ -77,7 +77,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         }
 
         // Get user profile to check terms acceptance
-        final userProfile = await ApiService.getProfile();
+        final userProfile = await ApiService.getUserProfile();
         
         if (!userProfile['acceptedTermsandConditions']) {
           // Navigate to terms and conditions screen if not accepted

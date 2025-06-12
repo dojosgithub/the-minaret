@@ -4,6 +4,7 @@ import '../main.dart';
 import 'continue_with_screen.dart';
 import 'phone_screen.dart';
 import '../services/api_service.dart';
+import 'terms_and_conditions_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -81,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
       
       if (result) {
         // Get user profile to check terms acceptance
-        final userProfile = await ApiService.getProfile();
+        final userProfile = await ApiService.getUserProfile();
         
         if (!userProfile['acceptedTermsandConditions']) {
           // If terms not accepted, go to terms screen
