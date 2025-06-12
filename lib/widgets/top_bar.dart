@@ -49,7 +49,7 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 AppBar(
                   backgroundColor: Colors.transparent,
                   elevation: 0,
-                  toolbarHeight: 52,
+                  toolbarHeight: 80,
                   leading: IconButton(
                     icon: const Icon(
                       Icons.menu,
