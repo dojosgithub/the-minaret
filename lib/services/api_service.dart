@@ -1530,6 +1530,7 @@ class ApiService {
   static Future<void> reportContent({
     String? postId,
     String? commentId,
+    String? replyId,
     String? userId,
     required String contentType,
     required String reason,
@@ -1546,6 +1547,9 @@ class ApiService {
       if (contentType == 'comment' && (commentId == null || postId == null)) {
         throw Exception('Comment ID and Post ID are required for reporting a comment');
       }
+      if (contentType == 'reply' && (replyId == null || commentId == null || postId == null)) {
+        throw Exception('Reply ID, Comment ID, and Post ID are required for reporting a reply');
+      }
       if (contentType == 'user' && userId == null) {
         throw Exception('User ID is required for reporting a user');
       }
@@ -1559,6 +1563,7 @@ class ApiService {
         body: jsonEncode({
           'postId': postId,
           'commentId': commentId,
+          'replyId': replyId,
           'userId': userId,
           'contentType': contentType,
           'reason': reason,

@@ -56,15 +56,34 @@ class Comment extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          authorName,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            fontSize: 12,
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  authorName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  '@$authorUsername',
+                                  style: const TextStyle(
+                                    color: Color(0xFFFDCC87),
+                                    fontSize: 12,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const Spacer(),
                         Text(
                           getTimeAgo(DateTime.parse(createdAt)),
                           style: const TextStyle(
@@ -97,15 +116,6 @@ class Comment extends StatelessWidget {
                           ],
                         ),
                       ],
-                    ),
-                    Text(
-                      '@$authorUsername',
-                      style: const TextStyle(
-                        color: Color(0xFFFDCC87),
-                        fontSize: 12,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 1,
                     ),
                     Text(
                       text,
@@ -169,15 +179,34 @@ class Comment extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                '${reply['author']['firstName']} ${reply['author']['lastName']}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  fontSize: 12,
+                              Expanded(
+                                child: Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        '${reply['author']['firstName']} ${reply['author']['lastName']}',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Flexible(
+                                      child: Text(
+                                        '@${reply['author']['username']}',
+                                        style: const TextStyle(
+                                          color: Color(0xFFFDCC87),
+                                          fontSize: 12,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const Spacer(),
                               Text(
                                 getTimeAgo(DateTime.parse(reply['createdAt'])),
                                 style: const TextStyle(
@@ -185,16 +214,35 @@ class Comment extends StatelessWidget {
                                   fontSize: 10,
                                 ),
                               ),
+                              PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert, color: Colors.white, size: 16),
+                                color: const Color(0xFF3D1B45),
+                                onSelected: (value) {
+                                  if (value == 'report') {
+                                    _showReportDialog(
+                                      context,
+                                      isReply: true,
+                                      replyId: reply['_id'],
+                                    );
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => [
+                                  PopupMenuItem<String>(
+                                    value: 'report',
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.flag, size: 16, color: Colors.red),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Report',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ],
-                          ),
-                          Text(
-                            '@${reply['author']['username']}',
-                            style: const TextStyle(
-                              color: Color(0xFFFDCC87),
-                              fontSize: 10,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 1,
                           ),
                           const SizedBox(height: 2),
                           Text(
@@ -217,7 +265,7 @@ class Comment extends StatelessWidget {
     );
   }
 
-  void _showReportDialog(BuildContext context) {
+  void _showReportDialog(BuildContext context, {bool isReply = false, String? replyId}) {
     final List<String> reportReasons = [
       'Inappropriate Content',
       'Misinformation',
@@ -250,18 +298,18 @@ class Comment extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Report Comment',
-                        style: TextStyle(
+                      Text(
+                        isReply ? 'Report Reply' : 'Report Comment',
+                        style: const TextStyle(
                           color: Colors.red,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Why are you reporting this comment?',
-                        style: TextStyle(
+                      Text(
+                        'Why are you reporting this ${isReply ? 'reply' : 'comment'}?',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
                         ),
@@ -355,7 +403,8 @@ class Comment extends StatelessWidget {
                                     ApiService.reportContent(
                                       commentId: commentId,
                                       postId: postId,
-                                      contentType: 'comment',
+                                      replyId: replyId,
+                                      contentType: isReply ? 'reply' : 'comment',
                                       reason: selectedReason!,
                                       additionalContext: _additionalContextController.text.trim()
                                     ).then((_) {
@@ -377,7 +426,7 @@ class Comment extends StatelessWidget {
                                         Navigator.pop(dialogContext);
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
-                                            content: Text('Error reporting comment: ${e.toString()}'),
+                                            content: Text('Error reporting ${isReply ? 'reply' : 'comment'}: ${e.toString()}'),
                                             backgroundColor: Colors.red,
                                           ),
                                         );
