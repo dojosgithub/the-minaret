@@ -132,7 +132,7 @@ class AccountSettingsScreen extends StatelessWidget {
               ),
               onPressed: () {
                 Navigator.pop(context);
-                _showPasswordConfirmationDialog(context);
+                _showUsernameConfirmationDialog(context);
               },
               child: const Text(
                 'Proceed',
@@ -145,7 +145,7 @@ class AccountSettingsScreen extends StatelessWidget {
     );
   }
 
-  void _showPasswordConfirmationDialog(BuildContext context) {
+  void _showUsernameConfirmationDialog(BuildContext context) {
     final TextEditingController usernameController = TextEditingController();
     bool isLoading = false;
     String? currentUsername;
@@ -271,7 +271,7 @@ class AccountSettingsScreen extends StatelessWidget {
                               if (e.toString().contains('<!DOCTYPE html>')) {
                                 errorMessage = 'Server error. Please try again later.';
                               } else {
-                                errorMessage = 'Failed to delete account: ${e.toString().split(":").last.trim()}';
+                                errorMessage = 'Failed to delete account: ${e.toString()}';
                               }
                               
                               ScaffoldMessenger.of(context).showSnackBar(
