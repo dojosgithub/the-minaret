@@ -1336,7 +1336,7 @@ class ApiService {
     }
   }
 
-  static Future<void> deleteAccount(String userId, String password) async {
+  static Future<void> deleteAccount(String userId, String username) async {
     try {
       // Make sure the request has proper content-type
       final headers = await getHeaders();
@@ -1352,7 +1352,7 @@ class ApiService {
         Uri.parse('$baseUrl/users/delete-account/$userId'),
         headers: headers,
         body: json.encode({
-          'password': password,
+          'username': username,
         }),
       );
 

@@ -146,8 +146,14 @@ class AccountSettingsScreen extends StatelessWidget {
   }
 
   void _showPasswordConfirmationDialog(BuildContext context) {
-    final TextEditingController passwordController = TextEditingController();
+    final TextEditingController usernameController = TextEditingController();
     bool isLoading = false;
+    String? currentUsername;
+    
+    // Get current username for verification
+    ApiService.getUserProfile().then((profile) {
+      currentUsername = profile['username'];
+    });
     
     showDialog(
       context: context,
@@ -161,22 +167,21 @@ class AccountSettingsScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               title: const Text(
-                'Confirm with Password',
+                'Confirm Account Deletion',
                 style: TextStyle(color: Color(0xFFFDCC87)),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text(
-                    'Please enter your password to confirm account deletion:',
+                    'This action cannot be undone. Please type your username to confirm account deletion:',
                     style: TextStyle(color: Colors.white),
                   ),
                   const SizedBox(height: 16),
                   TextField(
-                    controller: passwordController,
-                    obscureText: true,
+                    controller: usernameController,
                     decoration: const InputDecoration(
-                      hintText: 'Password',
+                      hintText: 'Enter your username',
                       hintStyle: TextStyle(color: Colors.grey),
                       enabledBorder: UnderlineInputBorder(
                         borderSide: BorderSide(color: Color(0xFFFDCC87)),
@@ -204,10 +209,20 @@ class AccountSettingsScreen extends StatelessWidget {
                   onPressed: isLoading
                       ? null
                       : () async {
-                          if (passwordController.text.isEmpty) {
+                          if (usernameController.text.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('Please enter your password'),
+                                content: Text('Please enter your username'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (usernameController.text != currentUsername) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Username does not match'),
                                 backgroundColor: Colors.red,
                               ),
                             );
@@ -224,29 +239,11 @@ class AccountSettingsScreen extends StatelessWidget {
                             
                             await ApiService.deleteAccount(
                               userId,
-                              passwordController.text,
+                              usernameController.text,
                             );
                             
                             // Clear all user data and navigate to welcome screen
                             await ApiService.logout();
-                            
-                            if (context.mounted) {
-                              Navigator.pushAndRemoveUntil(
-                                context,
-                                MaterialPageRoute(builder: (context) => const WelcomeScreen()),
-                                (route) => false,
-                              );
-                            }
-
-                            await ApiService.deleteAccount(
-                              userId,
-                              passwordController.text,
-                            );
-                            
-                            // No need to call logout separately - account deletion already clears tokens
-                            // Just clear local storage
-                            final prefs = await SharedPreferences.getInstance();
-                            await prefs.clear();
                             
                             if (context.mounted) {
                               Navigator.pushAndRemoveUntil(
@@ -273,8 +270,6 @@ class AccountSettingsScreen extends StatelessWidget {
                               String errorMessage = 'Failed to delete account';
                               if (e.toString().contains('<!DOCTYPE html>')) {
                                 errorMessage = 'Server error. Please try again later.';
-                              } else if (e.toString().contains('Incorrect password')) {
-                                errorMessage = 'Incorrect password. Please try again.';
                               } else {
                                 errorMessage = 'Failed to delete account: ${e.toString().split(":").last.trim()}';
                               }
