@@ -76,11 +76,22 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
           throw Exception('Failed to verify token after registration');
         }
 
-        // Navigate to terms and conditions screen instead of main screen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
-        );
+        // Get user profile to check terms acceptance
+        final userProfile = await ApiService.getProfile();
+        
+        if (!userProfile['acceptedTermsandConditions']) {
+          // Navigate to terms and conditions screen if not accepted
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
+          );
+        } else {
+          // Navigate to main screen if already accepted
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(response['message'] ?? 'Registration failed')),

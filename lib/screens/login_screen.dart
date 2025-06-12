@@ -80,10 +80,22 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       
       if (result) {
-        Navigator.pushReplacement(
-          currentContext,
-          MaterialPageRoute(builder: (context) => const MainScreen()),
-        );
+        // Get user profile to check terms acceptance
+        final userProfile = await ApiService.getProfile();
+        
+        if (!userProfile['acceptedTermsandConditions']) {
+          // If terms not accepted, go to terms screen
+          Navigator.pushReplacement(
+            currentContext,
+            MaterialPageRoute(builder: (context) => const TermsAndConditionsScreen()),
+          );
+        } else {
+          // If terms accepted, go to main screen
+          Navigator.pushReplacement(
+            currentContext,
+            MaterialPageRoute(builder: (context) => const MainScreen()),
+          );
+        }
       }
     } catch (e) {
       debugPrint('Login error: $e');
