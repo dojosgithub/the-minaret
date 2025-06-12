@@ -74,13 +74,20 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
                       padding: const EdgeInsets.only(bottom: 14),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final logoWidth = (constraints.maxWidth * 0.7).clamp(180.0, 300.0);
-                          final logoHeight = (constraints.maxHeight * 0.7).clamp(54.0, 90.0);
-                          return SizedBox(
-                            width: logoWidth,
-                            height: logoHeight,
+                          // Use MediaQuery for more reliable sizing
+                          final mediaQuery = MediaQuery.of(context);
+                          final screenWidth = mediaQuery.size.width;
+                          final screenHeight = mediaQuery.size.height;
+                          
+                          // Calculate logo size based on screen dimensions
+                          final logoWidth = (screenWidth * 0.5).clamp(120.0, 250.0);
+                          final logoHeight = (logoWidth * 0.3).clamp(36.0, 75.0);
+
+                          return Center(
                             child: Image.asset(
                               'assets/logo.png',
+                              width: logoWidth,
+                              height: logoHeight,
                               fit: BoxFit.contain,
                             ),
                           );
