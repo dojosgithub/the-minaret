@@ -13,7 +13,7 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 110,
+      height: 120,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -48,9 +48,12 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
                 AppBar(
                   backgroundColor: Colors.transparent,
                   elevation: 0,
-                  toolbarHeight: 52,
                   leading: IconButton(
-                    icon: const Icon(Icons.settings, color: Color(0xFFFDCC87)),
+                    icon: const Icon(
+                      Icons.settings,
+                      color: Color(0xFFFDCC87),
+                      size: 32,
+                    ),
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -58,43 +61,23 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
                       );
                     },
                   ),
+                  title: Center(
+                    child: Image.asset(
+                      'assets/logo.png',
+                    ),
+                  ),
                   actions: [
                     IconButton(
-                      icon: const Icon(Icons.add_circle_outline, color: Color(0xFFFDCC87)),
+                      icon: const Icon(
+                        Icons.add_circle_outline,
+                        color: Color(0xFFFDCC87),
+                        size: 32,
+                      ),
                       onPressed: () {
                         onIndexChanged(2);
                       },
                     ),
                   ],
-                ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Use MediaQuery for more reliable sizing
-                          final mediaQuery = MediaQuery.of(context);
-                          final screenWidth = mediaQuery.size.width;
-                          final screenHeight = mediaQuery.size.height;
-                          
-                          // Calculate logo size based on screen dimensions
-                          final logoWidth = (screenWidth * 0.5).clamp(120.0, 250.0);
-                          final logoHeight = (logoWidth * 0.3).clamp(36.0, 75.0);
-
-                          return Center(
-                            child: Image.asset(
-                              'assets/logo.png',
-                              width: logoWidth,
-                              height: logoHeight,
-                              fit: BoxFit.contain,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
                 ),
               ],
             ),
@@ -105,5 +88,5 @@ class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(110);
+  Size get preferredSize => const Size.fromHeight(120);
 }
