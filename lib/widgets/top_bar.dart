@@ -14,7 +14,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      height: 110,
+      //increased due to overflow
+      height: 120,
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
@@ -49,7 +50,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                 AppBar(
                   backgroundColor: Colors.transparent,
                   elevation: 0,
-                  toolbarHeight: 60,
+                  // commenting as it was overflowing and not required actually
+                  // toolbarHeight: 60,
                   leading: IconButton(
                     icon: const Icon(
                       Icons.menu,
@@ -57,6 +59,11 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                       size: 32,
                     ),
                     onPressed: onMenuPressed,
+                  ),
+                  title: Center(
+                    child: Image.asset(
+                      'assets/logo.png',
+                    ),
                   ),
                   actions: [
                     IconButton(
@@ -77,7 +84,8 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                                 (index) => Container(
                                   width: 3,
                                   height: 3,
-                                  margin: const EdgeInsets.symmetric(horizontal: 1),
+                                  margin:
+                                      const EdgeInsets.symmetric(horizontal: 1),
                                   decoration: const BoxDecoration(
                                     color: Color(0xFFFDCC87),
                                     shape: BoxShape.circle,
@@ -92,35 +100,40 @@ class TopBar extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   ],
                 ),
-                Expanded(
-                  child: Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          // Use MediaQuery for more reliable sizing
-                          final mediaQuery = MediaQuery.of(context);
-                          final screenWidth = mediaQuery.size.width;
-                          final screenHeight = mediaQuery.size.height;
-                          
-                          // Calculate logo size based on screen dimensions
-                          final logoWidth = (screenWidth * 0.5).clamp(120.0, 250.0);
-                          final logoHeight = (logoWidth * 0.3).clamp(36.0, 75.0);
 
-                          return Center(
-                            child: Image.asset(
-                              'assets/logo.png',
-                              width: logoWidth,
-                              height: logoHeight,
-                              fit: BoxFit.contain,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ),
-                ),
+                // no need of this here
+
+                // Expanded(
+                //   child: Align(
+                //     alignment: Alignment.bottomCenter,
+                //     child: Padding(
+                //       padding: const EdgeInsets.only(bottom: 14),
+                //       child: LayoutBuilder(
+                //         builder: (context, constraints) {
+                //           // Use MediaQuery for more reliable sizing
+                //           final mediaQuery = MediaQuery.of(context);
+                //           final screenWidth = mediaQuery.size.width;
+                //           final screenHeight = mediaQuery.size.height;
+
+                //           // Calculate logo size based on screen dimensions
+                //           final logoWidth =
+                //               (screenWidth * 0.5).clamp(120.0, 250.0);
+                //           final logoHeight =
+                //               (logoWidth * 0.3).clamp(36.0, 75.0);
+
+                //           return Center(
+                //             child: Image.asset(
+                //               'assets/logo.png',
+                //               width: logoWidth,
+                //               height: logoHeight,
+                //               fit: BoxFit.contain,
+                //             ),
+                //           );
+                //         },
+                //       ),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),

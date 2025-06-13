@@ -39,12 +39,14 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
           SafeArea(
             child: Column(
               children: [
-                AppBar(
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  toolbarHeight: 52,
-                  automaticallyImplyLeading: false,
-                ),
+                // this was causing the issue
+
+                // AppBar(
+                //   backgroundColor: Colors.transparent,
+                //   elevation: 0,
+                //   toolbarHeight: 52,
+                //   automaticallyImplyLeading: false,
+                // ),
                 Expanded(
                   child: Align(
                     alignment: Alignment.bottomCenter,
@@ -56,10 +58,12 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
                           final mediaQuery = MediaQuery.of(context);
                           final screenWidth = mediaQuery.size.width;
                           final screenHeight = mediaQuery.size.height;
-                          
+
                           // Calculate logo size based on screen dimensions
-                          final logoWidth = (screenWidth * 0.5).clamp(120.0, 250.0);
-                          final logoHeight = (logoWidth * 0.3).clamp(36.0, 75.0);
+                          final logoWidth =
+                              (screenWidth * 0.5).clamp(120.0, 250.0);
+                          final logoHeight =
+                              (logoWidth * 0.3).clamp(36.0, 75.0);
 
                           return Center(
                             child: Image.asset(
