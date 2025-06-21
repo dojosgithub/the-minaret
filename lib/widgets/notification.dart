@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../utils/time_utils.dart';
-import '../screens/profile_screen.dart';
-import '../screens/user_screen.dart';
+import '../profile/profile_screen.dart';
+import '../main_screens/user_screen.dart';
 import '../services/api_service.dart';
-import '../screens/post_detail_screen.dart';
+import '../profile/post_detail_screen.dart';
 
 class NotificationWidget extends StatelessWidget {
   final String name;

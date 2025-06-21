@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/message.dart';
 import '../services/message_service.dart';
 import '../services/api_service.dart';
-import '../screens/post_detail_screen.dart';
-import '../screens/profile_screen.dart';
+import '../profile/post_detail_screen.dart';
+import '../profile/profile_screen.dart';
 import '../widgets/top_bar_without_menu.dart';
 
 class ConversationScreen extends StatefulWidget {

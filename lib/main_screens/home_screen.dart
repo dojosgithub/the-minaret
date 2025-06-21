@@ -4,7 +4,7 @@ import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
 import '../utils/post_type.dart';
 import '../utils/content_filter.dart';
-import '../screens/welcome_screen.dart';
+import '../authentication/welcome_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

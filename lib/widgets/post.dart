@@ -3,11 +3,11 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../utils/time_utils.dart';
 import '../services/api_service.dart';
-import '../screens/profile_screen.dart';
+import '../profile/profile_screen.dart';
 import 'comment.dart';
 import '../services/message_service.dart';
 import 'repost_content.dart';
-import '../screens/post_detail_screen.dart';
+import '../profile/post_detail_screen.dart';
 import 'dart:async';
 
 class Post extends StatefulWidget {

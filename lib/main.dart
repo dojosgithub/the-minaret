@@ -2,19 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'screens/home_screen.dart';
-import 'screens/notifications_screen.dart';
-import 'screens/post_screen.dart';
-import 'screens/user_screen.dart';
-import 'screens/search_screen.dart';
-import 'screens/welcome_screen.dart';
-import 'screens/splash_screen.dart';
+import 'main_screens/home_screen.dart';
+import 'main_screens/notifications_screen.dart';
+import 'main_screens/post_screen.dart';
+import 'main_screens/user_screen.dart';
+import 'main_screens/search_screen.dart';
+import 'authentication/welcome_screen.dart';
+import 'authentication/splash_screen.dart';
 import 'services/api_service.dart';
 import 'widgets/screen_wrapper.dart';
 import 'dart:async';
 
 Future<void> main() async {
-  // Add error handling for the whole app
   await runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     

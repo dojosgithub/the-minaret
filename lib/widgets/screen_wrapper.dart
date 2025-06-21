@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../widgets/bottom_nav_bar.dart';
 import '../widgets/top_bar.dart';
-import '../screens/menu_screen.dart';
+import '../main_screens/menu_screen.dart';
 import '../widgets/top_bar_settings.dart';
 import '../services/api_service.dart';
-import '../screens/messages_screen.dart';
+import '../messaging/messages_screen.dart';
 
 class ScreenWrapper extends StatefulWidget {
   final Widget child;

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_service.dart';
 import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
-import 'profile_screen.dart';
+import '../profile/profile_screen.dart';
 import 'dart:async';
 
 class SearchScreen extends StatefulWidget {

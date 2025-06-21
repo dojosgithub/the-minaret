@@ -8,7 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter/material.dart';
-import '../screens/welcome_screen.dart';
+import '../authentication/welcome_screen.dart';
 
 class ApiService {
   static String get baseUrl => dotenv.env['API_BASE_URL'] ?? 'https://the-minaret-f6e46d4294b5.herokuapp.com/api';

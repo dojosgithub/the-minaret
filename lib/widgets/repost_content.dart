@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import '../services/api_service.dart';
 import '../utils/time_utils.dart';
-import '../screens/profile_screen.dart';
+import '../profile/profile_screen.dart';
 
 class RepostContent extends StatefulWidget {
   final Map<String, dynamic> originalPost;

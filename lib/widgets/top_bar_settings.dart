@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../screens/settings_screen.dart';
+import '../settings/settings_screen.dart';
 
 class TopBarSettings extends StatelessWidget implements PreferredSizeWidget {
   final Function(int) onIndexChanged;

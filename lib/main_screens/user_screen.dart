@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'edit_profile_screen.dart';
+import '../profile/edit_profile_screen.dart';
 import '../widgets/post.dart';
 import '../widgets/connection_error_widget.dart';
 import '../services/api_service.dart';
-import '../screens/followers_screen.dart';
+import '../profile/followers_screen.dart';
 
 class UserScreen extends StatefulWidget {
   const UserScreen({super.key});

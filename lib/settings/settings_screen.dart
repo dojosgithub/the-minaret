@@ -8,7 +8,7 @@ import 'about_screen.dart';
 import 'content_filter_screen.dart';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
-import 'welcome_screen.dart';
+import '../authentication/welcome_screen.dart';
 import 'account_settings_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
