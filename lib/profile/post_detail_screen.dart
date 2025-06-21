@@ -31,9 +31,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       }
       
       final post = await ApiService.getPost(widget.postId);
-      if (post == null) {
-        throw Exception('Post not found');
-      }
       debugPrint('Post loaded successfully: ${post['_id']}');
       
       // Check vote status

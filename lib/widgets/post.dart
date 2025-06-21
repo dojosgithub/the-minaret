@@ -89,11 +89,8 @@ class _PostState extends State<Post> {
   static const int _commentsPerPage = 5;
   static const int _repliesPerPage = 5;
   final TextEditingController _repostController = TextEditingController();
-  bool _isExpanded = false;
-  bool _isCommentExpanded = false;
   final List<bool> _loadingImages = [];
   bool _isUserBlocked = false;
-  final GlobalKey<ScaffoldMessengerState> _scaffoldKey = GlobalKey<ScaffoldMessengerState>();
   
   // Added state variables for title and text that can be updated
   String _title = '';
@@ -2401,7 +2398,7 @@ class _PostState extends State<Post> {
 
   // Show confirmation dialog before deleting post
   void _showDeleteConfirmationDialog(BuildContext context) {
-    bool _isDeleting = false;
+    bool isDeleting = false;
 
     showDialog(
       context: context,
@@ -2440,7 +2437,7 @@ class _PostState extends State<Post> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         TextButton(
-                          onPressed: _isDeleting ? null : () => Navigator.pop(dialogContext),
+                          onPressed: isDeleting ? null : () => Navigator.pop(dialogContext),
                           child: const Text(
                             'Cancel',
                             style: TextStyle(color: Colors.grey),
@@ -2454,11 +2451,11 @@ class _PostState extends State<Post> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          onPressed: _isDeleting
+                          onPressed: isDeleting
                               ? null
                               : () async {
                                   setState(() {
-                                    _isDeleting = true;
+                                    isDeleting = true;
                                   });
 
                                   try {
@@ -2474,12 +2471,12 @@ class _PostState extends State<Post> {
                                     }
                                   } catch (e) {
                                     setState(() {
-                                      _isDeleting = false;
+                                      isDeleting = false;
                                     });
                                     _showSnackBar('Failed to delete post: $e');
                                   }
                                 },
-                          child: _isDeleting
+                          child: isDeleting
                               ? const SizedBox(
                                   width: 20,
                                   height: 20,

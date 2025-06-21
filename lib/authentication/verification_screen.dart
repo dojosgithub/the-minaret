@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/top_bar_without_menu.dart';
-import '../main.dart';
 import 'forgot_password_screen.dart';
 
 class VerificationScreen extends StatefulWidget {

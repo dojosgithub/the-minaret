@@ -100,9 +100,6 @@ class _ConversationScreenState extends State<ConversationScreen> {
       List<Message> validMessages = [];
       for (final message in messages) {
         try {
-          // Just accessing these properties to see if they're properly typed
-          final senderId = message.senderId;
-          final recipientId = message.recipientId;
           validMessages.add(message);
         } catch (e) {
           debugPrint('Skipping invalid message: $e');

@@ -161,7 +161,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (userData!['followers'] is List) {
               List followers = List.from(userData!['followers']);
               final currentUserId = ApiService.currentUserId;
-              if (currentUserId != null && !followers.any((follower) => 
+              if (followers.any((follower) => 
                 follower == currentUserId || 
                 (follower is Map && follower['_id'] == currentUserId))) {
                 followers.add(currentUserId);

@@ -57,7 +57,6 @@ class TopBarWithoutMenu extends StatelessWidget implements PreferredSizeWidget {
                           // Use MediaQuery for more reliable sizing
                           final mediaQuery = MediaQuery.of(context);
                           final screenWidth = mediaQuery.size.width;
-                          final screenHeight = mediaQuery.size.height;
 
                           // Calculate logo size based on screen dimensions
                           final logoWidth =

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../widgets/top_bar_without_menu.dart';
 import '../services/api_service.dart';
 import '../authentication/welcome_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class AccountSettingsScreen extends StatelessWidget {
   const AccountSettingsScreen({super.key});
