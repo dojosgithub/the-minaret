@@ -1288,7 +1288,18 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return List<Map<String, dynamic>>.from(data);
+        
+        // Get the current user's profile to check blocked users
+        final userProfile = await getUserProfile();
+        final blockedUserIds = List<String>.from(userProfile['blockedUsers'] ?? []);
+        
+        // Filter out blocked users
+        final filteredData = data.where((user) {
+          final userId = user['_id']?.toString() ?? '';
+          return !blockedUserIds.contains(userId);
+        }).toList();
+        
+        return List<Map<String, dynamic>>.from(filteredData);
       } else {
         throw Exception('Failed to search users');
       }

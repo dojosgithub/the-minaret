@@ -26,11 +26,12 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
   bool _isLoading = true;
   String? _error;
   Timer? _debounce;
+  List<String> _blockedUserIds = [];
 
   @override
   void initState() {
     super.initState();
-    _loadUsers();
+    _loadBlockedUsers().then((_) => _loadUsers());
   }
 
   @override
@@ -38,6 +39,19 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
     _searchController.dispose();
     _debounce?.cancel();
     super.dispose();
+  }
+
+  Future<void> _loadBlockedUsers() async {
+    try {
+      final userProfile = await ApiService.getUserProfile();
+      setState(() {
+        _blockedUserIds = List<String>.from(userProfile['blockedUsers'] ?? []);
+      });
+    } catch (e) {
+      debugPrint('Error loading blocked users: $e');
+      // Continue with empty blocked users list
+      _blockedUserIds = [];
+    }
   }
 
   Future<void> _loadUsers() async {
@@ -59,8 +73,14 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
         users.map((userId) => ApiService.getUserById(userId))
       );
       
+      // Filter out blocked users
+      final filteredUserDetails = userDetails.where((user) {
+        final userId = user['_id']?.toString() ?? '';
+        return !_blockedUserIds.contains(userId);
+      }).toList();
+      
       setState(() {
-        _users = userDetails;
+        _users = filteredUserDetails;
         _filteredUsers = List.from(_users);
         _isLoading = false;
       });
@@ -107,8 +127,13 @@ class _NewMessageScreenState extends State<NewMessageScreen> {
       try {
         final searchResults = await ApiService.searchUsers(query);
         final currentUserId = await ApiService.currentUserId;
-        // Filter out current user from API results as well
-        final filteredResults = searchResults.where((user) => user['_id'] != currentUserId).toList();
+        
+        // Filter out current user and blocked users from API results
+        final filteredResults = searchResults.where((user) {
+          final userId = user['_id']?.toString() ?? '';
+          return userId != currentUserId && !_blockedUserIds.contains(userId);
+        }).toList();
+        
         setState(() {
           _filteredUsers = filteredResults;
           _isLoading = false;

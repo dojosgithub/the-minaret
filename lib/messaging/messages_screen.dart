@@ -19,6 +19,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   bool _isLoading = true;
   String? _error;
   String? _currentUserId;
+  List<String> _blockedUserIds = [];
 
   @override
   void initState() {
@@ -41,6 +42,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
         });
         return;
       }
+      
+      // Load blocked users first
+      await _loadBlockedUsers();
       await _loadConversations();
     } catch (e) {
       debugPrint('Error loading data: $e');
@@ -48,6 +52,20 @@ class _MessagesScreenState extends State<MessagesScreen> {
         _error = 'Error loading messages. Please try again.';
         _isLoading = false;
       });
+    }
+  }
+
+  Future<void> _loadBlockedUsers() async {
+    try {
+      final userProfile = await ApiService.getUserProfile();
+      setState(() {
+        _blockedUserIds = List<String>.from(userProfile['blockedUsers'] ?? []);
+      });
+      debugPrint('Loaded ${_blockedUserIds.length} blocked users');
+    } catch (e) {
+      debugPrint('Error loading blocked users: $e');
+      // Continue with empty blocked users list
+      _blockedUserIds = [];
     }
   }
 
@@ -62,12 +80,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
         return;
       }
 
+      // Filter out conversations with blocked users
+      final filteredConversations = conversations.where((conv) {
+        final otherUserId = conv.getOtherParticipant(_currentUserId!);
+        return !_blockedUserIds.contains(otherUserId);
+      }).toList();
+
       final userDetails = await Future.wait(
-        conversations.map((conv) => ApiService.getUserById(conv.getOtherParticipant(_currentUserId!)))
+        filteredConversations.map((conv) => ApiService.getUserById(conv.getOtherParticipant(_currentUserId!)))
       );
       
       setState(() {
-        _conversations = conversations;
+        _conversations = filteredConversations;
         _userDetails = userDetails;
         _isLoading = false;
       });
