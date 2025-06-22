@@ -26,7 +26,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? postsError;
   bool isFollowing = false;
   bool isBlocked = false;
-  bool _isSubmitting = false;
+  bool isSubmitting = false;
 
   @override
   void initState() {
@@ -1310,7 +1310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _submitReport(String reason, String additionalContext) async {
-    setState(() => _isSubmitting = true);
+    setState(() => isSubmitting = true);
     
     try {
       // Submit the report
@@ -1346,7 +1346,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } finally {
       if (mounted) {
-        setState(() => _isSubmitting = false);
+        setState(() => isSubmitting = false);
       }
     }
   }

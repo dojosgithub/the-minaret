@@ -334,14 +334,17 @@ class ApiService {
         'email': userData['email'],
         'password': userData['password'],
         'type': userData['userType'], // Transform userType to type
-        'birthday': userData['dateOfBirth'], // Transform dateOfBirth to birthday
       };
+
+      // Only add dateOfBirth if it's provided
+      if (userData['dateOfBirth'] != null && userData['dateOfBirth'].toString().trim().isNotEmpty) {
+        transformedData['birthday'] = userData['dateOfBirth'];
+      }
 
       // Only add phoneNumber if it's not null and not empty
       if (userData['phoneNumber'] != null && userData['phoneNumber'].toString().trim().isNotEmpty) {
         transformedData['phoneNumber'] = userData['phoneNumber'];
       }
-      // Don't include phoneNumber at all if it's null or empty
 
       debugPrint('Registering user with data: $transformedData');
       

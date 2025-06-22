@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
 import '../widgets/top_bar_without_menu.dart';
-import 'dart:ui';
 import '../services/api_service.dart';
 import 'terms_and_conditions_screen.dart';
+
 class AppleRegistrationScreen extends StatefulWidget {
   const AppleRegistrationScreen({super.key});
 
@@ -19,9 +19,6 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
   bool _isLoading = false;
   bool _isTypeExpanded = false;
   String _selectedType = 'Type';
-  String _selectedDay = 'Day';
-  String _selectedMonth = 'Month';
-  String _selectedYear = 'Year';
 
   @override
   void dispose() {
@@ -34,20 +31,6 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
   Future<void> _updateProfile() async {
     if (!_formKey.currentState!.validate()) return;
     
-    if (_selectedType == 'Type') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your user type')),
-      );
-      return;
-    }
-    
-    if (_selectedDay == 'Day' || _selectedMonth == 'Month' || _selectedYear == 'Year') {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select your date of birth')),
-      );
-      return;
-    }
-
     setState(() => _isLoading = true);
 
     try {
@@ -56,8 +39,7 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
         'username': _usernameController.text,
-        'userType': _selectedType,
-        'dateOfBirth': '$_selectedDay $_selectedMonth $_selectedYear',
+        'userType': _selectedType != 'Type' ? _selectedType : 'Muslim', // Default to Muslim if not selected
         'needsProfileCompletion': false,
       };
 
@@ -178,8 +160,6 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
                   },
                 ),
                 const SizedBox(height: 20),
-                _buildBirthdayField(),
-                const SizedBox(height: 20),
                 _buildUserTypeField(),
                 const SizedBox(height: 30),
                 if (_isLoading)
@@ -249,7 +229,7 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('User Type', style: TextStyle(color: Colors.white)),
+        const Text('User Type (Optional)', style: TextStyle(color: Colors.white)),
         const SizedBox(height: 5),
         InkWell(
           onTap: () {
@@ -334,227 +314,6 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildBirthdayField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Birthday', style: TextStyle(color: Colors.white)),
-        const SizedBox(height: 5),
-        InkWell(
-          onTap: () => _showDatePicker(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            decoration: BoxDecoration(
-              color: const Color(0xFF3A1E47),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _selectedDay != 'Day' && _selectedMonth != 'Month' && _selectedYear != 'Year'
-                      ? '$_selectedDay $_selectedMonth $_selectedYear'
-                      : 'Select Birthday',
-                  style: TextStyle(
-                    color: _selectedDay != 'Day' ? const Color(0xFFFDCC87) : Colors.grey,
-                  ),
-                ),
-                const Icon(
-                  Icons.calendar_today,
-                  color: Color(0xFFFDCC87),
-                  size: 20,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showDatePicker(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return Stack(
-          children: [
-            BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(
-                color: Colors.black.withOpacity(0.5),
-              ),
-            ),
-            Dialog(
-              backgroundColor: const Color(0xFF3A1E47),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                height: 300,
-                child: Column(
-                  children: [
-                    const Text(
-                      'Select Birthday',
-                      style: TextStyle(
-                        color: Color(0xFFFDCC87),
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          // Selection lines
-                          Positioned.fill(
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    height: 1,
-                                    color: const Color(0xFFFDCC87),
-                                  ),
-                                  const SizedBox(height: 38),
-                                  Container(
-                                    height: 1,
-                                    color: const Color(0xFFFDCC87),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          Row(
-                            children: [
-                              // Day picker
-                              Expanded(
-                                child: ListWheelScrollView.useDelegate(
-                                  itemExtent: 40,
-                                  perspective: 0.005,
-                                  diameterRatio: 1.2,
-                                  physics: const FixedExtentScrollPhysics(),
-                                  childDelegate: ListWheelChildBuilderDelegate(
-                                    childCount: 31,
-                                    builder: (context, index) {
-                                      return Center(
-                                        child: Text(
-                                          index < 9 ? '0${index + 1}' : '${index + 1}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  onSelectedItemChanged: (index) {
-                                    setState(() {
-                                      _selectedDay = index < 9 ? '0${index + 1}' : '${index + 1}';
-                                    });
-                                  },
-                                ),
-                              ),
-                              // Month picker
-                              Expanded(
-                                child: ListWheelScrollView.useDelegate(
-                                  itemExtent: 40,
-                                  perspective: 0.005,
-                                  diameterRatio: 1.2,
-                                  physics: const FixedExtentScrollPhysics(),
-                                  childDelegate: ListWheelChildBuilderDelegate(
-                                    childCount: 12,
-                                    builder: (context, index) {
-                                      final months = [
-                                        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                                      ];
-                                      return Center(
-                                        child: Text(
-                                          months[index],
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  onSelectedItemChanged: (index) {
-                                    final months = [
-                                      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-                                    ];
-                                    setState(() {
-                                      _selectedMonth = months[index];
-                                    });
-                                  },
-                                ),
-                              ),
-                              // Year picker
-                              Expanded(
-                                child: ListWheelScrollView.useDelegate(
-                                  itemExtent: 40,
-                                  perspective: 0.005,
-                                  diameterRatio: 1.2,
-                                  physics: const FixedExtentScrollPhysics(),
-                                  childDelegate: ListWheelChildBuilderDelegate(
-                                    childCount: 100,
-                                    builder: (context, index) {
-                                      return Center(
-                                        child: Text(
-                                          '${2024 - index}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  ),
-                                  onSelectedItemChanged: (index) {
-                                    setState(() {
-                                      _selectedYear = '${2024 - index}';
-                                    });
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFDCC87),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(25),
-                        ),
-                        minimumSize: const Size(double.infinity, 45),
-                      ),
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text(
-                        'Confirm',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 } 
