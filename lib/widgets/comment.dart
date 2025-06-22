@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../utils/time_utils.dart';
 import '../services/api_service.dart';
 
-class Comment extends StatelessWidget {
+class Comment extends StatefulWidget {
   final String authorName;
   final String authorUsername;
   final String authorProfilePic;
@@ -12,6 +12,8 @@ class Comment extends StatelessWidget {
   final VoidCallback onReply;
   final String commentId;
   final String postId;
+  final String authorId;
+  final Function? onCommentDeleted;
 
   const Comment({
     super.key,
@@ -24,7 +26,32 @@ class Comment extends StatelessWidget {
     required this.onReply,
     required this.commentId,
     required this.postId,
+    required this.authorId,
+    this.onCommentDeleted,
   });
+
+  @override
+  State<Comment> createState() => _CommentState();
+}
+
+class _CommentState extends State<Comment> {
+  List<Map<String, dynamic>> _replies = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _replies = List<Map<String, dynamic>>.from(widget.replies);
+  }
+
+  @override
+  void didUpdateWidget(Comment oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.replies != oldWidget.replies) {
+      setState(() {
+        _replies = List<Map<String, dynamic>>.from(widget.replies);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +67,7 @@ class Comment extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8.0),
                 child: CircleAvatar(
-                  backgroundImage: NetworkImage(authorProfilePic),
+                  backgroundImage: NetworkImage(widget.authorProfilePic),
                   radius: 16,
                   backgroundColor: const Color(0xFF3D1B45),
                   onBackgroundImageError: (_, __) {
@@ -61,7 +88,7 @@ class Comment extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  authorName,
+                                  widget.authorName,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                     color: Colors.white,
@@ -73,7 +100,7 @@ class Comment extends StatelessWidget {
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
-                                  '@$authorUsername',
+                                  '@${widget.authorUsername}',
                                   style: const TextStyle(
                                     color: Color(0xFFFDCC87),
                                     fontSize: 12,
@@ -85,40 +112,64 @@ class Comment extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          getTimeAgo(DateTime.parse(createdAt)),
+                          getTimeAgo(DateTime.parse(widget.createdAt)),
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 12,
                           ),
                         ),
-                        PopupMenuButton<String>(
-                          icon: const Icon(Icons.more_vert, color: Colors.white, size: 16),
-                          color: const Color(0xFF3D1B45),
-                          onSelected: (value) {
-                            if (value == 'report') {
-                              _showReportDialog(context);
-                            }
-                          },
-                          itemBuilder: (BuildContext context) => [
-                            PopupMenuItem<String>(
-                              value: 'report',
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.flag, size: 16, color: Colors.red),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'Report',
-                                    style: TextStyle(color: Colors.red),
+                        FutureBuilder<String?>(
+                          future: ApiService.currentUserId,
+                          builder: (context, snapshot) {
+                            final isAuthor = snapshot.hasData && snapshot.data == widget.authorId;
+                            
+                            return PopupMenuButton<String>(
+                              icon: const Icon(Icons.more_vert, color: Colors.white, size: 16),
+                              color: const Color(0xFF3D1B45),
+                              onSelected: (value) {
+                                if (value == 'report') {
+                                  _showReportDialog(context);
+                                } else if (value == 'delete') {
+                                  _showDeleteConfirmation(context);
+                                }
+                              },
+                              itemBuilder: (BuildContext context) => [
+                                if (isAuthor)
+                                  PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.delete, size: 16, color: Colors.red),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Delete',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ],
+                                    ),
+                                  )
+                                else
+                                  PopupMenuItem<String>(
+                                    value: 'report',
+                                    child: Row(
+                                      children: [
+                                        const Icon(Icons.flag, size: 16, color: Colors.red),
+                                        const SizedBox(width: 8),
+                                        const Text(
+                                          'Report',
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ],
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          }
                         ),
                       ],
                     ),
                     Text(
-                      text,
+                      widget.text,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 14,
@@ -128,7 +179,7 @@ class Comment extends StatelessWidget {
                     Row(
                       children: [
                         GestureDetector(
-                          onTap: onReply,
+                          onTap: widget.onReply,
                           child: const Row(
                             children: [
                               Icon(Icons.reply, color: Color(0xFFFDCC87), size: 14),
@@ -150,9 +201,9 @@ class Comment extends StatelessWidget {
               ),
             ],
           ),
-          if (replies.isNotEmpty) ...[
+          if (_replies.isNotEmpty) ...[
             const SizedBox(height: 8),
-            ...replies.map((reply) {
+            ..._replies.map((reply) {
               return Container(
                 margin: const EdgeInsets.only(left: 30, top: 8),
                 child: Row(
@@ -214,33 +265,62 @@ class Comment extends StatelessWidget {
                                   fontSize: 10,
                                 ),
                               ),
-                              PopupMenuButton<String>(
-                                icon: const Icon(Icons.more_vert, color: Colors.white, size: 16),
-                                color: const Color(0xFF3D1B45),
-                                onSelected: (value) {
-                                  if (value == 'report') {
-                                    _showReportDialog(
-                                      context,
-                                      isReply: true,
-                                      replyId: reply['_id'],
-                                    );
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) => [
-                                  PopupMenuItem<String>(
-                                    value: 'report',
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.flag, size: 16, color: Colors.red),
-                                        const SizedBox(width: 8),
-                                        const Text(
-                                          'Report',
-                                          style: TextStyle(color: Colors.red),
+                              FutureBuilder<String?>(
+                                future: ApiService.currentUserId,
+                                builder: (context, snapshot) {
+                                  final isReplyAuthor = snapshot.hasData && 
+                                      snapshot.data == reply['author']['_id'];
+                                  
+                                  return PopupMenuButton<String>(
+                                    icon: const Icon(Icons.more_vert, color: Colors.white, size: 16),
+                                    color: const Color(0xFF3D1B45),
+                                    onSelected: (value) {
+                                      if (value == 'report') {
+                                        _showReportDialog(
+                                          context,
+                                          isReply: true,
+                                          replyId: reply['_id'],
+                                        );
+                                      } else if (value == 'delete') {
+                                        _showDeleteConfirmation(
+                                          context,
+                                          isReply: true,
+                                          replyId: reply['_id'],
+                                        );
+                                      }
+                                    },
+                                    itemBuilder: (BuildContext context) => [
+                                      if (isReplyAuthor)
+                                        PopupMenuItem<String>(
+                                          value: 'delete',
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.delete, size: 16, color: Colors.red),
+                                              const SizedBox(width: 8),
+                                              const Text(
+                                                'Delete',
+                                                style: TextStyle(color: Colors.red),
+                                              ),
+                                            ],
+                                          ),
+                                        )
+                                      else
+                                        PopupMenuItem<String>(
+                                          value: 'report',
+                                          child: Row(
+                                            children: [
+                                              const Icon(Icons.flag, size: 16, color: Colors.red),
+                                              const SizedBox(width: 8),
+                                              const Text(
+                                                'Report',
+                                                style: TextStyle(color: Colors.red),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                                    ],
+                                  );
+                                }
                               ),
                             ],
                           ),
@@ -262,6 +342,76 @@ class Comment extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, {bool isReply = false, String? replyId}) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF3D1B45),
+          title: Text(
+            'Delete ${isReply ? 'Reply' : 'Comment'}',
+            style: const TextStyle(color: Colors.white),
+          ),
+          content: Text(
+            'Are you sure you want to delete this ${isReply ? 'reply' : 'comment'}? This action cannot be undone.',
+            style: const TextStyle(color: Colors.white),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                'Cancel',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                
+                try {
+                  if (isReply) {
+                    await ApiService.deleteReply(widget.postId, widget.commentId, replyId!);
+                    // Update UI to remove the deleted reply
+                    setState(() {
+                      _replies.removeWhere((r) => r['_id'] == replyId);
+                    });
+                  } else {
+                    await ApiService.deleteComment(widget.postId, widget.commentId);
+                    if (widget.onCommentDeleted != null) {
+                      widget.onCommentDeleted!();
+                    }
+                  }
+                  
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('${isReply ? 'Reply' : 'Comment'} deleted successfully'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Failed to delete ${isReply ? 'reply' : 'comment'}: $e'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text(
+                'Delete',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -401,8 +551,8 @@ class Comment extends StatelessWidget {
                                     
                                     // Submit the report with both comment and post IDs
                                     ApiService.reportContent(
-                                      commentId: commentId,
-                                      postId: postId,
+                                      commentId: widget.commentId,
+                                      postId: widget.postId,
                                       replyId: replyId,
                                       contentType: isReply ? 'reply' : 'comment',
                                       reason: selectedReason!,

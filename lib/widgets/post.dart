@@ -1708,6 +1708,14 @@ class _PostState extends State<Post> {
                 },
                 commentId: comment['_id'],
                 postId: widget.id,
+                authorId: comment['author']['_id'],
+                onCommentDeleted: () {
+                  // Remove the deleted comment from the list
+                  setState(() {
+                    _comments.removeWhere((c) => c['_id'] == comment['_id']);
+                    _commentCount = _commentCount > 0 ? _commentCount - 1 : 0;
+                  });
+                },
               ),
               if (replies.isNotEmpty) ...[
                 Padding(

@@ -1158,6 +1158,42 @@ class ApiService {
     }
   }
 
+  // Delete a comment
+  static Future<void> deleteComment(String postId, String commentId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/posts/$postId/comments/$commentId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to delete comment');
+      }
+    } catch (e) {
+      debugPrint('Error deleting comment: $e');
+      rethrow;
+    }
+  }
+
+  // Delete a reply
+  static Future<void> deleteReply(String postId, String commentId, String replyId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('$baseUrl/posts/$postId/comments/$commentId/replies/$replyId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode != 200) {
+        final error = json.decode(response.body);
+        throw Exception(error['message'] ?? 'Failed to delete reply');
+      }
+    } catch (e) {
+      debugPrint('Error deleting reply: $e');
+      rethrow;
+    }
+  }
+
   static Future<void> markNotificationAsRead(String notificationId) async {
     try {
       final response = await http.put(
