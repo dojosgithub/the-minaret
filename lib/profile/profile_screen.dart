@@ -325,7 +325,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                                 style: const TextStyle(color: Colors.white, fontSize: 14),
                                                 softWrap: true,
                                               ),
-                                              const SizedBox(height: 20),
+                                              const SizedBox(height: 5),
                                             ],
                                           ),
                                         _buildFollowAndBlockRow(),
