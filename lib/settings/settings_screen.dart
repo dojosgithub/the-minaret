@@ -131,12 +131,12 @@ class SettingsScreen extends StatelessWidget {
                       MaterialPageRoute(builder: (context) => const ContentFilterScreen()),
                     );
                   }),
-                  _buildMenuItem(context, "Language", Icons.language_outlined, () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LanguageScreen()),
-                    );
-                  }),
+                  // _buildMenuItem(context, "Language", Icons.language_outlined, () {
+                  //   Navigator.push(
+                  //     context,
+                  //     MaterialPageRoute(builder: (context) => const LanguageScreen()),
+                  //   );
+                  // }),
                   _buildMenuItem(context, "Community Guidelines", Icons.groups_outlined, () {
                     Navigator.push(
                       context,

@@ -281,89 +281,128 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFF4F245A),
         appBar: const TopBarWithoutMenu(),
-        body: isLoadingUserInfo
-            ? const Center(
-                child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                ),
-              )
-            : userInfoError != null
-                ? ConnectionErrorWidget(
-                    onRetry: _loadUserInfo,
+        body: Column(
+          children: [
+            // Secondary top bar with back button and username
+            _buildSecondaryTopBar(),
+            
+            // Main content
+            Expanded(
+              child: isLoadingUserInfo
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
+                    ),
                   )
-                : isBlocked
-                    ? _buildBlockedUserView()
-                    : RefreshIndicator(
-                        onRefresh: _loadUserInfo,
-                        color: const Color(0xFFFDCC87),
-                        child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(15.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _buildUserHeader(),
-                                    const SizedBox(height: 10),
-                                    if (userData?.containsKey('bio') == true && 
-                                        userData?['bio'] != null && 
-                                        userData!['bio'].toString().isNotEmpty)
-                                      Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            userData!['bio'],
-                                            style: const TextStyle(color: Colors.white, fontSize: 14),
-                                            softWrap: true,
-                                          ),
-                                          const SizedBox(height: 20),
-                                        ],
-                                      ),
-                                    _buildFollowAndBlockRow(),
-                                    const SizedBox(height: 20),
-                                  ],
-                                ),
-                              ),
-                              
-                              // Posts section with its own loading state - full width
-                              isLoadingPosts
-                                ? const Center(
-                                    child: Padding(
-                                      padding: EdgeInsets.symmetric(vertical: 30.0),
-                                      child: CircularProgressIndicator(
-                                        valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
-                                      ),
-                                    ),
-                                  )
-                                : postsError != null
-                                    ? Center(
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(vertical: 20.0),
-                                          child: Column(
+                : userInfoError != null
+                    ? ConnectionErrorWidget(
+                        onRetry: _loadUserInfo,
+                      )
+                    : isBlocked
+                        ? _buildBlockedUserView()
+                        : RefreshIndicator(
+                            onRefresh: _loadUserInfo,
+                            color: const Color(0xFFFDCC87),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(15.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        _buildUserHeader(),
+                                        const SizedBox(height: 10),
+                                        if (userData?.containsKey('bio') == true && 
+                                            userData?['bio'] != null && 
+                                            userData!['bio'].toString().isNotEmpty)
+                                          Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
                                             children: [
-                                              const Text(
-                                                'Failed to load posts',
-                                                style: TextStyle(color: Colors.white, fontSize: 16),
+                                              Text(
+                                                userData!['bio'],
+                                                style: const TextStyle(color: Colors.white, fontSize: 14),
+                                                softWrap: true,
                                               ),
-                                              const SizedBox(height: 10),
-                                              ElevatedButton(
-                                                onPressed: _loadUserPosts,
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor: const Color(0xFFFDCC87),
-                                                ),
-                                                child: const Text('Retry', style: TextStyle(color: Colors.black)),
-                                              ),
+                                              const SizedBox(height: 20),
                                             ],
+                                          ),
+                                        _buildFollowAndBlockRow(),
+                                      ],
+                                    ),
+                                  ),
+                                  
+                                  // Posts section with its own loading state - full width
+                                  isLoadingPosts
+                                    ? const Center(
+                                        child: Padding(
+                                          padding: EdgeInsets.symmetric(vertical: 30.0),
+                                          child: CircularProgressIndicator(
+                                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFFDCC87)),
                                           ),
                                         ),
                                       )
-                                    : _buildPosts(),
-                            ],
+                                    : postsError != null
+                                        ? Center(
+                                            child: Padding(
+                                              padding: const EdgeInsets.symmetric(vertical: 20.0),
+                                              child: Column(
+                                                children: [
+                                                  const Text(
+                                                    'Failed to load posts',
+                                                    style: TextStyle(color: Colors.white, fontSize: 16),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  ElevatedButton(
+                                                    onPressed: _loadUserPosts,
+                                                    style: ElevatedButton.styleFrom(
+                                                      backgroundColor: const Color(0xFFFDCC87),
+                                                    ),
+                                                    child: const Text('Retry', style: TextStyle(color: Colors.black)),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                        : _buildPosts(),
+                                ],
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondaryTopBar() {
+    return Container(
+      color: const Color(0xFF4F245A),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+      child: Row(
+        children: [
+          // Back button
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Icon(
+              Icons.arrow_back,
+              color: Color(0xFFFDCC87),
+              size: 24,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Username
+          Text(
+            '${userData?['username'] ?? ''}',
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

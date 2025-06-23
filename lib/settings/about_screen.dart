@@ -36,7 +36,7 @@ class AboutScreen extends StatelessWidget {
                   ),
                   SizedBox(width: screenWidth * 0.02),
                   Text(
-                    "About the Minaret",
+                    "About The Minaret",
                     style: TextStyle(
                       color: const Color(0xFFFDCC87),
                       fontSize: screenWidth * 0.06,
@@ -49,7 +49,7 @@ class AboutScreen extends StatelessWidget {
 
               // App Description
               Text(
-                "Welcome to our app – a platform designed for engaging discussions, sharing insights, and scaling your experiences with a vibrant community. Whether you're here to participate in meaningful conversations, provide feedback, or manage your privacy settings, our app offers a seamless and user-friendly experience.",
+                "Welcome to The Minaret – a platform designed for engaging discussions, sharing insights, and scaling your experiences with a vibrant community. Whether you're here to participate in meaningful conversations, provide feedback, or manage your privacy settings, our app offers a seamless and user-friendly experience.",
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: screenWidth * 0.04,
@@ -71,7 +71,6 @@ class AboutScreen extends StatelessWidget {
                 "• Personalized Privacy & Safety settings allowing control over who can comment, upvote, share, and view your profile.\n\n"
                 "• Community Guidelines that ensure a respectful and positive experience for all users.\n\n"
                 "• A structured feedback system where you can share your experience and help improve the platform.\n\n"
-                "• A seamless language selection experience to navigate in your preferred language.\n\n"
                 "• A beautiful, intuitive UI with a unique theme designed for clarity and ease of use.",
                 style: TextStyle(
                   color: Colors.white,
