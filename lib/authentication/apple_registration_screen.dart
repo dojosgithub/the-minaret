@@ -5,7 +5,14 @@ import '../services/api_service.dart';
 import 'terms_and_conditions_screen.dart';
 
 class AppleRegistrationScreen extends StatefulWidget {
-  const AppleRegistrationScreen({super.key});
+  final String firstName;
+  final String lastName;
+
+  const AppleRegistrationScreen({
+    super.key, 
+    this.firstName = '', 
+    this.lastName = '',
+  });
 
   @override
   State<AppleRegistrationScreen> createState() => _AppleRegistrationScreenState();
@@ -19,6 +26,14 @@ class _AppleRegistrationScreenState extends State<AppleRegistrationScreen> {
   bool _isLoading = false;
   bool _isTypeExpanded = false;
   String _selectedType = 'Type';
+
+  @override
+  void initState() {
+    super.initState();
+    // Populate the text fields with the provided names
+    _firstNameController.text = widget.firstName;
+    _lastNameController.text = widget.lastName;
+  }
 
   @override
   void dispose() {

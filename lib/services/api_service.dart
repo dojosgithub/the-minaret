@@ -996,6 +996,25 @@ class ApiService {
     }
   }
 
+  static Future<bool> isBlockedBy(String userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/is-blocked-by/$userId'),
+        headers: await getHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['isBlockedBy'] ?? false;
+      } else {
+        throw Exception('Failed to check if blocked by user');
+      }
+    } catch (e) {
+      debugPrint('Error checking if blocked by user: $e');
+      return false;
+    }
+  }
+
   static Future<void> blockUser(String userId) async {
     try {
       final response = await http.post(
@@ -1293,13 +1312,25 @@ class ApiService {
         final userProfile = await getUserProfile();
         final blockedUserIds = List<String>.from(userProfile['blockedUsers'] ?? []);
         
-        // Filter out blocked users
-        final filteredData = data.where((user) {
-          final userId = user['_id']?.toString() ?? '';
-          return !blockedUserIds.contains(userId);
-        }).toList();
+        // Filter out users that the current user has blocked
+        final List<Map<String, dynamic>> filteredData = data
+          .where((user) {
+            final userId = user['_id']?.toString() ?? '';
+            return !blockedUserIds.contains(userId);
+          })
+          .map((user) => Map<String, dynamic>.from(user))
+          .toList();
         
-        return List<Map<String, dynamic>>.from(filteredData);
+        // Further filter out users who have blocked the current user
+        final List<Map<String, dynamic>> finalFilteredData = [];
+        for (var user in filteredData) {
+          final bool isUserBlockedBy = await isBlockedBy(user['_id']);
+          if (!isUserBlockedBy) {
+            finalFilteredData.add(user);
+          }
+        }
+        
+        return finalFilteredData;
       } else {
         throw Exception('Failed to search users');
       }

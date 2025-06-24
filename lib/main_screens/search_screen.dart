@@ -112,15 +112,24 @@ class _SearchScreenState extends State<SearchScreen> {
         post['isDownvoted'] = status['isDownvoted'] ?? false;
       }
 
-      // Check follow status for each user
+      // Check follow status for each user and filter out users who have blocked the current user
       final users = results['users'] ?? [];
+      final List<Map<String, dynamic>> filteredUsers = [];
+      
       for (var user in users) {
-        user['isFollowing'] = await ApiService.isFollowing(user['_id']);
+        // Check if current user is blocked by this user
+        final isBlockedBy = await ApiService.isBlockedBy(user['_id']);
+        
+        // Only include users who haven't blocked the current user
+        if (!isBlockedBy) {
+          user['isFollowing'] = await ApiService.isFollowing(user['_id']);
+          filteredUsers.add(user);
+        }
       }
 
       setState(() {
         _posts = posts;
-        _users = users;
+        _users = filteredUsers; // Use filtered users list
         _isLoading = false;
       });
     } catch (e) {

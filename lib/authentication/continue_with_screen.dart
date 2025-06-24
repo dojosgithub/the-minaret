@@ -181,10 +181,15 @@ class ContinueWithScreen extends StatelessWidget {
       
       if (authResult['success'] == true) {
         if (authResult['needsProfileCompletion'] == true) {
-          // First time user, navigate to Apple Registration screen
+          // First time user, navigate to Apple Registration screen with user's name
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const AppleRegistrationScreen()),
+            MaterialPageRoute(
+              builder: (context) => AppleRegistrationScreen(
+                firstName: appleCredential.givenName ?? '',
+                lastName: appleCredential.familyName ?? '',
+              ),
+            ),
           );
         } else if (authResult['acceptedTermsandConditions'] != true) {
           // Profile complete but terms not accepted, navigate to Terms screen
